@@ -101,7 +101,9 @@ create trigger groups_touch_updated_at
 
 create table public.group_members (
   group_id uuid not null references public.groups (id) on delete cascade,
-  user_id uuid not null references auth.users (id) on delete cascade,
+  -- References profiles (which cascade from auth.users) so PostgREST can
+  -- embed member profiles: group_members?select=*,profiles(*)
+  user_id uuid not null references public.profiles (id) on delete cascade,
   role public.member_role not null default 'member',
   joined_at timestamptz not null default now(),
   primary key (group_id, user_id)

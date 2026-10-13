@@ -68,11 +68,10 @@ select throws_ok(
   $$ select public.create_group('   ', 'friends') $$,
   '23514', null, 'blank group names are rejected');
 
+update public.groups set name = 'Us two' where id = current_setting('t.couple')::uuid;
 select is(
-  (with u as (update public.groups set name = 'Us two'
-              where id = current_setting('t.couple')::uuid returning 1)
-   select count(*)::int from u),
-  1, 'owner can rename the group');
+  (select name from public.groups where id = current_setting('t.couple')::uuid),
+  'Us two', 'owner can rename the group');
 
 select throws_ok(
   $$ update public.groups set created_by = null where id = current_setting('t.couple')::uuid $$,
@@ -102,34 +101,33 @@ select is(
   (select count(*)::int from public.profiles where id = current_setting('t.alice')::uuid),
   0, 'non-member cannot read a stranger''s profile');
 select is((select count(*)::int from public.profiles), 1, 'user can read only their own profile');
-select is(
-  (with u as (update public.groups set name = 'Hacked'
-              where id = current_setting('t.couple')::uuid returning 1)
-   select count(*)::int from u),
-  0, 'non-member cannot rename a group');
-select is(
-  (with d as (delete from public.group_members
-              where group_id = current_setting('t.couple')::uuid returning 1)
-   select count(*)::int from d),
-  0, 'non-member cannot delete memberships');
 select throws_ok(
   $$ select public.delete_group(current_setting('t.couple')::uuid) $$,
   'P0001', 'closer:not_allowed', 'non-member cannot delete a group');
 select throws_ok(
   $$ select * from public.create_invitation(current_setting('t.couple')::uuid) $$,
   'P0001', 'closer:not_a_member', 'non-member cannot create invitations');
-select is(
-  (with u as (update public.profiles set display_name = 'Robert'
-              where id = current_setting('t.bob')::uuid returning 1)
-   select count(*)::int from u),
-  1, 'users can update their own profile');
-select is(
-  (with u as (update public.profiles set display_name = 'Not Alice'
-              where id = current_setting('t.alice')::uuid returning 1)
-   select count(*)::int from u),
-  0, 'users cannot update someone else''s profile');
+
+-- Write attempts that RLS silently filters to zero rows; verified below.
+update public.groups set name = 'Hacked' where id = current_setting('t.couple')::uuid;
+delete from public.group_members where group_id = current_setting('t.couple')::uuid;
+update public.profiles set display_name = 'Robert' where id = current_setting('t.bob')::uuid;
+update public.profiles set display_name = 'Not Alice' where id = current_setting('t.alice')::uuid;
 
 reset role;
+
+select is(
+  (select name from public.groups where id = current_setting('t.couple')::uuid),
+  'Us two', 'non-member cannot rename a group');
+select is(
+  (select count(*)::int from public.group_members where group_id = current_setting('t.couple')::uuid),
+  1, 'non-member cannot delete memberships');
+select is(
+  (select display_name from public.profiles where id = current_setting('t.bob')::uuid),
+  'Robert', 'users can update their own profile');
+select is(
+  (select display_name from public.profiles where id = current_setting('t.alice')::uuid),
+  'Alice Kim', 'users cannot update someone else''s profile');
 
 -- Unauthenticated (anon) access.
 set local role anon;
