@@ -38,3 +38,11 @@ class UnexpectedFailure extends AppFailure {
     super.message = 'Something went wrong. Please try again.',
   ]);
 }
+
+/// Failure raised by a trusted backend function (`closer:<key>` messages).
+class BackendFailure extends AppFailure {
+  const BackendFailure(super.message, {required this.key});
+
+  /// The machine-readable reason, e.g. `group_full`.
+  final String key;
+}

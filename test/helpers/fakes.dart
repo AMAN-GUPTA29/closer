@@ -7,6 +7,10 @@ import 'package:closer/core/theme/closer_theme.dart';
 import 'package:closer/features/auth/application/auth_providers.dart';
 import 'package:closer/features/auth/data/auth_repository.dart';
 import 'package:closer/features/auth/domain/auth_models.dart';
+import 'package:closer/features/groups/application/group_providers.dart';
+import 'package:closer/features/groups/data/groups_repository.dart';
+import 'package:closer/features/groups/data/in_memory_groups_repository.dart';
+import 'package:closer/features/invitations/application/invite_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -146,27 +150,42 @@ class FakeAuthRepository implements AuthRepository {
   }
 }
 
-/// Pumps the full app with overridden config and auth repository.
+/// Pumps the full app with overridden config, auth and groups backends.
+/// Links can be injected through [links] to simulate deep links.
 Future<void> pumpCloserApp(
   WidgetTester tester, {
   AuthRepository? repository,
   AppConfig config = testConfig,
+  GroupsBackend? groups,
+  Stream<Uri>? links,
 }) async {
   tester.view.physicalSize = const Size(1170, 2532);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
+      retry: (_, _) => null,
       overrides: [
         appConfigProvider.overrideWithValue(config),
         if (repository != null)
           authRepositoryProvider.overrideWithValue(repository),
+        if (groups != null) groupsBackendProvider.overrideWithValue(groups),
+        incomingLinksProvider.overrideWithValue(
+          links ?? const Stream<Uri>.empty(),
+        ),
       ],
       child: const CloserApp(),
     ),
   );
   await tester.pumpAndSettle();
 }
+
+/// In-memory groups backend for the signed-in [testUser].
+InMemoryGroupsRepository memoryGroups({String userId = 'u1'}) =>
+    InMemoryGroupsRepository(
+      currentUserId: userId,
+      currentUserName: 'Alex Kim',
+    );
 
 /// Wraps a single widget in a themed MaterialApp for component tests.
 Widget themed(Widget child) {
