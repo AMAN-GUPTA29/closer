@@ -44,6 +44,29 @@ jobs:
       - name: Unit and widget tests
         run: flutter test --reporter expanded
 
+  backend:
+    name: Database tests (Supabase)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.120.0
+
+      - name: Start local Postgres with migrations
+        run: supabase db start
+
+      - name: pgTAP tests (RLS, invitations, membership lifecycle)
+        run: supabase test db
+
+      - name: Concurrent couple joins
+        run: bash supabase/tests/concurrency/couple_capacity.sh
+
+      - name: Lint database (security advisories)
+        run: supabase db lint --level warning --fail-on error
+
   android-apk:
     name: Debug APK
     needs: checks
