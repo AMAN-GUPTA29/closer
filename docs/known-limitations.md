@@ -3,13 +3,17 @@
 The actionable list of deferred items, owner actions and credentials lives in
 [`ISSUES.md`](../ISSUES.md). This page describes current behaviour limits.
 
-_Last updated: Phase 5, 2026-10-14._
+_Last updated: Phase 6, 2026-10-14. Launch steps: [release-readiness.md](release-readiness.md)._
 
-## Not built yet (planned phases)
+## Not built (by design, or waiting on decisions)
 
-| Feature | Phase |
-|---|---|
-| Release signing, Codemagic iOS builds, TestFlight, hardening | 6 |
+- Verified https invite links (App Links / Universal Links): need a domain (D4).
+- Basic $2 charging: open decision (D1).
+- Localisation: English only.
+- Offline queueing of changes (uploads retry per step; other actions need a connection).
+
+Release pipelines exist (`release.yml`, `codemagic.yaml`) but have **not run**, because they need
+signing accounts.
 
 Disabled and labelled until credentials exist: the Closer Memories purchase button and "Restore
 purchases" (no RevenueCat keys in the build); push (no Firebase config, so the app runs without

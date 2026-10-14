@@ -7,7 +7,7 @@ never silently deleted. Secrets themselves are **never** written here or in chat
 **Owner:** 👤 = you (needs your account, credentials or decision) · 🤖 = Claude · 🤝 = both
 **Status:** 🔴 blocking a feature · 🟡 open · ✅ resolved
 
-_Last updated: 2026-10-14 (after Phase 5)._
+_Last updated: 2026-10-14 (after Phase 6). Release order: docs/release-readiness.md §3._
 
 ## A. Credentials and accounts (👤 owner actions)
 
@@ -25,8 +25,8 @@ _Last updated: 2026-10-14 (after Phase 5)._
 | A10 | Firebase project (FCM) | Push notifications | Add Android app `com.closerapp.closer` and iOS app. Client values → dart-defines `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_SENDER_ID`, `FIREBASE_ANDROID_APP_ID`, `FIREBASE_IOS_APP_ID` (repo variables; no config files are committed). A service-account JSON with the FCM role → Supabase secret `FCM_SERVICE_ACCOUNT` | 🔴 push |
 | A13 | APNs auth key (.p8) uploaded to Firebase | Push on iPhone | Apple Developer → Keys → APNs; upload in Firebase → Cloud Messaging. Never commit the .p8 | 🔴 iOS push |
 | A14 | iOS identifiers with App Group + Push capability | iOS widget data sharing, push | Register `com.closerapp.closer` and `com.closerapp.closer.CloserWidget`, both with App Group `group.com.closerapp.closer`; Push Notifications on the app. Used by Codemagic signing (A11) | 🟡 (Phase 6) |
-| A11 | Codemagic account + App Store Connect API key | Hosted iOS builds (Phase 6) | Stored in Codemagic, never in the repo | 🟡 (Phase 6) |
-| A12 | Android release keystore | Signed release APK/AAB (Phase 6) | Generate locally, store base64 + passwords as GitHub Secrets | 🟡 (Phase 6) |
+| A11 | Codemagic account + App Store Connect API key | Signed iOS builds / TestFlight (`codemagic.yaml`) | Connect the repo in Codemagic; add the ASC key as integration **"Closer ASC"**; env groups `closer_signing` (`CERTIFICATE_PRIVATE_KEY`) and `closer_client` (client config + `APP_STORE_APPLE_ID`). Never in the repo | 🔴 iOS release |
+| A12 | Android release keystore | Signed AAB/APK (`release.yml`) | Generate with `keytool` on your computer (docs/build-and-release.md). Put `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` in the GitHub **`release` environment** secrets. Back the key up in a password manager; enable Play App Signing | 🔴 Android release |
 
 ## B. Setup steps on the hosted backend (after A1–A3)
 
@@ -37,6 +37,7 @@ _Last updated: 2026-10-14 (after Phase 5)._
 | B3 | Schedule cleanup every 10 min | Enable `pg_cron` + `pg_net`, then the SQL in `docs/purchases-and-retention.md` | 🔴 |
 | B5 | Schedule push dispatch (every minute) + milestone reminders (daily) | SQL in `docs/notifications.md` (`pg_cron` + `pg_net`, Vault secret) | 🔴 push |
 | B6 | Enable Realtime for the app tables | The migration adds them to `supabase_realtime`; check Dashboard → Database → Publications after `db push` | 🟡 |
+| B7 | Review Supabase Auth settings | Dashboard → Authentication: keep email confirmation on, enable leaked-password protection, check rate limits and the minimum password length (8), set the site URL | 🟡 |
 | B4 | Verify live flows once connected | Sign-up + email confirm, create/join group, upload photo, retention on the 11th photo, cleanup deletes files, milestones, notifications, avatar upload, account deletion | 🟡 🤝 |
 
 ## C. Unverified features (built and tested in code, not yet proven in the real world)
@@ -56,6 +57,9 @@ _Last updated: 2026-10-14 (after Phase 5)._
 | C11 | Android widget on a physical phone and other launchers (Samsung, Xiaomi pin dialog / configure step) | Your phone | 🟡 |
 | C12 | Sandbox purchase end to end: buy → verify-purchase → Premium for all members; pending; cancel; refund → 30-day grace; restore on a new phone | A1–A3, A8, A9, B2 | 🟡 |
 | C13 | Realtime updates between two signed-in devices | A1–A3, B6 | 🟡 |
+| C14 | Performance on a low-end Android phone (scroll jank, startup, memory with large journals) | Physical device, profile build | 🟡 |
+| C15 | Screen reader pass (TalkBack + VoiceOver) on the main flows | Devices | 🟡 |
+| C16 | Signed release workflow + Codemagic TestFlight upload actually run | A11, A12, A14 | 🟡 |
 
 ## D. Product decisions still open (👤)
 
@@ -68,14 +72,14 @@ _Last updated: 2026-10-14 (after Phase 5)._
 | D5 | Legal documents | In-app privacy/terms are draft summaries; real policy + terms URLs needed before release (`PRIVACY_POLICY_URL`, `TERMS_URL`) | 🟡 |
 | D6 | Support email | `SUPPORT_EMAIL` for Help & support | 🟡 |
 | D7 | Google/Apple button branding | Monochrome marks used; check provider brand rules before enabling | 🟡 |
+| D8 | Apple review risk: a consumable that unlocks a permanent per-group feature (guideline 3.1.1) | Explain in the App Review notes; fallback options are in docs/release-readiness.md §2 | 🟡 |
+| D9 | Store listing content: screenshots, description, Data safety / privacy labels, content rating, demo account for review | Owner fills these in the consoles (checklist in release-readiness.md) | 🟡 |
 
 ## E. Technical follow-ups (🤖, scheduled)
 
 | # | Item | Planned phase | Status |
 |---|---|---|---|
 | E1 | Byte-level upload progress (currently step-based) | Later / optional | 🟡 |
-| E6 | Release signing, Codemagic iOS, TestFlight, hardening | Phase 6 | 🟡 |
-| E10 | `aps-environment` → `production` for release signing; add the widget extension in Codemagic | Phase 6 | 🟡 |
 | E11 | Old remote branches `phase-1..4/*` (already merged via PR #5): delete? | Owner decision 👤 | 🟡 |
 | E12 | Android emulator `Pixel_8_API_34` is almost full (~0.9 GB free); full debug APK no longer installs, so use `--split-per-abi` | Any time | 🟡 |
 
@@ -98,3 +102,8 @@ _Last updated: 2026-10-14 (after Phase 5)._
 | R13 | Stacked PRs not reaching `main` (was E7) | 2026-10-14 | Combined PR #5 merged by the owner; phase PRs now target `main` |
 | R14 | Widget tap ignored Preview group ids | 2026-10-14 | Found on emulator; link parser accepts safe short ids |
 | R15 | iOS CI "Multiple commands produce .appex" | 2026-10-14 | Widget target `PRODUCT_NAME` set; embed phase before Thin Binary |
+| R16 | Release signing, Codemagic iOS, TestFlight config, hardening (was E6) | 2026-10-14 | Phase 6: `release.yml`, `codemagic.yaml`, security review (running them = C16) |
+| R17 | Production push entitlement + widget extension for signed iOS builds (was E10) | 2026-10-14 | `codemagic.yaml` switches `aps-environment` and runs the extension script |
+| R18 | Large text clipped group actions/onboarding; 44 dp header buttons; danger red below AA | 2026-10-14 | Found by the new accessibility tests; fixed |
+| R19 | Widget covers re-downloaded on every group change | 2026-10-14 | Phase 6 performance review: cached by thumbnail path |
+| R20 | Android backups could copy the signed-in session | 2026-10-14 | `allowBackup=false` + data-extraction rules |

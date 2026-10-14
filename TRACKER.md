@@ -15,8 +15,8 @@ Deferred items, credentials and owner actions are collected in [ISSUES.md](ISSUE
 | 2 | Auth, database, groups, invitations | ✅ Done (PR #2) | ✅ 2026-10-14 |
 | 3 | Photos, storage, retention, Premium foundation | ✅ Done (PR #3) | ✅ 2026-10-14 |
 | 4 | Journal, milestones, core screens | ✅ Done (PR #5) | ✅ 2026-10-14 |
-| 5 | Native widgets, notifications, purchases | 🟡 Awaiting approval | — |
-| 6 | CI/CD, remote dev, hardening, release | ⬜ Not started | — |
+| 5 | Native widgets, notifications, purchases | ✅ Done (PR #6, merge pending) | ✅ 2026-10-14 |
+| 6 | CI/CD, remote dev, hardening, release | 🟡 Final review | — |
 
 _Last updated: 2026-10-14_
 
@@ -212,23 +212,29 @@ _Last updated: 2026-10-14_
 - [x] Physical-device verification list documented (ISSUES C9–C13)
 - [x] Docs: widget-implementation, notifications (new), purchases-and-retention, database, security, architecture, testing, known-limitations, README
 - [x] Commit + push, PR #6 into `main`, CI green (incl. iOS unsigned build), Phase 5 report
-- [ ] **Owner approval** to start Phase 6
+- [x] Owner approved 2026-10-14 ("proceed phase 6")
 
 ## Phase 6 — CI/CD, remote development, hardening, release readiness
 
-- [ ] `.github/workflows/ci.yml` final (format, analyze, tests, backend checks)
-- [ ] `.github/workflows/android-apk.yml` → APK artifact uploaded (verified run)
-- [ ] Actions pinned to SHAs, least-privilege permissions
-- [ ] Claude Code GitHub workflow (`@claude` from issues/PRs on mobile) 🔒 (ANTHROPIC_API_KEY / app install)
-- [ ] `docs/remote-development.md`
-- [ ] Codemagic iOS config (`codemagic.yaml`), signing, TestFlight prep 🔒
-- [ ] Release signing for Android via secrets 🔒
-- [ ] Full test suite run
-- [ ] Security review (RLS, Storage, secrets)
-- [ ] Purchase & retention review
-- [ ] Performance & accessibility review
-- [ ] All docs complete and in sync
-- [ ] Release-readiness report
+**CI/CD**
+- [x] `ci.yml` final: format, analyze, tests, pgTAP + concurrency + db lint, Deno, gitleaks, iOS unsigned build, release (R8) build, debug APK artifact
+- [x] APK artifact uploaded on every run (verified since Phase 1)
+- [x] Actions pinned to SHAs, least-privilege permissions; Dependabot for pub/Gradle/Actions
+- [x] `release.yml`: signed AAB + APK from `release` environment secrets, debug-key guard ⚠️ 🔒 not run (A12, C16)
+- [x] `codemagic.yaml`: signed iOS + widget, production push, TestFlight ⚠️ 🔒 not run (A8, A11, A14, C16)
+- [x] Android release signing via `key.properties` / env; release APK built and launched on emulator
+
+**Remote development**
+- [x] Claude Code GitHub workflow restricted to owner/collaborators 🔒 needs app install + token (A5, A6)
+- [x] `docs/remote-development.md` up to date
+
+**Reviews**
+- [x] Full test suite: 167 Flutter, 8 pgTAP files, 32 Deno, 2 concurrency scripts (CI)
+- [x] Security review → pgTAP 007, backups off, widget activity guard, privacy manifests, docs/security.md
+- [x] Purchase & retention review (no client grants, idempotency, grace; App Review risk D8)
+- [x] Performance review (cover cache fix) & accessibility review (26 new tests, 3 fixes)
+- [x] All docs in sync; `docs/release-readiness.md` (report + launch checklist)
+- [ ] Commit + push, PR into `main`, final report, **owner review**
 
 ---
 
@@ -241,3 +247,4 @@ _Last updated: 2026-10-14_
 - 2026-10-14 — Added ISSUES.md (open issues register) at the owner's request.
 - 2026-10-14 — Phase 4 implemented: journal, milestones, notifications, profile, account deletion; 220 pgTAP + 10 Deno + 121 Flutter tests.
 - 2026-10-14 — Phase 4 approved and merged (PR #5). Phase 5 implemented: Android + iOS widgets, push queue + FCM dispatch, reminders, realtime, RevenueCat purchases with server verification; 263 pgTAP + 32 Deno + 141 Flutter tests; Android widget checked on emulator.
+- 2026-10-14 — Phase 5 approved. Phase 6: release + secret-scan + R8 CI, Codemagic, signing, security/purchase/performance/accessibility reviews, release-readiness report; 167 Flutter tests.

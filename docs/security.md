@@ -95,6 +95,44 @@ All membership, role and invitation changes go through security-definer function
   only in Supabase secrets. Firebase client config and RevenueCat public SDK keys are dart-defines
   (they are client-safe). No `google-services.json` / `GoogleService-Info.plist` is committed.
 
+## Phase 6 review (2026-10-14)
+
+Checked:
+- **Database:** pgTAP 007 enforces schema-wide invariants so new tables and functions can't
+  quietly weaken them:
+  - RLS on every table;
+  - `anon` has no table privileges and can't execute any function;
+  - server-only functions can't be called by signed-in users;
+  - every SECURITY DEFINER function pins `search_path`;
+  - no public buckets, and each bucket limits size and type;
+  - views are `security_invoker`.
+
+  `supabase db lint` runs in CI.
+- **Secrets:** gitleaks scans the full history on every push (clean). `.gitignore` covers `.env`,
+  keystores, `key.properties`, Firebase config files and `.p8` keys. Release signing values exist
+  only in the GitHub `release` environment and Codemagic.
+- **Android:**
+  - `allowBackup=false` and data-extraction rules keep the session, caches and widget data off
+    cloud backups and device transfers.
+  - The exported widget configure activity only accepts Closer's own widget ids.
+  - Deep links only navigate; access is decided by the router and RLS.
+  - No cleartext traffic (the default on API 28+).
+- **iOS:** privacy manifests, background push mode for widget refresh only, App Group limited to
+  Closer.
+- **CI:** SHA-pinned actions, `contents: read` by default. The `@claude` workflow only runs for the
+  owner and collaborators (public repo). The release job uses a protected environment.
+- **Logging:** the app never prints user content. Edge Functions log counts, status codes and short
+  (≤ 200 character) error messages. They never log tokens, request bodies, emails or names.
+
+Accepted risks / follow-ups (also in ISSUES):
+- Any signed-in user can trigger `dispatch-push` / `cleanup-storage`. These only drain queues;
+  leasing makes repeat calls harmless.
+- Custom-scheme links (`com.closerapp.closer://`) could be registered by another app. Invite
+  tokens are single-use, limited and revocable. Verified https App Links / Universal Links need a
+  domain (D4).
+- Supabase Auth settings (rate limits, leaked-password protection, email confirmation) are
+  dashboard settings, so check them when creating the project (B7).
+
 ## Phase 1 status
 
 - Auth uses Supabase PKCE flow; passwords go only to Supabase Auth over HTTPS.
@@ -106,7 +144,4 @@ All membership, role and invitation changes go through security-definer function
 - The repository is **public**: never commit anything sensitive. Consider making it private
   (owner decision; not changed automatically).
 
-## Planned (Phase 2+)
 
-RLS policies, storage policies, invitation token hashing, atomic capacity checks, retention
-functions, webhook verification and their tests will be documented here as they are built.

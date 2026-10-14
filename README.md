@@ -6,12 +6,11 @@ Closer is a private photo-sharing app and shared journal for couples, friends an
 built with Flutter (Android + iOS) and Supabase. The full build is split into six phases;
 progress is tracked in [TRACKER.md](TRACKER.md).
 
-**Status:** Phase 5: native home-screen widgets (Android + iOS WidgetKit), push notifications
-and reminders, realtime sync and RevenueCat purchases with server verification. These build on the
-journal and milestones (Phase 4), photos and retention (Phase 3), groups and invitations (Phase 2)
-and the foundation (Phase 1). Push and purchases need owner credentials before they work on real
-devices; see [ISSUES.md](ISSUES.md) and [docs/known-limitations.md](docs/known-limitations.md).
-Phase 6 covers release builds and hardening.
+**Status:** all six phases are built. Phase 6 added release pipelines (signed Android, Codemagic
+iOS / TestFlight), CI hardening and security, purchase, performance and accessibility reviews.
+The app is a release candidate in code. Shipping it needs your accounts and backend (Supabase,
+Firebase, RevenueCat, Apple, Google Play) and checks on physical devices. Follow
+[docs/release-readiness.md](docs/release-readiness.md); open items are in [ISSUES.md](ISSUES.md).
 
 ## Quick start
 
@@ -53,6 +52,8 @@ Every push runs the **CI** workflow. Open the repo on GitHub → **Actions** →
 | [docs/security.md](docs/security.md) | RLS, storage, secrets |
 | [docs/purchases-and-retention.md](docs/purchases-and-retention.md) | Basic vs Closer Memories |
 | [docs/widget-implementation.md](docs/widget-implementation.md) | Native home-screen widgets |
+| [docs/notifications.md](docs/notifications.md) | Push, reminders, realtime sync |
+| [docs/release-readiness.md](docs/release-readiness.md) | Release report and launch checklist |
 | [docs/testing.md](docs/testing.md) | Test strategy and commands |
 | [docs/environment-setup.md](docs/environment-setup.md) | Tools, Supabase, env values |
 | [docs/build-and-release.md](docs/build-and-release.md) | APK, iOS, signing |

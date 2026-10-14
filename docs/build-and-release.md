@@ -14,8 +14,19 @@ $env:TMP='C:\gtmp'; $env:TEMP='C:\gtmp'; $env:JAVA_TOOL_OPTIONS='-Djdk.net.unixd
 ```
 
 ### From GitHub (works with the laptop off)
-`.github/workflows/ci.yml` runs on every push to `main` / `phase-*` branches and on PRs:
-format → analyze → test → build debug APK → upload artifact `closer-debug-apk-<sha>` (kept 14 days).
+`.github/workflows/ci.yml` runs on every push to `main` / `phase-*` branches and on PRs.
+Jobs:
+- Flutter format, analyze and test;
+- pgTAP database tests, concurrency scripts and `db lint`;
+- Edge Function fmt, lint, type-check and tests;
+- gitleaks secret scan over the full history;
+- unsigned iOS build with the widget extension;
+- release App Bundle build (catches R8 problems);
+- debug APK uploaded as artifact `closer-debug-apk-<sha>` (kept 14 days).
+
+All third-party actions are pinned to commit SHAs, and every workflow has least-privilege
+`permissions`. Dependabot (`.github/dependabot.yml`) opens weekly update PRs for pub, Gradle and
+Actions. CI must pass and the owner merges.
 
 To install on your phone:
 1. GitHub app/browser → repo → **Actions** → newest green **CI** run.
@@ -26,15 +37,55 @@ To install on your phone:
 The CI APK connects to Supabase only if repository **variables** `SUPABASE_URL` and
 `SUPABASE_ANON_KEY` are set (Settings → Secrets and variables → Actions → Variables).
 
-## Android release (Phase 6)
-Release signing via keystore stored in GitHub Secrets, never committed. Not set up yet.
+## Android release (signed, for Google Play)
 
-## iOS (Phase 5–6)
-No local Mac is assumed. CI (`ios-build` job, macOS runner) adds the widget extension with
-`ruby ios/scripts/add_widget_extension.rb` and runs `flutter build ios --debug --no-codesign`.
-Signed builds and TestFlight come in Phase 6: Codemagic (hosted macOS), App Store Connect API key,
-App Group `group.com.closerapp.closer` on the app and extension (ISSUES A11, A14). Requires an
-Apple Developer account.
+**One-time (owner, on your own computer, never in chat):**
+```bash
+keytool -genkeypair -v -keystore closer-release.jks -alias closer -keyalg RSA -keysize 4096 -validity 10000
+base64 -w0 closer-release.jks > closer-release.jks.b64   # PowerShell: [Convert]::ToBase64String([IO.File]::ReadAllBytes("closer-release.jks"))
+```
+Keep the `.jks` and passwords in a password manager. **Losing them means you can't update the
+app** (unless you use Play App Signing, which is recommended: upload this key as the *upload key*).
+
+GitHub → Settings → Environments → create **`release`** (optionally require your approval).
+Add these secrets there:
+`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
+`ANDROID_KEY_PASSWORD`. The client config goes in repository **variables** (see
+`.env.example`): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `FIREBASE_*`, `REVENUECAT_ANDROID_KEY`,
+`PRIVACY_POLICY_URL`, `TERMS_URL`, `SUPPORT_EMAIL`.
+
+**Build:** Actions → **Release** → *Run workflow*, or push a tag `v1.0.0`. The workflow:
+- fails early without the keystore or `SUPABASE_URL`;
+- builds `app-release.aab` and `app-release.apk` (build number = run number);
+- checks that neither is signed with the debug key, then deletes the keystore from the runner;
+- uploads both as the artifact `closer-release-<n>` (30 days).
+
+Upload the `.aab` in Play Console (internal testing track first).
+
+**Locally:** `android/key.properties` (git-ignored) with `storeFile`, `storePassword`,
+`keyAlias` and `keyPassword`. Without it, `flutter build apk --release` falls back to the debug
+key for local testing only. Play rejects those builds.
+
+The release build uses R8 shrinking. A release APK was built and launched on the emulator
+(2026-10-14) without crashes.
+
+## iOS
+
+No local Mac is assumed.
+- **CI** (`ios-build`, macOS runner): `ruby ios/scripts/add_widget_extension.rb` adds the widget
+  extension and the privacy manifests, then `flutter build ios --debug --no-codesign` builds it.
+- **Signed / TestFlight:** `codemagic.yaml` workflow `ios-release` (on tags `v*`) does these steps:
+  - adds the extension;
+  - switches `aps-environment` to `production`;
+  - fetches App Store signing files for the app and `…CloserWidget`;
+  - builds the IPA with the client config;
+  - uploads to TestFlight.
+
+  Setup steps are in the file header (ISSUES A8, A11, A14). **Not run yet**, because it needs your
+  Apple and Codemagic accounts.
+- Privacy manifests: `ios/Runner/PrivacyInfo.xcprivacy` (no tracking; the data types the app
+  uses) and `ios/CloserWidget/PrivacyInfo.xcprivacy`. Check them against your App Store privacy
+  answers.
 
 ## Android emulator tip
 The local emulator is almost out of space. Install a single-ABI debug APK:

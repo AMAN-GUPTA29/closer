@@ -67,7 +67,7 @@ Workflow file: `.github/workflows/claude.yml` (actions pinned to commit SHAs).
 - Open an issue such as "Phase 2: invitations" and write `@claude implement the next unchecked items in
   TRACKER.md Phase 2 and open a PR`.
 - Or comment `@claude fix the failing CI on this PR` on a pull request.
-- Only users with write access can trigger it (the action enforces this; important because the repo is public).
+- Only the owner and collaborators can trigger it: the workflow checks the comment author's association, and the action also requires write access. This matters because the repo is public.
 
 ---
 

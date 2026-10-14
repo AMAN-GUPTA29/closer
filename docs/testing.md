@@ -90,6 +90,19 @@ that Preview group ids were rejected by the link parser (fixed).
 
 Totals: 141 Flutter tests, 263 pgTAP assertions, 32 Deno tests, both concurrency scripts.
 
+## Suites added in Phase 6
+
+| File | Covers |
+|---|---|
+| `test/app/accessibility_test.dart` | 18 signed-in screens + onboarding/welcome/sign-in/sign-up/reset at 200 % text with no overflow; Android/iOS tap-target and labelled-tap-target guidelines on Home, Profile, group home, preferences; WCAG text contrast on Home, Profile, preferences |
+| `test/features/phase5_logic_test.dart` (+1) | unchanged widget covers are not downloaded again |
+| `supabase/tests/database/007_security_review.test.sql` | schema-wide: RLS on every table, no anon table grants or function execution, server-only functions closed to signed-in users, `search_path` on definer functions, no public buckets, bucket limits, invoker views |
+
+**CI jobs added:** gitleaks secret scan (full history), release App Bundle build (R8).
+**Manual:** release APK (R8) installed and launched on the Android 14 emulator, no crashes.
+
+Totals: 167 Flutter tests, 8 pgTAP files, 32 Deno tests, both concurrency scripts.
+
 ## Not yet covered (needs later phases or external resources)
 
 | Area | Needs |
@@ -100,3 +113,5 @@ Totals: 141 Flutter tests, 263 pgTAP assertions, 32 Deno tests, both concurrency
 | Push delivery to a real device, background widget refresh | Firebase project + APNs key, physical devices |
 | iOS widget on an iPhone, App Group sharing at runtime | Apple Developer account + signing, device |
 | Real store purchases (sandbox) end to end | Store accounts, RevenueCat project, hosted backend |
+| Signed release builds, TestFlight upload | Keystore secrets, Apple/Codemagic accounts |
+| Screen readers, low-end device performance | Physical devices (ISSUES C14, C15) |
