@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/network/connectivity.dart';
 import '../../core/routing/routes.dart';
 import '../groups/application/group_providers.dart';
 
@@ -11,7 +12,7 @@ import '../../core/widgets/widgets.dart';
 
 /// Bottom-navigation shell: Home, Journal, Add, Notifications, Profile.
 /// "Add" is an action (share a memory), not a tab.
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.shell});
 
   final StatefulNavigationShell shell;
@@ -32,9 +33,26 @@ class AppShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final online = ref.watch(isOnlineProvider).value ?? true;
     return Scaffold(
-      body: shell,
+      body: Column(
+        children: [
+          AnimatedSize(
+            duration: CloserMotion.of(context, CloserMotion.medium),
+            child: online
+                ? const SizedBox(width: double.infinity)
+                : SafeArea(bottom: false, child: const OfflineBanner()),
+          ),
+          Expanded(
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: !online,
+              child: shell,
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selected,
         onDestinationSelected: (i) => _onSelect(context, i),
