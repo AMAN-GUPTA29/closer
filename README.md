@@ -43,6 +43,7 @@ Every push runs the **CI** workflow. Open the repo on GitHub → **Actions** →
 |---|---|
 | [CLAUDE.md](CLAUDE.md) | Working rules for Claude sessions (local, cloud, GitHub) |
 | [TRACKER.md](TRACKER.md) | Step-by-step progress tracker |
+| [ISSUES.md](ISSUES.md) | Open issues: credentials, owner actions, unverified items, decisions |
 | [docs/product-requirements.md](docs/product-requirements.md) | What Closer does |
 | [docs/architecture.md](docs/architecture.md) | Code structure and decisions |
 | [docs/design-system.md](docs/design-system.md) | Tokens, components, reference image |

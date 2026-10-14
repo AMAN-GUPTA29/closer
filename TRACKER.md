@@ -4,6 +4,7 @@
 
 Single source of truth for build progress. Claude ticks items **only after they are implemented and verified**.
 Items that are implemented but not verifiable in this environment are marked ⚠️ with the reason.
+Deferred items, credentials and owner actions are collected in [ISSUES.md](ISSUES.md).
 
 **Legend:** `[x]` done & verified · `[ ]` not started / in progress · ⚠️ implemented, verification blocked · 🔒 needs external credential/account
 
@@ -212,3 +213,4 @@ _Last updated: 2026-10-14_
 - 2026-10-14 — Phase 1 implemented: design system, onboarding, auth, shell, docs, CI; 51 tests passing; APK verified on emulator.
 - 2026-10-14 — Phase 2 implemented: Supabase schema + RLS + trusted functions, groups and invitations UI; 105 pgTAP + concurrency + 80 Flutter tests passing.
 - 2026-10-14 — Phase 3 implemented: photos, private storage, retention, entitlements, cleanup queue, upload UI; 98 Flutter tests.
+- 2026-10-14 — Added ISSUES.md (open issues register) at the owner's request.

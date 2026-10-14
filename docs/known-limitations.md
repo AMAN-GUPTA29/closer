@@ -1,5 +1,8 @@
 # Known limitations
 
+The actionable list of deferred items, owner actions and credentials lives in
+[`ISSUES.md`](../ISSUES.md). This page describes current behaviour limits.
+
 _Last updated: Phase 3, 2026-10-14._
 
 ## Not built yet (planned phases)
