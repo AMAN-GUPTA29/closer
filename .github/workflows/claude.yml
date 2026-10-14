@@ -18,9 +18,12 @@ concurrency:
 
 jobs:
   claude:
+    # Public repo: only the owner and collaborators can start a run.
     if: >-
-      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude')) ||
-      (github.event_name != 'issues' && contains(github.event.comment.body, '@claude'))
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude') &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)) ||
+      (github.event_name != 'issues' && contains(github.event.comment.body, '@claude') &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:

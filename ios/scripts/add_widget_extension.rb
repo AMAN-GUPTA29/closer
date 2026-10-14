@@ -20,6 +20,13 @@ runner.build_configurations.each do |config|
   config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'Runner/Runner.entitlements'
 end
 
+# Privacy manifest for the app (idempotent).
+runner_group = project.main_group.find_subpath('Runner', false)
+unless runner_group.files.any? { |f| f.path == 'PrivacyInfo.xcprivacy' }
+  ref = runner_group.new_file('PrivacyInfo.xcprivacy')
+  runner.add_resources([ref])
+end
+
 if project.targets.any? { |t| t.name == 'CloserWidget' }
   project.save
   puts 'CloserWidget target already exists; Runner entitlements ensured.'
@@ -31,6 +38,7 @@ group = project.main_group.new_group('CloserWidget', WIDGET_DIR)
 swift = group.new_file(File.join(WIDGET_DIR, 'CloserWidget.swift'))
 group.new_file(File.join(WIDGET_DIR, 'Info.plist'))
 group.new_file(File.join(WIDGET_DIR, 'CloserWidget.entitlements'))
+widget.add_resources([group.new_file(File.join(WIDGET_DIR, 'PrivacyInfo.xcprivacy'))])
 widget.add_file_references([swift])
 %w[WidgetKit SwiftUI AppIntents].each do |fw|
   widget.add_system_framework(fw)
