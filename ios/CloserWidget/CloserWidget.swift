@@ -14,13 +14,13 @@ import WidgetKit
 
 private let appGroup = "group.com.closerapp.closer"
 
-private struct GroupIndexItem: Decodable {
+struct GroupIndexItem: Decodable {
     let id: String
     let name: String
     let type: String
 }
 
-private struct GroupSnapshot: Decodable {
+struct GroupSnapshot: Decodable {
     let id: String
     let name: String
     let type: String
@@ -28,7 +28,7 @@ private struct GroupSnapshot: Decodable {
     let imagePath: String?
 }
 
-private enum SharedStore {
+enum SharedStore {
     static var defaults: UserDefaults? { UserDefaults(suiteName: appGroup) }
 
     static func groups() -> [GroupIndexItem] {
