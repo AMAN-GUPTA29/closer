@@ -93,7 +93,7 @@ class CloserColors extends ThemeExtension<CloserColors> {
     accentSoft: CloserPalette.blush,
     onAccent: CloserPalette.white,
     line: CloserPalette.mist,
-    danger: Color(0xFFD64545),
+    danger: Color(0xFFC53030),
     success: CloserPalette.sage,
     premium: CloserPalette.gold,
     coupleTint: CloserPalette.coral,
