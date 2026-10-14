@@ -163,3 +163,36 @@ class RetentionNotice extends StatelessWidget {
     );
   }
 }
+
+/// A private thumbnail known only by its storage path (covers, notifications).
+class ThumbByPath extends ConsumerWidget {
+  const ThumbByPath({
+    super.key,
+    required this.groupId,
+    required this.path,
+    this.fit = BoxFit.cover,
+    this.placeholderVariant = 0,
+  });
+
+  final String groupId;
+  final String path;
+  final BoxFit fit;
+  final int placeholderVariant;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final photo = Photo(
+      id: 'path-$path',
+      groupId: groupId,
+      storagePath: path,
+      thumbPath: path,
+      uploadedAt: DateTime.fromMillisecondsSinceEpoch(0),
+    );
+    final image = ref.watch(photoImageProvider((photo, PhotoVariant.thumb)));
+    return CloserPhoto(
+      image: image.value,
+      fit: fit,
+      placeholderVariant: placeholderVariant,
+    );
+  }
+}

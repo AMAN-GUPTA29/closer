@@ -14,7 +14,9 @@ import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/auth_models.dart';
 import '../../groups/application/group_providers.dart';
 import '../../groups/domain/group_models.dart';
+import '../../journal/application/content_providers.dart';
 import '../../photos/presentation/photo_widgets.dart';
+import '../../profile/presentation/profile_widgets.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -132,13 +134,14 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   const _Header({required this.name});
 
   final String name;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(unreadCountProvider);
     return Row(
       children: [
         Expanded(
@@ -165,7 +168,10 @@ class _Header extends StatelessWidget {
         ),
         CloserIconButton(
           icon: CloserIcons.notifications,
-          semanticLabel: 'Notifications',
+          semanticLabel: unread > 0
+              ? 'Notifications, $unread unread'
+              : 'Notifications',
+          showBadge: unread > 0,
           onPressed: () => context.go(Routes.notifications),
         ),
         const SizedBox(width: CloserSpacing.xs),
@@ -176,7 +182,7 @@ class _Header extends StatelessWidget {
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: () => context.go(Routes.profile),
-            child: MemberAvatar(name: name, size: 44),
+            child: MyAvatar(fallbackName: name, size: 44),
           ),
         ),
       ],

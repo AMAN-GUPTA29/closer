@@ -23,6 +23,9 @@ String backendMessage(String key) => switch (key) {
   'photo_not_found' => 'That photo is no longer available.',
   'premium_required' => 'Pinning photos is part of Closer Memories.',
   'taken_in_future' => 'The photo date can’t be in the future.',
+  'invalid_cover_photo' => 'Choose a photo from this group.',
+  'invalid_milestone' => 'This moment can’t be moved to another group.',
+  'invalid_avatar' => 'That profile photo couldn’t be saved. Please try again.',
   'invalid_upload' =>
     'Something went wrong preparing this upload. Please try again.',
   _ => 'Something went wrong. Please try again.',

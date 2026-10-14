@@ -1,0 +1,39 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/routing/routes.dart';
+import '../../../core/theme/closer_icons.dart';
+import '../../../core/widgets/widgets.dart';
+import '../../groups/application/group_providers.dart';
+import 'journal_list.dart';
+
+/// Journal tab: memories and moments from all of the user's groups.
+class AllJournalScreen extends ConsumerWidget {
+  const AllJournalScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasGroups = ref.watch(myGroupsProvider).value?.isNotEmpty ?? false;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Journal')),
+      body: JournalList(
+        groupId: null,
+        emptyState: EmptyState(
+          icon: CloserIcons.journal,
+          title: 'No memories yet',
+          message: hasGroups
+              ? 'Photos and special moments from all your groups will appear '
+                    'here, newest first.'
+              : 'Create or join a group to start your journal.',
+          action: hasGroups
+              ? null
+              : CloserButton(
+                  label: 'Create a group',
+                  onPressed: () => context.push(Routes.createGroup),
+                ),
+        ),
+      ),
+    );
+  }
+}

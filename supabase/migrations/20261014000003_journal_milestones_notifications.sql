@@ -383,9 +383,10 @@ as $$
              'id', m.id,
              'group_id', m.group_id,
              'occurred_at', (m.event_date + 1)::timestamptz - interval '1 second',
-             'milestone', to_jsonb(m)
+             'milestone', to_jsonb(m) || jsonb_build_object('cover_thumb_path', cp.thumb_path)
            ) as entry
     from public.milestones m
+    left join public.photos cp on cp.id = m.cover_photo_id and cp.status = 'active'
     where m.event_date <= current_date
       and (p_group_id is null or m.group_id = p_group_id)
   ) e
