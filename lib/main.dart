@@ -30,6 +30,8 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
+      // Screens show explicit retry buttons; never retry silently.
+      retry: (_, _) => null,
       overrides: [appConfigProvider.overrideWithValue(config)],
       child: const CloserApp(),
     ),

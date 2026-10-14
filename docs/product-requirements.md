@@ -32,6 +32,17 @@ Every visible control either works or is clearly marked unavailable.
 
 Six gated phases (see [TRACKER.md](../TRACKER.md)). The owner approves each phase before the next starts.
 
+## Implemented in Phase 2
+
+- Database: profiles, groups, memberships, invitations with RLS and trusted functions.
+- Create Couple / Friends / Family groups (optional couple start date); Home group list.
+- Group-specific invitations: 8-character code + link, expiry (1/7/30 days or none), use limits,
+  revocation, share sheet, copy link, invitation list with status.
+- Join by code, pasted invite message or deep link, with a preview and clear invalid / expired /
+  revoked / used-up / full / rate-limited states.
+- Group home (couple counter, members, tabs), members (remove, make owner), group settings
+  (rename, start date, counter toggle, leave, delete).
+
 ## Implemented so far (Phase 1)
 
 - Onboarding (3 pages), sign up, sign in, email verification, password reset request and

@@ -10,8 +10,8 @@ Items that are implemented but not verifiable in this environment are marked ⚠
 | Phase | Name | Status | Approved by owner |
 |---|---|---|---|
 | 0 | Setup & Git remote | 🟡 Owner actions pending | — |
-| 1 | Audit, design system, app foundation | 🟡 In progress | — |
-| 2 | Auth, database, groups, invitations | ⬜ Not started | — |
+| 1 | Audit, design system, app foundation | ✅ Done (PR #1) | ✅ 2026-10-14 |
+| 2 | Auth, database, groups, invitations | 🟡 Awaiting approval | — |
 | 3 | Photos, storage, retention, Premium foundation | ⬜ Not started | — |
 | 4 | Journal, milestones, core screens | ⬜ Not started | — |
 | 5 | Native widgets, notifications, purchases | ⬜ Not started | — |
@@ -75,31 +75,46 @@ _Last updated: 2026-10-14_
 
 **CI & tests**
 - [x] GitHub Actions `ci.yml`: format, analyze, test, debug APK artifact (SHA-pinned actions)
-- [ ] CI run green on GitHub ⚠️ check after push
+- [x] CI run green on GitHub (5/5 checks on PR #1)
 - [x] Unit tests (validators, config, redirect policy, error mapping, auth controller)
 - [x] Widget tests (components, onboarding, auth forms, shell navigation, sign-out, unconfigured mode)
 - [x] `flutter pub get` ✅ · `dart format` ✅ · `flutter analyze` ✅ (0 issues) · `flutter test` ✅ (51 passed)
 - [x] Debug APK builds locally and runs on an Android 14 emulator (Pixel 8) — screens checked visually
-- [ ] Commit + push, Phase 1 report, **wait for approval**
+- [x] Commit + push, Phase 1 report, approved 2026-10-14
 
 ## Phase 2 — Authentication, database, groups, invitations
 
-- [ ] Supabase project linked 🔒 (URL + anon key; service key only in secrets)
-- [ ] Supabase CLI + local migrations folder
-- [ ] Migration: `profiles` + auto-create trigger
-- [ ] Migration: `groups` (type couple/friends/family, cover, relationship_start_date)
-- [ ] Migration: `group_members` (unique membership, roles owner/admin/member)
-- [ ] Atomic couple capacity (locking RPC, max 2)
-- [ ] Migration: `invitations` (token hash, code, expiry, revocation, max redemptions) + `invitation_redemptions`
-- [ ] RPC: create invitation · revoke invitation · preview invitation · redeem invitation (atomic)
-- [ ] Leave group / transfer ownership / delete group (no orphans)
-- [ ] RLS on all tables, membership-based
-- [ ] Email auth wired (sign up, login, verify, reset)
-- [ ] Google / Apple sign-in 🔒 (if credentials provided)
-- [ ] Screens: Home/Groups, Create Group, Invite Members, Join Group (+ deep link), Group Home
-- [ ] Backend tests: unauthenticated denied, non-member denied, invite scoped to group, expired/revoked fail, duplicate redemption safe, concurrent couple joins ≤ 2
-- [ ] Flutter unit + widget tests for repos, forms, screens
-- [ ] Docs: database.md, security.md updated
+**Backend**
+- [ ] 🔒 Supabase hosted project linked (URL + anon key; service key only in secrets) — owner action
+- [x] Supabase CLI project (`supabase/config.toml`, email confirmation on, app redirect URL)
+- [x] Migration: `profiles` + auto-create trigger
+- [x] Migration: `groups` (couple/friends/family, relationship_start_date, counter toggle)
+- [x] Migration: `group_members` (unique membership, roles owner/member, one owner)
+- [x] Atomic couple capacity (row-locking trigger, max 2) — concurrency test: 5 parallel joins, 1 succeeds
+- [x] Migration: `invitations` (hashed code + token, hint, expiry, revocation, max uses) + `invitation_redemptions` + rate-limit attempts
+- [x] Functions: create_group, create/revoke/preview/redeem invitation, leave, transfer ownership, remove member, delete group
+- [x] No orphaned/ownerless groups (trigger covers leave, removal, account deletion)
+- [x] RLS on all tables + column-level grants; `group_summaries` view (security_invoker)
+- [x] pgTAP: 105 assertions passing in CI (unauth, non-member, invite scope, expired/revoked, duplicate redemption, capacity, lifecycle)
+- [x] CI "Database tests" job: db start, pgTAP, concurrency script, db lint
+- [ ] ⚠️ Migrations applied to a hosted project — needs Supabase credentials
+- [ ] ⚠️ Local backend tests — Docker Desktop did not start on the laptop; verified in CI only
+
+**App**
+- [x] Email auth wired (Phase 1) ⚠️ not yet exercised against a live project
+- [ ] 🔒 Google / Apple sign-in — needs provider credentials
+- [x] Groups repositories (Supabase / in-memory preview / unconfigured), Riverpod providers, error mapping
+- [x] Home: group list with counters/activity, pull to refresh, loading/error/offline/empty states
+- [x] Create Group: type cards, name, couple start date, validation
+- [x] Invite Members: expiry + use-limit choices, code + link, share sheet, copy, invitation list, revoke
+- [x] Join Group: code entry, paste invite message, preview, all failure states, rate-limit message
+- [x] Invite deep link `com.closerapp.closer://invite?t=...` (kept through sign-in) ⚠️ not tested on a device
+- [x] Group Home: hero, couple counter, avatars, actions, Journal/Milestones/Details tabs, upgrade card (disabled)
+- [x] Members (make owner, remove) and Group settings (rename, start date, counter, leave, delete)
+- [x] Preview mode uses in-memory sample groups (debug builds only)
+- [x] Flutter tests: 80 passing (29 new: logic + full group/invite flows)
+- [x] `dart format` ✅ · `flutter analyze` ✅ · debug APK ✅ · checked on Android 14 emulator
+- [x] Docs: database.md, security.md, testing.md, architecture.md, known-limitations.md updated
 - [ ] Commit + push, Phase 2 report, **wait for approval**
 
 ## Phase 3 — Photo sharing, private storage, retention, Premium foundation
@@ -186,3 +201,4 @@ _Last updated: 2026-10-14_
 - 2026-10-14 — Tracker created; design image located; toolchain verified.
 - 2026-10-14 — Repo pushed; remote-development setup (cloud sessions + @claude workflow) committed; Phase 1 started.
 - 2026-10-14 — Phase 1 implemented: design system, onboarding, auth, shell, docs, CI; 51 tests passing; APK verified on emulator.
+- 2026-10-14 — Phase 2 implemented: Supabase schema + RLS + trusted functions, groups and invitations UI; 105 pgTAP + concurrency + 80 Flutter tests passing.

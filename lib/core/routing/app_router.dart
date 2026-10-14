@@ -11,6 +11,13 @@ import '../../features/auth/presentation/sign_up_screen.dart';
 import '../../features/auth/presentation/update_password_screen.dart';
 import '../../features/auth/presentation/verify_email_screen.dart';
 import '../../features/dev/component_gallery_screen.dart';
+import '../../features/groups/application/group_providers.dart';
+import '../../features/groups/presentation/create_group_screen.dart';
+import '../../features/groups/presentation/group_home_screen.dart';
+import '../../features/groups/presentation/group_settings_screen.dart';
+import '../../features/groups/presentation/members_screen.dart';
+import '../../features/invitations/presentation/invite_screen.dart';
+import '../../features/invitations/presentation/join_group_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/journal/presentation/journal_screen.dart';
 import '../../features/legal/legal_screen.dart';
@@ -25,14 +32,24 @@ final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final routerProvider = Provider<GoRouter>((ref) {
   final status = ValueNotifier<AuthStatus>(ref.read(authControllerProvider));
   ref.listen(authControllerProvider, (_, next) => status.value = next);
+  final pendingInvite = ValueNotifier<bool>(
+    ref.read(pendingInviteProvider) != null,
+  );
+  ref.listen(
+    pendingInviteProvider,
+    (_, next) => pendingInvite.value = next != null,
+  );
 
   final router = GoRouter(
     navigatorKey: _rootKey,
     initialLocation: Routes.welcome,
-    refreshListenable: status,
+    refreshListenable: Listenable.merge([status, pendingInvite]),
     debugLogDiagnostics: false,
-    redirect: (context, state) =>
-        resolveRedirect(status.value, state.matchedLocation),
+    redirect: (context, state) => resolveRedirect(
+      status.value,
+      state.matchedLocation,
+      hasPendingInvite: pendingInvite.value,
+    ),
     routes: [
       GoRoute(
         path: Routes.welcome,
@@ -79,6 +96,52 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: Routes.home,
                 builder: (context, state) => const HomeScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => const CreateGroupScreen(),
+                  ),
+                  GoRoute(
+                    path: 'join',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => JoinGroupScreen(
+                      initialSecret:
+                          state.uri.queryParameters['t'] ??
+                          state.uri.queryParameters['code'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'groups/:groupId',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => GroupHomeScreen(
+                      groupId: state.pathParameters['groupId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'invite',
+                        parentNavigatorKey: _rootKey,
+                        builder: (context, state) => InviteScreen(
+                          groupId: state.pathParameters['groupId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'members',
+                        parentNavigatorKey: _rootKey,
+                        builder: (context, state) => MembersScreen(
+                          groupId: state.pathParameters['groupId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'settings',
+                        parentNavigatorKey: _rootKey,
+                        builder: (context, state) => GroupSettingsScreen(
+                          groupId: state.pathParameters['groupId']!,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -114,6 +177,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.onDispose(() {
     router.dispose();
     status.dispose();
+    pendingInvite.dispose();
   });
   return router;
 });

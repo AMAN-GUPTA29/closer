@@ -1,23 +1,27 @@
 # Known limitations
 
-_Last updated: Phase 1, 2026-10-14._
+_Last updated: Phase 2, 2026-10-14._
 
 ## Not built yet (planned phases)
 
 | Feature | Phase |
 |---|---|
-| Groups, membership, invitations, join flow, group home | 2 |
-| Database migrations and RLS | 2 |
 | Photo upload, private storage, retention, Premium entitlement | 3 |
 | Journal, milestones, notifications feed, settings, account deletion | 4 |
 | Native widgets, push notifications, purchase verification | 5 |
 | Release signing, iOS hosted builds, hardening | 6 |
 
-In the current build the Home "Create a group" / "Join with a code" buttons and several Profile
-rows are visibly disabled and labelled as coming soon.
+Disabled and labelled in the current build: Group home "Share"/"Add" (photos, Phase 3), cover
+photos, the Closer Memories upgrade button, several Profile rows.
 
 ## Environment / verification gaps
 
+- Database code is verified only against the Supabase CLI's local Postgres in GitHub Actions; it
+  has not been applied to a hosted Supabase project.
+- Docker Desktop did not start on the development laptop, so backend tests ran in CI only.
+- Invite links use a custom URL scheme: they open the app when installed but are not clickable web
+  links in every messenger. Verified https links need a domain (Phase 6).
+- Invite codes are shown only once (stored hashed). Members can create new ones at any time.
 - No Supabase project is configured yet → real sign-up, email confirmation and password reset
   have **not** been exercised against a live backend; they are covered by tests with a fake backend only.
 - Google/Apple sign-in are wired to Supabase OAuth but disabled; untested.

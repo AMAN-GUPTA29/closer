@@ -66,7 +66,25 @@ in the database / Edge Functions, never only in Flutter.
 | `/auth/update-password` | New password after reset link | recovery session only |
 | `/legal/privacy`, `/legal/terms` | Legal summaries | always |
 | `/home`, `/journal`, `/notifications`, `/profile` | Shell tabs | signed in |
+| `/home/create` | Create group | signed in |
+| `/home/join?t=...` or `?code=...` | Join group (preview + join) | signed in |
+| `/home/groups/:id` (+ `/invite`, `/members`, `/settings`) | Group home and management | members |
 | `/dev/components` | Component gallery | debug builds only |
+
+## Groups and invitations (Phase 2)
+
+- `GroupsBackend` (= `GroupsRepository` + `InvitationsRepository`) with three implementations:
+  `SupabaseGroupsRepository` (RLS reads, RPC mutations), `InMemoryGroupsRepository` (debug Preview
+  mode and widget tests; mirrors server rules) and `UnconfiguredGroupsRepository`.
+- Riverpod: `myGroupsProvider`, `groupProvider(id)`, `groupMembersProvider(id)`,
+  `invitationsProvider(id)`; mutations go through `GroupActions`, which invalidates what changed.
+  Global `retry: null`: screens show explicit retry buttons instead of silent retries.
+- Invite deep links: Flutter's built-in deep linking is disabled (`flutter_deeplinking_enabled`
+  / `FlutterDeepLinkingEnabled` = false). `InviteLinkListener` (app_links) stores the secret in
+  `pendingInviteProvider`; the router redirects signed-in users to Join. Auth callbacks are
+  handled by supabase_flutter.
+- Group screens are child routes of `/home` on the root navigator, so they cover the bottom bar
+  while Home stays underneath for back navigation.
 
 ## Identifiers
 
@@ -82,3 +100,7 @@ in the database / Edge Functions, never only in Flutter.
 | 2026-10-14 | Debug-only Preview mode when no backend is configured, so the UI can be reviewed on a phone before Supabase exists. Never available in release builds. |
 | 2026-10-14 | Android `kotlin.incremental=false` (Windows cross-drive Kotlin cache bug). |
 | 2026-10-14 | Light + dark themes from the same semantic tokens; system setting decides. |
+| 2026-10-14 | Roles are `owner` and `member`. Any member may invite; only the owner manages settings, members and deletion. |
+| 2026-10-14 | Owner leaving: the longest-standing member becomes owner automatically; the last member leaving deletes the group. |
+| 2026-10-14 | Invitation secrets are stored hashed and shown once, instead of re-displayable codes. |
+| 2026-10-14 | Cover photo upload deferred to Phase 3 (needs private storage). |
