@@ -86,6 +86,21 @@ in the database / Edge Functions, never only in Flutter.
 - Group screens are child routes of `/home` on the root navigator, so they cover the bottom bar
   while Home stays underneath for back navigation.
 
+## Photos (Phase 3)
+
+- `PhotosBackend` with `SupabasePhotosBackend` (RPC + Storage + signed URLs),
+  `UnconfiguredPhotosBackend`, and the in-memory backend (which implements both groups and photos
+  so Preview mode shares one store).
+- Upload pipeline: `photoPickerProvider` (image_picker) → `ImageProcessor` (`NativeImageProcessor`:
+  validation by magic bytes, EXIF capture date, flutter_image_compress JPEG original + thumbnail)
+  → `PhotoUploader` (request → put original → put thumbnail → finalize). Every step is repeatable
+  with the same client upload id, which is how Retry avoids duplicates.
+- `groupPhotosProvider(groupId)` (AsyncNotifier) loads 30 photos per page with a keyset cursor
+  `(uploaded_at, id)` and appends pages, so the scroll position holds.
+- `photoImageProvider((photo, variant))` resolves a signed URL into a `CachedNetworkImageProvider`
+  keyed by photo id.
+- Purchases: `PurchaseService` interface; `UnavailablePurchaseService` until Phase 5.
+
 ## Identifiers
 
 - Android `applicationId` / iOS bundle id: `com.closerapp.closer` (placeholder org; change before
@@ -104,3 +119,6 @@ in the database / Edge Functions, never only in Flutter.
 | 2026-10-14 | Owner leaving: the longest-standing member becomes owner automatically; the last member leaving deletes the group. |
 | 2026-10-14 | Invitation secrets are stored hashed and shown once, instead of re-displayable codes. |
 | 2026-10-14 | Cover photo upload deferred to Phase 3 (needs private storage). |
+| 2026-10-14 | Group cover = newest photo; a chosen cover comes with Phase 4 group settings. |
+| 2026-10-14 | Closer Memories is a consumable store product per group, with server-side entitlement (see purchases-and-retention.md). |
+| 2026-10-14 | Storage deletions go through a durable queue processed by an Edge Function, never directly from SQL or clients. |

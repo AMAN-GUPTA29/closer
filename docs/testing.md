@@ -25,7 +25,11 @@ flutter build apk --debug
 
 Latest CI result: 105 pgTAP assertions passed; concurrency script: 1 joined, 4 full, members = 2.
 
-Locally these need Docker; see `docs/database.md`.
+| `supabase/tests/database/004_photos_retention.test.sql` | private bucket; idempotent upload requests; storage write/read policies; finalize requires stored objects; failed upload deletes nothing (12); 11th upload removes the oldest (7, 8); Premium keeps more than 10 (9); client Premium forgery blocked (10); Premium isolated per group and inherited by new members (11); purchase idempotency (15); refund grace period; delete permissions; stale uploads; group deletion queues objects; cleanup queue claim/backoff/lease/dead (13) |
+| `supabase/tests/concurrency/basic_retention.sh` | 3 uploads finalize in parallel into a full Basic group: exactly 10 active, the 3 oldest removed |
+| `supabase/functions/cleanup-storage/logic_test.ts` | Deno: deletes and completes jobs, failures recorded for retry, thrown errors not fatal, batch limit, empty queue |
+
+Locally these need Docker; see `docs/database.md`. Edge Function tests: `cd supabase/functions && npx deno@2 test cleanup-storage/`.
 
 ## Suites (Phase 1)
 
@@ -47,11 +51,22 @@ Locally these need Docker; see `docs/database.md`.
 
 Total Flutter tests: 80.
 
+## Flutter suites added in Phase 3
+
+| File | Covers |
+|---|---|
+| `test/features/photos_logic_test.dart` | file-type detection, size/type validation, EXIF dates, photo parsing, retention helpers, upload protocol order, retry without duplicates, Basic vs Premium retention, keyset pagination, pin requires Premium |
+| `test/app/photos_flow_test.dart` | share with caption → journal; full-group warning then oldest removed; failed upload → Retry → one photo; unsupported file; viewer + delete with confirmation; upgrade screen never fakes a purchase; Premium status; Add tab group picker |
+
+Total Flutter tests: 98.
+
 ## Not yet covered (needs later phases or external resources)
 
 | Area | Needs |
 |---|---|
 | Real Supabase sign-up / email confirmation / reset links | Supabase project + email delivery; physical device for deep links |
 | Google / Apple OAuth | Provider credentials configured in Supabase |
-| Retention, storage and purchase tests (spec §13 items 7–16) | Phase 3–5 |
+| Milestone references to deleted photos (spec §13 item 14) | Phase 4 |
+| Store purchase verification end to end, device registration (items 15 store side, 16) | Phase 5, store sandbox accounts |
+| Native image compression and camera | Physical device / emulator (plugin code is not exercised in unit tests) |
 | Native widgets, push | Phase 5, emulators/devices; iOS needs hosted macOS |

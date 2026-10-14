@@ -32,6 +32,17 @@ Every visible control either works or is clearly marked unavailable.
 
 Six gated phases (see [TRACKER.md](../TRACKER.md)). The owner approves each phase before the next starts.
 
+## Implemented in Phase 3
+
+- Share a photo from the gallery or camera into a group: preview, caption, optional date (EXIF
+  pre-filled), step progress, Retry without duplicates, clear errors.
+- Private storage with signed URLs and on-device caching; thumbnails for grids, full size in the
+  viewer; group covers from the newest photo.
+- Basic groups keep 10 photos, enforced on the server; warning before sharing into a full group.
+- Closer Memories entitlement on the server (per group, inherited by new members, 30-day refund
+  grace); upgrade screen (purchases disabled until Phase 5); pin photos (Premium).
+- Journal photo grid with pagination; full-screen viewer with delete and pin.
+
 ## Implemented in Phase 2
 
 - Database: profiles, groups, memberships, invitations with RLS and trusted functions.

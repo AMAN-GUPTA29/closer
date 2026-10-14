@@ -11,8 +11,8 @@ Items that are implemented but not verifiable in this environment are marked ⚠
 |---|---|---|---|
 | 0 | Setup & Git remote | 🟡 Owner actions pending | — |
 | 1 | Audit, design system, app foundation | ✅ Done (PR #1) | ✅ 2026-10-14 |
-| 2 | Auth, database, groups, invitations | 🟡 Awaiting approval | — |
-| 3 | Photos, storage, retention, Premium foundation | ⬜ Not started | — |
+| 2 | Auth, database, groups, invitations | ✅ Done (PR #2) | ✅ 2026-10-14 |
+| 3 | Photos, storage, retention, Premium foundation | 🟡 Awaiting approval | — |
 | 4 | Journal, milestones, core screens | ⬜ Not started | — |
 | 5 | Native widgets, notifications, purchases | ⬜ Not started | — |
 | 6 | CI/CD, remote dev, hardening, release | ⬜ Not started | — |
@@ -115,29 +115,38 @@ _Last updated: 2026-10-14_
 - [x] Flutter tests: 80 passing (29 new: logic + full group/invite flows)
 - [x] `dart format` ✅ · `flutter analyze` ✅ · debug APK ✅ · checked on Android 14 emulator
 - [x] Docs: database.md, security.md, testing.md, architecture.md, known-limitations.md updated
-- [ ] Commit + push, Phase 2 report, **wait for approval**
+- [x] Commit + push, Phase 2 report, approved 2026-10-14
 
 ## Phase 3 — Photo sharing, private storage, retention, Premium foundation
 
-- [ ] Private storage bucket + storage RLS by group membership
-- [ ] Migration: `photos` (uploader, path, caption, taken_at vs uploaded_at, status)
-- [ ] Migration: `storage_cleanup_jobs` (durable retry queue)
-- [ ] Gallery picker + camera capture
-- [ ] Preview, caption, optional date
-- [ ] Compression + thumbnail generation
-- [ ] Upload progress, retry, duplicate-submit protection (idempotency key)
-- [ ] Server-side Basic 10-photo retention (oldest eligible removed, concurrency-safe)
-- [ ] Failed upload never deletes existing photos
-- [ ] Cleanup Edge Function with retries
-- [ ] Retention warning UI before loss
-- [ ] Short-lived signed URLs + image caching
-- [ ] Full-screen photo viewer
-- [ ] Migration: `group_entitlements` + `purchase_records`
-- [ ] Server-side Premium checks (client flag ignored)
-- [ ] Upgrade UI ("Keep every memory from this group")
-- [ ] Billing approach researched & chosen (RevenueCat vs direct) — documented
-- [ ] Tests: retention ≤10, oldest removed, Premium >10, client flag bypass fails, entitlement isolated per group, concurrent uploads, cleanup retry, authorization
-- [ ] Docs: purchases-and-retention.md
+**Backend**
+- [x] Private `photos` bucket (JPEG, 15 MB) + storage policies (read active photos of your groups; write only your pending upload paths; no update/delete)
+- [x] Migration: `photos` (uploader, paths, caption, taken_at vs uploaded_at, status, pin)
+- [x] Upload protocol: request (idempotent) → store objects → finalize (verifies objects, group lock)
+- [x] Server-side Basic 10-photo retention, oldest eligible removed, concurrency-safe (3 parallel uploads test)
+- [x] Failed/abandoned upload never deletes photos; stale pending uploads expire
+- [x] Migration: `storage_cleanup_jobs` durable queue (leases, backoff, dead-letter) + group-deletion trigger
+- [x] Edge Function `cleanup-storage` + Deno tests (5)
+- [ ] 🔒 Deploy + schedule cleanup worker on hosted project — owner action (docs/purchases-and-retention.md)
+- [x] Migration: `group_entitlements` + `purchase_records`; grant/revoke functions (service role, idempotent)
+- [x] Server-side Premium checks; client flag cannot bypass; isolated per group; inherited by new members
+- [x] Refund grace policy (30 days, no deletion at revocation)
+- [x] pgTAP 004 + concurrency script in CI
+
+**App**
+- [x] Gallery picker + camera (image_picker) — camera path verified on Android 14 emulator
+- [x] Validation (type by content, 30 MB), EXIF capture date, JPEG compression + thumbnail, metadata stripped — compression + EXIF date verified on emulator
+- [x] Add Memory screen: preview, caption, date, step progress, Retry, duplicate protection, retention warning
+- [x] Signed URLs + disk image cache keyed by photo id
+- [x] Journal photo grid with keyset pagination; full-screen viewer with delete / pin
+- [x] Group covers from newest photo; Home cards show covers and Premium crown
+- [x] Add tab: choose a group
+- [x] Upgrade screen ("Keep every memory from this group"), purchase disabled with reason, restore entry point
+- [x] Billing approach researched & documented (consumable per group via RevenueCat, server verification)
+- [x] `PurchaseService` foundation (no fake purchases)
+- [x] Flutter tests: 98 passing (18 new)
+- [x] Docs: purchases-and-retention, database, security, testing, architecture, known-limitations
+- [x] CI green: 168 pgTAP assertions, both concurrency scripts, Deno tests, Flutter, APK
 - [ ] Commit + push, Phase 3 report, **wait for approval**
 
 ## Phase 4 — Journal, milestones, complete core screens
@@ -202,3 +211,4 @@ _Last updated: 2026-10-14_
 - 2026-10-14 — Repo pushed; remote-development setup (cloud sessions + @claude workflow) committed; Phase 1 started.
 - 2026-10-14 — Phase 1 implemented: design system, onboarding, auth, shell, docs, CI; 51 tests passing; APK verified on emulator.
 - 2026-10-14 — Phase 2 implemented: Supabase schema + RLS + trusted functions, groups and invitations UI; 105 pgTAP + concurrency + 80 Flutter tests passing.
+- 2026-10-14 — Phase 3 implemented: photos, private storage, retention, entitlements, cleanup queue, upload UI; 98 Flutter tests.

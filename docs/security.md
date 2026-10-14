@@ -49,6 +49,20 @@ All membership, role and invitation changes go through security-definer function
   scheme, so a link is treated as a bearer secret with expiry and limits. Verified https App Links /
   Universal Links need a domain (Phase 6).
 
+## Photos and private storage (Phase 3)
+
+- Bucket `photos` is **private** (tested), JPEG only, 15 MB limit.
+- Storage policies: members can read objects of **active** photos in their groups; a user can
+  write only the two paths reserved for their own **pending** upload; there are no update or
+  delete policies, so clients can never overwrite or delete objects (tested).
+- The app reads photos through signed URLs valid for 1 hour, reused for 50 minutes and cached
+  on disk by photo id (not by URL).
+- Re-encoding to JPEG drops EXIF metadata, including GPS location, before upload. The capture
+  time is read first and stored as `taken_at`.
+- Premium cannot be forged: clients have no write access to entitlements and cannot call the
+  entitlement functions (tested). Retention reads only the server's entitlement.
+- The cleanup Edge Function uses the service role inside Supabase; its logs contain counts only.
+
 ## Phase 1 status
 
 - Auth uses Supabase PKCE flow; passwords go only to Supabase Auth over HTTPS.
