@@ -41,40 +41,45 @@ _Last updated: 2026-10-14_
 ## Phase 1 — Repository audit, design system, app foundation
 
 **Audit & docs**
-- [ ] Repo + Git audit recorded in `docs/architecture.md`
-- [ ] Copy design image to `docs/design/` (original preserved in root)
+- [x] Repo + Git audit recorded in `docs/architecture.md`
+- [x] Copy design image to `docs/design/closer-ui-concept-board.png` (original preserved in root, byte-identical)
 - [x] `CLAUDE.md`
-- [ ] `README.md`
-- [ ] Doc skeletons: product-requirements, architecture, design-system, database, security, testing, build-and-release, remote-development, widget-implementation, purchases-and-retention, environment-setup, known-limitations
-- [ ] `.env.example` (placeholders only) + `.gitignore` covering secrets
+- [x] `README.md`
+- [x] Docs: product-requirements, architecture, design-system, database, security, testing, build-and-release, remote-development, widget-implementation, purchases-and-retention, environment-setup, known-limitations
+- [x] `.env.example` (placeholders only) + `.gitignore` covering secrets
 
 **Flutter foundation**
-- [ ] `flutter create` (Android + iOS), org/bundle IDs chosen and documented
-- [ ] Feature-based folder structure (`lib/app`, `lib/core/*`, `lib/features/*`)
-- [ ] Dependencies: Riverpod, GoRouter, supabase_flutter, google_fonts, icon library, intl
-- [ ] Centralized env config (`--dart-define`) with graceful "not configured" mode
-- [ ] GoRouter setup with auth redirect + deep-link-ready routes
-- [ ] Riverpod providers foundation
+- [x] `flutter create` (Android + iOS), id `com.closerapp.closer` documented
+- [x] Feature-based folder structure (`lib/app`, `lib/core/*`, `lib/features/*`)
+- [x] Dependencies: Riverpod 3, GoRouter 18, supabase_flutter, intl, Lucide icons, flutter_svg, url_launcher (fonts bundled instead of google_fonts)
+- [x] Centralized env config (`--dart-define`) with graceful "Backend not connected" mode
+- [x] GoRouter with pure, unit-tested auth redirect policy + deep-link-ready routes
+- [x] Riverpod providers foundation (`AuthController`, repositories)
+- [x] Auth callback deep link registered (Android intent filter, iOS URL scheme) ⚠️ not verified on a device
 
 **Design system**
-- [ ] Tokens: colors (ivory, coral/rose, plum), typography, spacing, radii, elevation, motion
-- [ ] Light theme (+ dark theme decision documented)
-- [ ] Reduced-motion support
-- [ ] Components: CloserButton, CloserIconButton, GroupCard, MemoryCard, MilestoneCard, MemberAvatar, PhotoViewer, InviteCodeCard, UpgradeCard, WidgetPreviewCard, LoadingState, EmptyState, ErrorState, ConfirmationDialog
-- [ ] `docs/design-system.md` written from the reference image
+- [x] Tokens: colours, typography (Plus Jakarta Sans + Fraunces), spacing, radii, elevation, motion
+- [x] Light + dark themes from the same semantic tokens
+- [x] Reduced-motion support (`CloserMotion.of`)
+- [x] Components: CloserButton, CloserIconButton, GroupCard, MemoryCard, MilestoneCard, MemberAvatar/AvatarStack, PhotoViewer, InviteCodeCard, UpgradeCard, WidgetPreviewCard, LoadingState, EmptyState, ErrorState(+offline), OfflineBanner, ConfirmationDialog, CloserTextField, CloserPhoto, SunsetArt, CloserLogo
+- [x] Debug-only component gallery (Profile → Component gallery)
+- [x] `docs/design-system.md` written from the reference image
 
 **Screens**
-- [ ] Onboarding (hero, tagline, Get Started, Sign in)
-- [ ] Auth UI: sign up, login, verify email, password reset, privacy/terms links
-- [ ] Google/Apple buttons shown as unavailable until configured
-- [ ] Main navigation shell (Home, Journal, Add, Notifications, Profile)
+- [x] Onboarding (painted sunset hero, tagline, 3 swipeable pages, Get Started, Sign in)
+- [x] Auth UI: sign up, sign in, verify email (+ resend cooldown), forgot password, set new password, legal summaries
+- [x] Google/Apple buttons wired to Supabase OAuth, shown disabled until configured
+- [x] Main navigation shell (Home, Journal, Add sheet, Notifications, Profile) with honest empty states
+- [x] Profile with sign-out confirmation; later-phase rows marked "Soon"
+- [ ] 🔒 Real sign-up / sign-in against Supabase — needs Supabase project URL + anon key
 
 **CI & tests**
-- [ ] GitHub Actions: format, analyze, test
-- [ ] Unit tests (config, validators, theme tokens)
-- [ ] Widget tests (onboarding, auth forms, shell navigation)
-- [ ] `flutter pub get` ✅ · `dart format` ✅ · `flutter analyze` ✅ · `flutter test` ✅
-- [ ] Debug APK builds locally
+- [x] GitHub Actions `ci.yml`: format, analyze, test, debug APK artifact (SHA-pinned actions)
+- [ ] CI run green on GitHub ⚠️ check after push
+- [x] Unit tests (validators, config, redirect policy, error mapping, auth controller)
+- [x] Widget tests (components, onboarding, auth forms, shell navigation, sign-out, unconfigured mode)
+- [x] `flutter pub get` ✅ · `dart format` ✅ · `flutter analyze` ✅ (0 issues) · `flutter test` ✅ (51 passed)
+- [x] Debug APK builds locally and runs on an Android 14 emulator (Pixel 8) — screens checked visually
 - [ ] Commit + push, Phase 1 report, **wait for approval**
 
 ## Phase 2 — Authentication, database, groups, invitations
@@ -180,3 +185,4 @@ _Last updated: 2026-10-14_
 ## Change log
 - 2026-10-14 — Tracker created; design image located; toolchain verified.
 - 2026-10-14 — Repo pushed; remote-development setup (cloud sessions + @claude workflow) committed; Phase 1 started.
+- 2026-10-14 — Phase 1 implemented: design system, onboarding, auth, shell, docs, CI; 51 tests passing; APK verified on emulator.

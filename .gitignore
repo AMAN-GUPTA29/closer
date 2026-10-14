@@ -24,3 +24,26 @@ Thumbs.db
 
 # Claude Code local-only settings
 .claude/settings.local.json
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+*.g.dart.map
+.metadata.bak
+android/.gradle/
+android/local.properties
+android/app/debug
+android/app/profile
+android/app/release
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+ios/.symlinks/
+
+# Kotlin compiler logs
+android/.kotlin/
