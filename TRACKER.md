@@ -211,7 +211,8 @@ _Last updated: 2026-10-14_
 - [x] Emulator check of the Android widget (found + fixed Preview link bug)
 - [x] Physical-device verification list documented (ISSUES C9–C13)
 - [x] Docs: widget-implementation, notifications (new), purchases-and-retention, database, security, architecture, testing, known-limitations, README
-- [ ] Commit + push, PR into `main`, Phase 5 report, **wait for approval**
+- [x] Commit + push, PR #6 into `main`, CI green (incl. iOS unsigned build), Phase 5 report
+- [ ] **Owner approval** to start Phase 6
 
 ## Phase 6 — CI/CD, remote development, hardening, release readiness
 
