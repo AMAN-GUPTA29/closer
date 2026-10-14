@@ -30,6 +30,9 @@ abstract interface class GroupsRepository {
   Future<void> transferOwnership(String groupId, String newOwnerId);
   Future<void> removeMember(String groupId, String userId);
   Future<void> deleteGroup(String groupId);
+
+  /// Owner chooses a cover photo; null = use the newest photo.
+  Future<void> setCover(String groupId, String? photoId);
 }
 
 abstract interface class InvitationsRepository {
@@ -89,6 +92,8 @@ class UnconfiguredGroupsRepository implements GroupsBackend {
   Future<void> removeMember(String groupId, String userId) async => _fail();
   @override
   Future<void> deleteGroup(String groupId) async => _fail();
+  @override
+  Future<void> setCover(String groupId, String? photoId) async => _fail();
   @override
   Future<List<Invitation>> invitations(String groupId) async => _fail();
   @override
@@ -209,6 +214,10 @@ class SupabaseGroupsRepository implements GroupsBackend {
   @override
   Future<void> deleteGroup(String groupId) =>
       _rpc('delete_group', {'p_group_id': groupId});
+
+  @override
+  Future<void> setCover(String groupId, String? photoId) =>
+      _rpc('set_group_cover', {'p_group_id': groupId, 'p_photo_id': photoId});
 
   @override
   Future<List<Invitation>> invitations(String groupId) =>

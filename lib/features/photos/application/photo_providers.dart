@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../../auth/application/auth_providers.dart';
 import '../../groups/application/group_providers.dart';
+import '../../journal/application/content_providers.dart';
 import '../data/photos_backend.dart';
 import '../domain/photo_models.dart';
 import 'photo_upload.dart';
@@ -127,7 +128,10 @@ class PhotoActions {
     _ref
       ..invalidate(groupPhotosProvider(groupId))
       ..invalidate(groupProvider(groupId))
-      ..invalidate(myGroupsProvider);
+      ..invalidate(myGroupsProvider)
+      ..invalidate(journalProvider(groupId))
+      ..invalidate(journalProvider(null))
+      ..invalidate(milestonesProvider(groupId));
   }
 
   Future<UploadResult> upload({
@@ -157,6 +161,6 @@ class PhotoActions {
 
   Future<void> setPinned(Photo photo, bool pinned) async {
     await _backend.setPinned(photo.id, pinned);
-    _ref.invalidate(groupPhotosProvider(photo.groupId));
+    _refresh(photo.groupId);
   }
 }

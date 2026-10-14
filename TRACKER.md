@@ -13,8 +13,8 @@ Deferred items, credentials and owner actions are collected in [ISSUES.md](ISSUE
 | 0 | Setup & Git remote | 🟡 Owner actions pending | — |
 | 1 | Audit, design system, app foundation | ✅ Done (PR #1) | ✅ 2026-10-14 |
 | 2 | Auth, database, groups, invitations | ✅ Done (PR #2) | ✅ 2026-10-14 |
-| 3 | Photos, storage, retention, Premium foundation | 🟡 Awaiting approval | — |
-| 4 | Journal, milestones, core screens | ⬜ Not started | — |
+| 3 | Photos, storage, retention, Premium foundation | ✅ Done (PR #3) | ✅ 2026-10-14 |
+| 4 | Journal, milestones, core screens | 🟡 Awaiting approval | — |
 | 5 | Native widgets, notifications, purchases | ⬜ Not started | — |
 | 6 | CI/CD, remote dev, hardening, release | ⬜ Not started | — |
 
@@ -148,23 +148,34 @@ _Last updated: 2026-10-14_
 - [x] Flutter tests: 98 passing (18 new)
 - [x] Docs: purchases-and-retention, database, security, testing, architecture, known-limitations
 - [x] CI green: 168 pgTAP assertions, both concurrency scripts, Deno tests, Flutter, APK
-- [ ] Commit + push, Phase 3 report, **wait for approval**
+- [x] Commit + push, Phase 3 report, approved 2026-10-14
 
-## Phase 4 — Journal, milestones, complete core screens
+## Phase 4 — Journal, milestones, and complete core screens
 
-- [ ] Journal: newest-first, cursor pagination, stable scroll
-- [ ] Captions/metadata, featured & pinned memories
-- [ ] Migration: `milestones` (+ safe photo reference on delete)
-- [ ] Milestone CRUD, pin/unpin, templates, themes (heart for couples, neutral/celebratory otherwise)
-- [ ] Special Moment screen
-- [ ] Relationship counter (documented date/timezone policy), editable start date, countdowns
-- [ ] Notifications screen (read/unread, group navigation, preferences)
-- [ ] Profile & settings (name, avatar, prefs, purchases, restore, help, sign out)
-- [ ] Account deletion (safe, server-side)
-- [ ] Group settings + members screens
-- [ ] Loading / empty / error / offline states everywhere
-- [ ] Design polish pass against reference image
-- [ ] Tests: journal sorting, milestone calculations, screens
+**Backend**
+- [x] Migration: `milestones` (types, themes, cover, pin) + RLS (members create as themselves; creator/owner edit)
+- [x] `journal_entries` RPC: photos + past milestones, newest first, keyset pagination, RLS-respecting
+- [x] Chosen group covers (`set_group_cover`) and cover thumbnails for milestones
+- [x] Removed photos cleared from milestone/group covers (spec §13.14) — tested for deletion and retention
+- [x] Notifications (triggers on photo/member/milestone, preferences, mark read, cleared on leave) — no captions
+- [x] Private `avatars` bucket + `set_avatar`
+- [x] Account deletion: `prepare_account_deletion` + Edge Function `delete-account` (+5 Deno tests)
+- [x] pgTAP 005 — CI: 220 assertions total, all passing
+- [ ] 🔒 Deploy `delete-account` on the hosted project (ISSUES B2)
+
+**App**
+- [x] Journal tab (all groups) + group journal: day headers, captions, uploader, pinned strip, infinite scroll, viewer
+- [x] Milestones tab: couple counter + countdowns (next 100s, anniversary), upcoming, past
+- [x] Special Moment screen: templates per group type, title, date, description, cover from group photos, theme, pin; edit/delete
+- [x] "Mark as special moment" after sharing a photo
+- [x] Notifications screen (Today/Yesterday/Earlier, unread, mark all read, open group) + preferences; Home badge
+- [x] Profile: edit name + avatar, purchased groups, restore entry point, help, legal, sign out
+- [x] Account deletion screen with typed confirmation
+- [x] Group settings: choose cover photo; members screen (Phase 2)
+- [x] Offline banner (connectivity) + loading/empty/error states on all new screens
+- [x] Design check on emulator (fixed share-button overlap)
+- [x] Flutter tests: 121 passing (23 new)
+- [x] Docs + ISSUES.md updated
 - [ ] Commit + push, Phase 4 report, **wait for approval**
 
 ## Phase 5 — Native widgets, notifications, purchase integration
@@ -214,3 +225,4 @@ _Last updated: 2026-10-14_
 - 2026-10-14 — Phase 2 implemented: Supabase schema + RLS + trusted functions, groups and invitations UI; 105 pgTAP + concurrency + 80 Flutter tests passing.
 - 2026-10-14 — Phase 3 implemented: photos, private storage, retention, entitlements, cleanup queue, upload UI; 98 Flutter tests.
 - 2026-10-14 — Added ISSUES.md (open issues register) at the owner's request.
+- 2026-10-14 — Phase 4 implemented: journal, milestones, notifications, profile, account deletion; 220 pgTAP + 10 Deno + 121 Flutter tests.

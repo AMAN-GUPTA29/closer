@@ -30,6 +30,9 @@ abstract interface class PhotosBackend {
   /// Makes the photo visible and applies retention on the server.
   Future<UploadResult> finalize(String photoId);
 
+  /// Pinned (featured) photos of a group, newest first.
+  Future<List<Photo>> pinnedPhotos(String groupId);
+
   Future<void> deletePhoto(String photoId);
   Future<void> updateCaption(String photoId, String? caption);
   Future<void> setPinned(String photoId, bool pinned);
@@ -70,6 +73,8 @@ class UnconfiguredPhotosBackend implements PhotosBackend {
       Future.error(_failure);
   @override
   Future<UploadResult> finalize(String photoId) => Future.error(_failure);
+  @override
+  Future<List<Photo>> pinnedPhotos(String groupId) => Future.error(_failure);
   @override
   Future<void> deletePhoto(String photoId) => Future.error(_failure);
   @override
@@ -192,6 +197,22 @@ class SupabasePhotosBackend implements PhotosBackend {
     );
     final removed = (json['removed'] as List<dynamic>? ?? const []).length;
     return UploadResult(photoId: photoId, removedCount: removed);
+  });
+
+  @override
+  Future<List<Photo>> pinnedPhotos(String groupId) => guardBackend(() async {
+    final rows = await _db
+        .from('photos')
+        .select(
+          'id, group_id, uploader_id, storage_path, thumb_path, caption, '
+          'taken_at, uploaded_at, width, height, is_pinned, '
+          'profiles(display_name)',
+        )
+        .eq('group_id', groupId)
+        .eq('is_pinned', true)
+        .order('uploaded_at', ascending: false)
+        .limit(20);
+    return rows.map(Photo.fromJson).toList();
   });
 
   @override

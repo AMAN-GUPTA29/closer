@@ -40,6 +40,7 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
   PreparedPhoto? _prepared;
   DateTime? _takenAt;
   bool _preparing = false;
+  bool _special = false;
   UploadStage? _stage;
   String? _error;
 
@@ -145,7 +146,12 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
           ),
         ),
       );
-      context.go(Routes.group(group.id));
+      if (_special) {
+        context.go(Routes.group(group.id));
+        context.push(Routes.newMoment(group.id, photoId: result.photoId));
+      } else {
+        context.go(Routes.group(group.id));
+      }
     } on AppFailure catch (f) {
       if (mounted) {
         setState(() {
@@ -312,6 +318,16 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
                     onPressed: () => setState(() => _takenAt = null),
                   ),
             onTap: _pickDate,
+          ),
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          value: _special,
+          onChanged: _uploading ? null : (v) => setState(() => _special = v),
+          title: Text('Mark as special moment', style: context.text.bodyLarge),
+          subtitle: Text(
+            'Anniversary, first trip, birthday… you can add details next.',
+            style: context.text.bodySmall,
           ),
         ),
         const SizedBox(height: CloserSpacing.lg),

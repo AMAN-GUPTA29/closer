@@ -11,6 +11,8 @@ import '../../../core/theme/closer_theme.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/auth_models.dart';
+import '../../journal/application/content_providers.dart';
+import 'profile_widgets.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -43,7 +45,9 @@ class ProfileScreen extends ConsumerWidget {
       _ => null,
     };
     final c = context.closerColors;
-    final displayName = user?.displayName ?? user?.friendlyName ?? '';
+    final profile = ref.watch(myProfileProvider).value;
+    final displayName =
+        profile?.displayName ?? user?.displayName ?? user?.friendlyName ?? '';
     final support = config.supportEmail;
 
     return Scaffold(
@@ -54,7 +58,7 @@ class ProfileScreen extends ConsumerWidget {
           vertical: CloserSpacing.md,
         ),
         children: [
-          Center(child: MemberAvatar(name: displayName, size: 96)),
+          Center(child: MyAvatar(fallbackName: displayName, size: 96)),
           const SizedBox(height: CloserSpacing.md),
           Text(
             displayName,
@@ -78,20 +82,20 @@ class ProfileScreen extends ConsumerWidget {
           const SizedBox(height: CloserSpacing.xl),
           _Section(
             children: [
-              const _Tile(
+              _Tile(
                 icon: CloserIcons.edit,
                 label: 'Edit profile',
-                soon: true,
+                onTap: () => context.push(Routes.editProfile),
               ),
-              const _Tile(
+              _Tile(
                 icon: CloserIcons.notifications,
                 label: 'Notification preferences',
-                soon: true,
+                onTap: () => context.push(Routes.notificationPreferences),
               ),
-              const _Tile(
+              _Tile(
                 icon: CloserIcons.crown,
                 label: 'Purchased groups',
-                soon: true,
+                onTap: () => context.push(Routes.purchases),
               ),
             ],
           ),
@@ -133,6 +137,13 @@ class ProfileScreen extends ConsumerWidget {
                 color: c.danger,
                 onTap: () => _signOut(context, ref),
               ),
+              if (status is SignedIn)
+                _Tile(
+                  icon: CloserIcons.trash,
+                  label: 'Delete account',
+                  color: c.danger,
+                  onTap: () => context.push(Routes.deleteAccount),
+                ),
             ],
           ),
           const SizedBox(height: CloserSpacing.xl),
@@ -178,7 +189,6 @@ class _Tile extends StatelessWidget {
     required this.label,
     this.onTap,
     this.color,
-    this.soon = false,
     this.trailing,
   });
 
@@ -187,16 +197,14 @@ class _Tile extends StatelessWidget {
   final VoidCallback? onTap;
   final Color? color;
 
-  /// Marks a setting that arrives in a later build; it is disabled.
-  final bool soon;
   final String? trailing;
 
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final enabled = onTap != null && !soon;
+    final enabled = onTap != null;
     final fg = color ?? (enabled ? c.textPrimary : c.textTertiary);
-    final tag = soon ? 'Soon' : trailing;
+    final tag = trailing;
     return ListTile(
       enabled: enabled,
       onTap: enabled ? onTap : null,

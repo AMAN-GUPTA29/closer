@@ -7,7 +7,7 @@ never silently deleted. Secrets themselves are **never** written here or in chat
 **Owner:** 👤 = you (needs your account, credentials or decision) · 🤖 = Claude · 🤝 = both
 **Status:** 🔴 blocking a feature · 🟡 open · ✅ resolved
 
-_Last updated: 2026-10-14 (after Phase 3)._
+_Last updated: 2026-10-14 (after Phase 4)._
 
 ## A. Credentials and accounts (👤 owner actions)
 
@@ -30,10 +30,10 @@ _Last updated: 2026-10-14 (after Phase 3)._
 
 | # | Item | Details | Status |
 |---|---|---|---|
-| B1 | Apply migrations | `npx supabase@2.120.0 db push` (2 migrations so far) | 🔴 |
-| B2 | Deploy cleanup worker | `npx supabase@2.120.0 functions deploy cleanup-storage` | 🔴 |
+| B1 | Apply migrations | `npx supabase@2.120.0 db push` (3 migrations so far) | 🔴 |
+| B2 | Deploy Edge Functions | `npx supabase@2.120.0 functions deploy cleanup-storage` and `... deploy delete-account` | 🔴 |
 | B3 | Schedule cleanup every 10 min | Enable `pg_cron` + `pg_net`, then the SQL in `docs/purchases-and-retention.md` | 🔴 |
-| B4 | Verify live flows once connected | Sign-up + email confirm, create/join group, upload photo, retention on the 11th photo, cleanup deletes files | 🟡 🤝 |
+| B4 | Verify live flows once connected | Sign-up + email confirm, create/join group, upload photo, retention on the 11th photo, cleanup deletes files, milestones, notifications, avatar upload, account deletion | 🟡 🤝 |
 
 ## C. Unverified features (built and tested in code, not yet proven in the real world)
 
@@ -45,6 +45,8 @@ _Last updated: 2026-10-14 (after Phase 3)._
 | C4 | Anything on iOS (build, camera permissions, links) | Hosted macOS (Phase 6), A8 | 🟡 |
 | C5 | Backend tests on the laptop | Docker Desktop did not start; tests run in GitHub Actions only | 🟡 |
 | C6 | `@claude` GitHub workflow and phone cloud sessions end-to-end | A5, A6 | 🟡 |
+| C7 | Account deletion against a real Supabase Auth project (Edge Function + cascades) | A1–A3, B2 | 🟡 |
+| C8 | Avatar upload and signed URLs on a real project | A1–A3 | 🟡 |
 
 ## D. Product decisions still open (👤)
 
@@ -63,12 +65,12 @@ _Last updated: 2026-10-14 (after Phase 3)._
 | # | Item | Planned phase | Status |
 |---|---|---|---|
 | E1 | Byte-level upload progress (currently step-based) | Later / optional | 🟡 |
-| E2 | Choose a specific group cover photo (now: newest photo) | Phase 4 | 🟡 |
-| E3 | "Deleted photos don't break milestone references" test (spec §13.14) | Phase 4 | 🟡 |
+| E8 | Upcoming-milestone reminders (scheduled job + push) | Phase 5 | 🟡 |
+| E9 | Realtime refresh of journals/notifications (now: refresh on open / pull to refresh) | Phase 5 | 🟡 |
 | E4 | Store purchase verification + RevenueCat webhook + restore | Phase 5 | 🟡 |
 | E5 | Native widgets, push notifications, realtime refresh | Phase 5 | 🟡 |
 | E6 | Release signing, Codemagic iOS, TestFlight, hardening | Phase 6 | 🟡 |
-| E7 | Merge stacked PRs #1 → #2 → #3 into `main` (owner merges) | Any time 👤 | 🟡 |
+| E7 | Merge stacked PRs #1 → #2 → #3 → #4 into `main` (owner merges) | Any time 👤 | 🟡 |
 
 ## Resolved
 
@@ -79,3 +81,6 @@ _Last updated: 2026-10-14 (after Phase 3)._
 | R3 | Kotlin incremental cache failure across drives | 2026-10-14 | `kotlin.incremental=false` |
 | R4 | `phosphor_flutter` incompatible with Flutter 3.47 | 2026-10-14 | Switched to Lucide icons |
 | R5 | Remote Control for this desktop session | 2026-10-14 | Turned on; session reachable from the Claude app while the laptop is awake |
+| R6 | Choose a specific group cover photo (was E2) | 2026-10-14 | Phase 4: `set_group_cover` + Group settings |
+| R7 | Deleted photos must not break milestone references, spec §13.14 (was E3) | 2026-10-14 | Phase 4 trigger + pgTAP and Flutter tests |
+| R8 | Floating "+" button overlapped "Create a special moment" | 2026-10-14 | Found on emulator; button now only on the Journal tab |

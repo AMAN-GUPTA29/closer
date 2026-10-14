@@ -63,6 +63,17 @@ All membership, role and invitation changes go through security-definer function
   entitlement functions (tested). Retention reads only the server's entitlement.
 - The cleanup Edge Function uses the service role inside Supabase; its logs contain counts only.
 
+## Phase 4 additions
+
+- Milestones: members create as themselves (`created_by` cannot be forged — tested); only the
+  creator or owner edits/deletes; covers validated against the group.
+- Notifications: created only by trusted triggers; clients can read their own and mark them read
+  (`mark_notifications_read`), nothing else; payloads contain ids/names, never captions or photos.
+- Avatars: private bucket; users write only into their own folder with random names; strangers
+  cannot read avatars (tested). `avatar_path` is not directly client-writable.
+- Account deletion runs server-side with the service role, only for the caller's own account,
+  after a typed confirmation; failures return a generic error (no internal details).
+
 ## Phase 1 status
 
 - Auth uses Supabase PKCE flow; passwords go only to Supabase Auth over HTTPS.

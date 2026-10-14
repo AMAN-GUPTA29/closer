@@ -86,8 +86,8 @@ jobs:
         run: |
           deno fmt --check .
           deno lint
-          deno check cleanup-storage/index.ts
-          deno test cleanup-storage/
+          deno check cleanup-storage/index.ts delete-account/index.ts
+          deno test .
 
   android-apk:
     name: Debug APK

@@ -18,11 +18,17 @@ import '../../features/groups/presentation/group_settings_screen.dart';
 import '../../features/groups/presentation/members_screen.dart';
 import '../../features/invitations/presentation/invite_screen.dart';
 import '../../features/invitations/presentation/join_group_screen.dart';
+import '../../features/journal/presentation/all_journal_screen.dart';
+import '../../features/journal/presentation/special_moment_screen.dart';
+import '../../features/notifications/presentation/notification_preferences_screen.dart';
+import '../../features/photos/presentation/all_photos_screen.dart';
+import '../../features/profile/presentation/delete_account_screen.dart';
+import '../../features/profile/presentation/edit_profile_screen.dart';
+import '../../features/profile/presentation/purchased_groups_screen.dart';
 import '../../features/photos/application/photo_providers.dart';
 import '../../features/photos/presentation/add_memory_screen.dart';
 import '../../features/purchases/upgrade_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
-import '../../features/journal/presentation/journal_screen.dart';
 import '../../features/legal/legal_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
@@ -148,6 +154,29 @@ final routerProvider = Provider<GoRouter>((ref) {
                         ),
                       ),
                       GoRoute(
+                        path: 'photos',
+                        parentNavigatorKey: _rootKey,
+                        builder: (context, state) => AllPhotosScreen(
+                          groupId: state.pathParameters['groupId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'moments/new',
+                        parentNavigatorKey: _rootKey,
+                        builder: (context, state) => SpecialMomentScreen(
+                          groupId: state.pathParameters['groupId']!,
+                          coverPhotoId: state.uri.queryParameters['photo'],
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'moments/:milestoneId',
+                        parentNavigatorKey: _rootKey,
+                        builder: (context, state) => SpecialMomentScreen(
+                          groupId: state.pathParameters['groupId']!,
+                          milestoneId: state.pathParameters['milestoneId'],
+                        ),
+                      ),
+                      GoRoute(
                         path: 'upgrade',
                         parentNavigatorKey: _rootKey,
                         builder: (context, state) => UpgradeScreen(
@@ -171,7 +200,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: Routes.journal,
-                builder: (context, state) => const JournalScreen(),
+                builder: (context, state) => const AllJournalScreen(),
               ),
             ],
           ),
@@ -180,6 +209,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: Routes.notifications,
                 builder: (context, state) => const NotificationsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'preferences',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) =>
+                        const NotificationPreferencesScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -188,6 +225,23 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: Routes.profile,
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => const EditProfileScreen(),
+                  ),
+                  GoRoute(
+                    path: 'purchases',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => const PurchasedGroupsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'delete',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => const DeleteAccountScreen(),
+                  ),
+                ],
               ),
             ],
           ),

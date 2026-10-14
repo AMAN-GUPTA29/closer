@@ -28,6 +28,7 @@ class Group {
     this.photoCount = 0,
     this.isPremium = false,
     this.latestThumbPath,
+    this.coverPhotoId,
   });
 
   factory Group.fromJson(Map<String, dynamic> json) {
@@ -48,6 +49,7 @@ class Group {
       photoCount: (json['photo_count'] as num?)?.toInt() ?? 0,
       isPremium: json['is_premium'] as bool? ?? false,
       latestThumbPath: json['latest_thumb_path'] as String?,
+      coverPhotoId: json['cover_photo_id'] as String?,
     );
   }
 
@@ -75,8 +77,11 @@ class Group {
   /// Closer Memories (server-side entitlement, including grace period).
   final bool isPremium;
 
-  /// Thumbnail of the newest photo, used as the cover.
+  /// Thumbnail of the cover: the chosen cover photo, else the newest photo.
   final String? latestThumbPath;
+
+  /// Photo explicitly chosen as cover by the owner (null = newest photo).
+  final String? coverPhotoId;
 
   /// True when the next upload will remove the oldest photo.
   bool get nextUploadRemovesOldest =>
@@ -124,6 +129,7 @@ class Group {
       photoCount: photoCount ?? this.photoCount,
       isPremium: isPremium ?? this.isPremium,
       latestThumbPath: latestThumbPath,
+      coverPhotoId: coverPhotoId,
     );
   }
 }

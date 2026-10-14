@@ -26,6 +26,8 @@ flutter build apk --debug
 Latest CI result: 105 pgTAP assertions passed; concurrency script: 1 joined, 4 full, members = 2.
 
 | `supabase/tests/database/004_photos_retention.test.sql` | private bucket; idempotent upload requests; storage write/read policies; finalize requires stored objects; failed upload deletes nothing (12); 11th upload removes the oldest (7, 8); Premium keeps more than 10 (9); client Premium forgery blocked (10); Premium isolated per group and inherited by new members (11); purchase idempotency (15); refund grace period; delete permissions; stale uploads; group deletion queues objects; cleanup queue claim/backoff/lease/dead (13) |
+| `supabase/tests/database/005_journal_milestones_notifications.test.sql` | notification fan-out, self-exclusion, preferences, recipients-only reads, mark read; milestone RLS, forged creator, cover validation, creator/owner edits; journal mixing, ordering, future exclusion, keyset pages; chosen covers; deleted/retained photos cleared from milestone and group covers (14); avatars write/read policies; leaving clears notifications; account deletion keeps shared content |
+| `supabase/functions/delete-account/logic_test.ts` | Deno: own-account deletion order, bearer token required, typed confirmation, invalid tokens, no leaked errors |
 | `supabase/tests/concurrency/basic_retention.sh` | 3 uploads finalize in parallel into a full Basic group: exactly 10 active, the 3 oldest removed |
 | `supabase/functions/cleanup-storage/logic_test.ts` | Deno: deletes and completes jobs, failures recorded for retry, thrown errors not fatal, batch limit, empty queue |
 
@@ -60,13 +62,21 @@ Total Flutter tests: 80.
 
 Total Flutter tests: 98.
 
+## Flutter suites added in Phase 4
+
+| File | Covers |
+|---|---|
+| `test/features/journal_logic_test.dart` | milestone parsing/highlights, drafts, templates (hearts only for couples), journal entry parsing and time-zone-safe day grouping, couple countdowns (round numbers, anniversaries, 29 Feb, future start), notification parsing/messages, preferences, in-memory rules (cover cleared on photo delete, same-group covers, journal mixing, edit permissions) |
+| `test/app/journal_flow_test.dart` | counter + countdown; create → pin → edit → delete a moment; "mark as special moment" pre-selects the cover; all-groups journal; notification badge, open + mark read, preferences; edit profile; typed account deletion → signed out; owner chooses cover; offline banner |
+
+Total Flutter tests: 121. Latest CI: 220 pgTAP assertions, 10 Deno tests, both concurrency scripts.
+
 ## Not yet covered (needs later phases or external resources)
 
 | Area | Needs |
 |---|---|
 | Real Supabase sign-up / email confirmation / reset links | Supabase project + email delivery; physical device for deep links |
 | Google / Apple OAuth | Provider credentials configured in Supabase |
-| Milestone references to deleted photos (spec §13 item 14) | Phase 4 |
 | Store purchase verification end to end, device registration (items 15 store side, 16) | Phase 5, store sandbox accounts |
 | Native image compression and camera | Physical device / emulator (plugin code is not exercised in unit tests) |
 | Native widgets, push | Phase 5, emulators/devices; iOS needs hosted macOS |

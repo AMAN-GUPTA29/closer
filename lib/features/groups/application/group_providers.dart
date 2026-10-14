@@ -112,6 +112,11 @@ class GroupActions {
     _ref.invalidate(myGroupsProvider);
   }
 
+  Future<void> setCover(String groupId, String? photoId) async {
+    await _backend.setCover(groupId, photoId);
+    _refreshGroup(groupId);
+  }
+
   Future<void> transferOwnership(String groupId, String userId) async {
     await _backend.transferOwnership(groupId, userId);
     _refreshGroup(groupId);

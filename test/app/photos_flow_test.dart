@@ -126,10 +126,18 @@ void main() {
     await pump(tester);
     await openGroup(tester);
 
-    await tester.tap(find.bySemanticsLabel(RegExp('^Beach 2 by')));
+    await tester.ensureVisible(find.text('Beach 2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Beach 2'));
     await tester.pumpAndSettle();
     expect(find.byType(PhotoViewer), findsOneWidget);
-    expect(find.text('Beach 2'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(PhotoViewer),
+        matching: find.text('Beach 2'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('1 / 2'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Photo options'));

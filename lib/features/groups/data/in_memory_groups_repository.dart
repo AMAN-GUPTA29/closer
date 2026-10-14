@@ -48,6 +48,51 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
   /// Object paths currently stored (for tests).
   Set<String> get storedObjects => _objects.keys.toSet();
 
+  /// Listeners told when a photo stops being active (e.g. milestone covers).
+  final photoRemovedListeners = <void Function(String photoId)>[];
+
+  void _removed(_PhotoRow p) {
+    p.status = 'removed';
+    _objects
+      ..remove(p.storagePath)
+      ..remove(p.thumbPath);
+    for (final g in _groups.values) {
+      if (g.coverPhotoId == p.id) g.coverPhotoId = null;
+    }
+    for (final l in photoRemovedListeners) {
+      l(p.id);
+    }
+  }
+
+  // Read helpers for other in-memory backends.
+  bool isMemberOf(String groupId) =>
+      _members[groupId]?.any((m) => m.userId == currentUserId) ?? false;
+  bool isOwnerOf(String groupId) => _isOwner(groupId);
+  List<String> memberIdsOf(String groupId) =>
+      _members[groupId]?.map((m) => m.userId).toList() ?? const [];
+  String displayNameOf(String userId) =>
+      userId == currentUserId ? currentUserName : _names[userId] ?? 'Member';
+  List<String> myGroupIds() => _members.entries
+      .where((e) => e.value.any((m) => m.userId == currentUserId))
+      .map((e) => e.key)
+      .toList();
+  List<Photo> activePhotosOf(String groupId) =>
+      _active(groupId).map(_toPhoto).toList();
+  bool isActivePhotoIn(String photoId, String groupId) {
+    final p = _photos[photoId];
+    return p != null && p.status == 'active' && p.groupId == groupId;
+  }
+
+  @override
+  Future<void> setCover(String groupId, String? photoId) async {
+    await _wait();
+    if (!_isOwner(groupId)) _fail('not_allowed');
+    if (photoId != null && !isActivePhotoIn(photoId, groupId)) {
+      _fail('invalid_cover_photo');
+    }
+    _groups[groupId]!.coverPhotoId = photoId;
+  }
+
   /// Simulated network delay (0 in tests).
   Duration latency = Duration.zero;
 
@@ -88,7 +133,12 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
       myRole: me?.role ?? MemberRole.member,
       photoCount: _active(id).length,
       isPremium: _premium.contains(id),
-      latestThumbPath: _active(id).firstOrNull?.thumbPath,
+      latestThumbPath:
+          (g.coverPhotoId != null && _photos[g.coverPhotoId]?.status == 'active'
+              ? _photos[g.coverPhotoId]!.thumbPath
+              : null) ??
+          _active(id).firstOrNull?.thumbPath,
+      coverPhotoId: g.coverPhotoId,
     );
   }
 
@@ -550,15 +600,18 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
         });
       final excess = active.length - Group.basicPhotoLimit;
       for (final old in active.take(max(0, excess))) {
-        old.status = 'removed';
-        _objects
-          ..remove(old.storagePath)
-          ..remove(old.thumbPath);
+        _removed(old);
         removed++;
       }
     }
     _groups[p.groupId]!.lastActivityAt = _clock();
     return UploadResult(photoId: photoId, removedCount: removed);
+  }
+
+  @override
+  Future<List<Photo>> pinnedPhotos(String groupId) async {
+    _requireMember(groupId);
+    return _active(groupId).where((p) => p.isPinned).map(_toPhoto).toList();
   }
 
   @override
@@ -570,10 +623,7 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
     if (p.uploaderId != currentUserId && !_isOwner(p.groupId)) {
       _fail('not_allowed');
     }
-    p.status = 'removed';
-    _objects
-      ..remove(p.storagePath)
-      ..remove(p.thumbPath);
+    _removed(p);
   }
 
   @override
@@ -640,6 +690,7 @@ class _GroupRow {
   final String createdBy;
   DateTime? relationshipStartDate;
   bool showCounter = true;
+  String? coverPhotoId;
   final DateTime createdAt;
   DateTime lastActivityAt;
 }

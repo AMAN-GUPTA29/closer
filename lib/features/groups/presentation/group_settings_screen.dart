@@ -8,6 +8,9 @@ import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
 import '../../../core/widgets/widgets.dart';
 import '../application/group_providers.dart';
+import '../../journal/presentation/special_moment_screen.dart'
+    show PhotoChooserSheet;
+import '../../photos/presentation/photo_widgets.dart';
 import '../domain/group_models.dart';
 import 'group_widgets.dart';
 
@@ -199,6 +202,12 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
               onPressed: _dirty ? _save : null,
             ),
           ],
+          if (owner) ...[
+            const SizedBox(height: CloserSpacing.lg),
+            Text('Cover photo', style: context.text.titleMedium),
+            const SizedBox(height: CloserSpacing.sm),
+            _CoverTile(group: g),
+          ],
           const SizedBox(height: CloserSpacing.xxl),
           const Divider(),
           const SizedBox(height: CloserSpacing.lg),
@@ -217,6 +226,75 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _CoverTile extends ConsumerWidget {
+  const _CoverTile({required this.group});
+
+  final Group group;
+
+  Future<void> _choose(BuildContext context, WidgetRef ref) async {
+    final chosen = await showModalBottomSheet<String?>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (_) => PhotoChooserSheet(
+        group: group,
+        allowNone: true,
+        noneLabel: 'Use the newest photo',
+      ),
+    );
+    if (chosen == null) return;
+    try {
+      await ref
+          .read(groupActionsProvider)
+          .setCover(group.id, chosen.isEmpty ? null : chosen);
+    } catch (e) {
+      if (context.mounted) showFailure(context, e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Semantics(
+      button: true,
+      label: 'Change cover photo',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: CloserRadii.lgAll,
+        onTap: group.photoCount == 0 ? null : () => _choose(context, ref),
+        child: ClipRRect(
+          borderRadius: CloserRadii.lgAll,
+          child: SizedBox(
+            height: 120,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                GroupCover(group: group),
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(CloserSpacing.sm),
+                    child: Text(
+                      group.photoCount == 0
+                          ? 'Share a photo to choose a cover'
+                          : group.coverPhotoId == null
+                          ? 'Newest photo · tap to choose'
+                          : 'Chosen photo · tap to change',
+                      style: context.text.labelMedium?.copyWith(
+                        color: Colors.white,
+                        shadows: const [Shadow(blurRadius: 8)],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

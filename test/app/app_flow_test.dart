@@ -3,7 +3,7 @@ import 'package:closer/features/auth/presentation/sign_in_screen.dart';
 import 'package:closer/features/auth/presentation/sign_up_screen.dart';
 import 'package:closer/features/auth/presentation/verify_email_screen.dart';
 import 'package:closer/features/home/presentation/home_screen.dart';
-import 'package:closer/features/journal/presentation/journal_screen.dart';
+import 'package:closer/features/journal/presentation/all_journal_screen.dart';
 import 'package:closer/features/notifications/presentation/notifications_screen.dart';
 import 'package:closer/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:closer/features/profile/presentation/profile_screen.dart';
@@ -93,7 +93,7 @@ void main() {
 
     await tester.tap(find.text('Journal'));
     await tester.pumpAndSettle();
-    expect(find.byType(JournalScreen), findsOneWidget);
+    expect(find.byType(AllJournalScreen), findsOneWidget);
 
     await tester.tap(find.text('Notifications'));
     await tester.pumpAndSettle();

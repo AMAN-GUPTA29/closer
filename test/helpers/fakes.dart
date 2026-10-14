@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:closer/app/app.dart';
 import 'package:closer/core/config/app_config.dart';
 import 'package:closer/core/errors/app_failure.dart';
+import 'package:closer/core/network/connectivity.dart';
 import 'package:closer/core/theme/closer_theme.dart';
 import 'package:closer/features/auth/application/auth_providers.dart';
 import 'package:closer/features/auth/data/auth_repository.dart';
@@ -160,6 +161,7 @@ Future<void> pumpCloserApp(
   GroupsBackend? groups,
   Stream<Uri>? links,
   List<Override> extra = const [],
+  bool online = true,
 }) async {
   tester.view.physicalSize = const Size(1170, 2532);
   tester.view.devicePixelRatio = 3;
@@ -175,6 +177,7 @@ Future<void> pumpCloserApp(
         incomingLinksProvider.overrideWithValue(
           links ?? const Stream<Uri>.empty(),
         ),
+        isOnlineProvider.overrideWith((ref) => Stream.value(online)),
         ...extra,
       ],
       child: const CloserApp(),
