@@ -11,7 +11,12 @@ class PhotoViewerItem {
     this.subtitle,
     this.heroTag,
     this.placeholderVariant = 0,
+    this.builder,
   });
+
+  /// Custom photo widget (e.g. one that resolves a private image lazily).
+  /// Takes precedence over [image].
+  final WidgetBuilder? builder;
 
   /// Full-size image; `null` shows the painted placeholder.
   final ImageProvider? image;
@@ -21,18 +26,43 @@ class PhotoViewerItem {
   final int placeholderVariant;
 }
 
+/// An action offered in the viewer's menu for the current photo.
+class PhotoViewerAction {
+  const PhotoViewerAction({
+    required this.label,
+    required this.icon,
+    required this.onSelected,
+    this.destructive = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool destructive;
+
+  /// Receives the viewer's context; pop it to close the viewer.
+  final Future<void> Function(BuildContext viewerContext) onSelected;
+}
+
 /// Full-screen, swipeable, pinch-to-zoom photo viewer.
 class PhotoViewer extends StatefulWidget {
-  const PhotoViewer({super.key, required this.items, this.initialIndex = 0})
-    : assert(items.length > 0);
+  const PhotoViewer({
+    super.key,
+    required this.items,
+    this.initialIndex = 0,
+    this.actionsFor,
+  }) : assert(items.length > 0);
 
   final List<PhotoViewerItem> items;
   final int initialIndex;
+
+  /// Menu actions for the photo at an index.
+  final List<PhotoViewerAction> Function(int index)? actionsFor;
 
   static Future<void> show(
     BuildContext context, {
     required List<PhotoViewerItem> items,
     int initialIndex = 0,
+    List<PhotoViewerAction> Function(int index)? actionsFor,
   }) {
     return Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder<void>(
@@ -43,8 +73,11 @@ class PhotoViewer extends StatefulWidget {
           context,
           CloserMotion.medium,
         ),
-        pageBuilder: (_, _, _) =>
-            PhotoViewer(items: items, initialIndex: initialIndex),
+        pageBuilder: (_, _, _) => PhotoViewer(
+          items: items,
+          initialIndex: initialIndex,
+          actionsFor: actionsFor,
+        ),
         transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
@@ -68,6 +101,35 @@ class _PhotoViewerState extends State<PhotoViewer> {
     super.dispose();
   }
 
+  List<Widget> _menu(BuildContext context) {
+    final actions = widget.actionsFor?.call(_index) ?? const [];
+    if (actions.isEmpty) return const [];
+    return [
+      PopupMenuButton<PhotoViewerAction>(
+        tooltip: 'Photo options',
+        iconColor: Colors.white,
+        onSelected: (a) => a.onSelected(context),
+        itemBuilder: (_) => [
+          for (final a in actions)
+            PopupMenuItem(
+              value: a,
+              child: Row(
+                children: [
+                  Icon(
+                    a.icon,
+                    size: 20,
+                    color: a.destructive ? context.closerColors.danger : null,
+                  ),
+                  const SizedBox(width: CloserSpacing.sm),
+                  Text(a.label),
+                ],
+              ),
+            ),
+        ],
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final item = widget.items[_index];
@@ -84,12 +146,14 @@ class _PhotoViewerState extends State<PhotoViewer> {
               onPageChanged: (i) => setState(() => _index = i),
               itemBuilder: (context, i) {
                 final it = widget.items[i];
-                Widget photo = CloserPhoto(
-                  image: it.image,
-                  placeholderVariant: it.placeholderVariant,
-                  fit: BoxFit.contain,
-                  semanticLabel: it.caption ?? 'Photo ${i + 1}',
-                );
+                Widget photo =
+                    it.builder?.call(context) ??
+                    CloserPhoto(
+                      image: it.image,
+                      placeholderVariant: it.placeholderVariant,
+                      fit: BoxFit.contain,
+                      semanticLabel: it.caption ?? 'Photo ${i + 1}',
+                    );
                 if (it.heroTag != null) {
                   photo = Hero(tag: it.heroTag!, child: photo);
                 }
@@ -120,6 +184,7 @@ class _PhotoViewerState extends State<PhotoViewer> {
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                           const Spacer(),
+                          ..._menu(context),
                           if (widget.items.length > 1)
                             Padding(
                               padding: const EdgeInsets.only(

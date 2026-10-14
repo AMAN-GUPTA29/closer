@@ -13,6 +13,7 @@ import 'package:closer/features/groups/data/in_memory_groups_repository.dart';
 import 'package:closer/features/invitations/application/invite_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 const testConfig = AppConfig(
@@ -158,6 +159,7 @@ Future<void> pumpCloserApp(
   AppConfig config = testConfig,
   GroupsBackend? groups,
   Stream<Uri>? links,
+  List<Override> extra = const [],
 }) async {
   tester.view.physicalSize = const Size(1170, 2532);
   tester.view.devicePixelRatio = 3;
@@ -173,6 +175,7 @@ Future<void> pumpCloserApp(
         incomingLinksProvider.overrideWithValue(
           links ?? const Stream<Uri>.empty(),
         ),
+        ...extra,
       ],
       child: const CloserApp(),
     ),

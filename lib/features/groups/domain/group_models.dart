@@ -25,6 +25,9 @@ class Group {
     this.coverPath,
     this.relationshipStartDate,
     this.showRelationshipCounter = true,
+    this.photoCount = 0,
+    this.isPremium = false,
+    this.latestThumbPath,
   });
 
   factory Group.fromJson(Map<String, dynamic> json) {
@@ -42,8 +45,15 @@ class Group {
       lastActivityAt: DateTime.parse(json['last_activity_at'] as String),
       memberCount: (json['member_count'] as num?)?.toInt() ?? 0,
       myRole: MemberRole.parse(json['my_role'] as String?),
+      photoCount: (json['photo_count'] as num?)?.toInt() ?? 0,
+      isPremium: json['is_premium'] as bool? ?? false,
+      latestThumbPath: json['latest_thumb_path'] as String?,
     );
   }
+
+  /// Photos kept by a Basic group (mirrors `basic_photo_limit()` on the
+  /// server, which is authoritative).
+  static const basicPhotoLimit = 10;
 
   final String id;
   final String name;
@@ -58,6 +68,19 @@ class Group {
   final DateTime lastActivityAt;
   final int memberCount;
   final MemberRole myRole;
+
+  /// Active photos in the group.
+  final int photoCount;
+
+  /// Closer Memories (server-side entitlement, including grace period).
+  final bool isPremium;
+
+  /// Thumbnail of the newest photo, used as the cover.
+  final String? latestThumbPath;
+
+  /// True when the next upload will remove the oldest photo.
+  bool get nextUploadRemovesOldest =>
+      !isPremium && photoCount >= basicPhotoLimit;
 
   bool get isOwner => myRole == MemberRole.owner;
 
@@ -80,6 +103,8 @@ class Group {
     bool? showRelationshipCounter,
     int? memberCount,
     MemberRole? myRole,
+    int? photoCount,
+    bool? isPremium,
   }) {
     return Group(
       id: id,
@@ -96,6 +121,9 @@ class Group {
       lastActivityAt: lastActivityAt,
       memberCount: memberCount ?? this.memberCount,
       myRole: myRole ?? this.myRole,
+      photoCount: photoCount ?? this.photoCount,
+      isPremium: isPremium ?? this.isPremium,
+      latestThumbPath: latestThumbPath,
     );
   }
 }

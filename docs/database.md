@@ -5,6 +5,7 @@ Supabase Postgres 17. Migrations live in `supabase/migrations/` and are applied 
 | Migration | Phase | Contents |
 |---|---|---|
 | `20261014000001_core_groups.sql` | 2 | profiles, groups, memberships, invitations, RLS, trusted functions |
+| `20261014000002_photos_retention_entitlements.sql` | 3 | private `photos` bucket + storage policies, photos, retention, entitlements, purchases, cleanup queue |
 
 ## Running locally
 
@@ -69,9 +70,28 @@ There is no seed data: users and groups are created through the app.
 
 **Codes:** 8 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (31 symbols, no 0/O/1/I/L; uniform by rejection sampling) ≈ 8.5 × 10¹¹ combinations. **Tokens:** 24 random bytes, URL-safe base64. Both hashed with SHA-256.
 
+## Schema (Phase 3)
+
+| Table | Key columns | Notes |
+|---|---|---|
+| `photos` | `id`, `group_id`, `uploader_id` → profiles (set null), `client_upload_id`, `storage_path`, `thumb_path`, `caption` ≤ 500, `taken_at`, `uploaded_at`, `width`, `height`, `byte_size`, `status` (`pending`/`active`/`removed`), `removed_at`, `removed_reason`, `is_pinned` | Unique `(uploader_id, client_upload_id)` = duplicate-submit protection. Keyset index on `(group_id, uploaded_at desc, id desc)` for active photos |
+| `group_entitlements` | `group_id` PK, `tier`, `status`, `granted_at`, `revoked_at`, `grace_until`, `purchase_id` | Authoritative Premium; members read, nobody writes from clients |
+| `purchase_records` | `id`, `store`, `product_id`, `transaction_id`, `user_id`, `group_id`, `status`, `purchased_at`, `refunded_at` | Unique `(store, transaction_id)` = idempotency |
+| `storage_cleanup_jobs` | `object_path`, `group_id`, `photo_id`, `reason`, `status`, `attempts`, `next_attempt_at`, `lease_until`, `last_error` | Durable deletion queue; no client access |
+| storage bucket `photos` | private, 15 MB, `image/jpeg` only | Paths: `<group_id>/<photo_id>/original.jpg` and `thumb.jpg` |
+
+`group_summaries` gained `photo_count`, `is_premium` and `latest_thumb_path` (cover).
+
+Photo functions: `request_photo_upload`, `finalize_photo`, `delete_photo`, `set_photo_pinned`
+(signed-in members); `expire_stale_uploads`, `claim_cleanup_jobs`, `complete_cleanup_job`,
+`grant_group_entitlement`, `revoke_group_entitlement` (service role only). Behaviour and the
+upload protocol are described in `docs/purchases-and-retention.md`.
+
 ## Date and time policy
 
 - Instants are `timestamptz`; calendar dates (relationship start) are `date`, with no time zone.
+- Photos keep `taken_at` (capture time from EXIF or chosen by the uploader, optional) separate
+  from `uploaded_at` (when it was shared). Journal cards show `taken_at` when known.
 - "Days together" = calendar days in the device's local time zone **including the start date** (start date = day 1). Future start dates are rejected. Owners can correct the date in Group settings.
 
 ## Error contract

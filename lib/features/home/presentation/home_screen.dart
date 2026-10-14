@@ -14,6 +14,7 @@ import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/auth_models.dart';
 import '../../groups/application/group_providers.dart';
 import '../../groups/domain/group_models.dart';
+import '../../photos/presentation/photo_widgets.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -204,6 +205,8 @@ class _GroupTile extends StatelessWidget {
       memberCount: group.memberCount,
       activity: _activity,
       placeholderVariant: group.placeholderVariant,
+      isPremium: group.isPremium,
+      coverWidget: GroupCover(group: group),
       onTap: () => context.push(Routes.group(group.id)),
     );
   }

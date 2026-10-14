@@ -12,6 +12,10 @@ Closer is a private photo-sharing and shared-journal app for couples, friends an
   run checks, update docs + tracker, write the checkpoint report, and ask
   "Phase N is complete and tested to the extent possible. Shall I proceed to Phase N+1?" — then stop
   until the owner approves.
+- **Open issues.** `ISSUES.md` lists everything deferred: credentials/accounts the owner must
+  provide (e.g. Supabase keys), hosted-backend setup steps, unverified features, open decisions and
+  scheduled follow-ups. Add new items as soon as they appear, mark resolved items with date and
+  how (never delete them), and review it in every checkpoint report. Never write secret values there.
 - **Honesty.** Never claim tests, builds, integrations, commits or deployments that did not actually happen.
 - **Git.** Never force-push or rewrite `main`. Do phase work on `phase-N/<topic>` branches, open a PR into
   `main`, and let the owner merge (or merge only when the owner says so). Commit messages: imperative mood.

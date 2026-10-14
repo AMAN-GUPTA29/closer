@@ -18,6 +18,13 @@ String backendMessage(String key) => switch (key) {
   'invalid_max_redemptions' => 'Choose between 1 and 100 uses.',
   'invitation_not_found' => 'That invitation no longer exists.',
   'use_leave_group' => 'Use “Leave group” to remove yourself.',
+  'upload_incomplete' => 'The photo didn’t finish uploading. Please try again.',
+  'upload_expired' => 'This upload expired. Please share the photo again.',
+  'photo_not_found' => 'That photo is no longer available.',
+  'premium_required' => 'Pinning photos is part of Closer Memories.',
+  'taken_in_future' => 'The photo date can’t be in the future.',
+  'invalid_upload' =>
+    'Something went wrong preparing this upload. Please try again.',
   _ => 'Something went wrong. Please try again.',
 };
 
@@ -40,6 +47,16 @@ AppFailure mapBackendError(Object error) {
       );
     }
     return const UnexpectedFailure();
+  }
+  if (error is sb.StorageException) {
+    final status = int.tryParse(error.statusCode ?? '');
+    if (status == 403 || status == 401) return const PermissionFailure();
+    if (status == 413) {
+      return const UnexpectedFailure('This photo is too large to upload.');
+    }
+    return const UnexpectedFailure(
+      'The photo couldn’t be uploaded. Please try again.',
+    );
   }
   if (error is SocketException ||
       error is TimeoutException ||

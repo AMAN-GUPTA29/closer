@@ -8,6 +8,8 @@ import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../photos/presentation/group_photos_tab.dart';
+import '../../photos/presentation/photo_widgets.dart';
 import '../application/group_providers.dart';
 import '../domain/group_models.dart';
 import 'group_widgets.dart';
@@ -112,13 +114,7 @@ class _GroupHome extends ConsumerWidget {
         ],
         body: TabBarView(
           children: [
-            const EmptyState(
-              icon: CloserIcons.gallery,
-              title: 'No memories yet',
-              message:
-                  'Photo sharing arrives in the next update. Your group’s '
-                  'journal will fill up here, newest first.',
-            ),
+            GroupPhotosTab(group: group),
             EmptyState(
               icon: group.type == GroupType.couple
                   ? CloserIcons.heartOutline
@@ -151,7 +147,7 @@ class _Hero extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        CloserPhoto(placeholderVariant: group.placeholderVariant),
+        GroupCover(group: group),
         DecoratedBox(decoration: BoxDecoration(gradient: c.heroScrim)),
         Positioned(
           left: CloserSpacing.gutter,
@@ -237,17 +233,16 @@ class _ActionRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          const _Action(
-            icon: CloserIcons.share,
-            label: 'Share',
-            hint: 'Photo sharing arrives in the next update',
-            onTap: null,
+          _Action(
+            icon: CloserIcons.camera,
+            label: 'Camera',
+            onTap: () =>
+                context.push(Routes.addMemory(group.id, source: 'camera')),
           ),
-          const _Action(
+          _Action(
             icon: CloserIcons.plus,
             label: 'Add',
-            hint: 'Photo sharing arrives in the next update',
-            onTap: null,
+            onTap: () => context.push(Routes.addMemory(group.id)),
           ),
           _Action(
             icon: CloserIcons.invite,
@@ -337,7 +332,7 @@ class _DetailsTab extends StatelessWidget {
       ('Created', formatMediumDate(group.createdAt.toLocal())),
       if (group.relationshipStartDate != null)
         ('Together since', formatMediumDate(group.relationshipStartDate!)),
-      ('Photo history', 'Basic · keeps the latest 10 photos'),
+      ('Photo history', photoHistoryLabel(group)),
     ];
     return ListView(
       padding: const EdgeInsets.all(CloserSpacing.gutter),
@@ -363,12 +358,12 @@ class _DetailsTab extends StatelessWidget {
           onPressed: () => context.push(Routes.groupSettings(group.id)),
         ),
         const SizedBox(height: CloserSpacing.lg),
-        UpgradeCard(
-          groupName: group.name,
-          onUpgrade: null,
-          unavailableReason:
-              'Closer Memories purchases arrive in a later update.',
-        ),
+        if (!group.isPremium)
+          UpgradeCard(
+            groupName: group.name,
+            photoLimit: Group.basicPhotoLimit,
+            onUpgrade: () => context.push(Routes.upgrade(group.id)),
+          ),
         SizedBox(height: MediaQuery.paddingOf(context).bottom),
       ],
     );

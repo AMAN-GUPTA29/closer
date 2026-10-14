@@ -24,6 +24,9 @@ abstract final class Routes {
   static String invite(String id) => '/home/groups/$id/invite';
   static String members(String id) => '/home/groups/$id/members';
   static String groupSettings(String id) => '/home/groups/$id/settings';
+  static String upgrade(String id) => '/home/groups/$id/upgrade';
+  static String addMemory(String id, {String? source}) =>
+      '/home/groups/$id/add${source == null ? '' : '?source=$source'}';
 
   /// Routes reachable without a session.
   static const _public = {welcome, signIn, signUp, forgotPassword, verifyEmail};

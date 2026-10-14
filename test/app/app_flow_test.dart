@@ -103,7 +103,9 @@ void main() {
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
     expect(find.text('Share a memory'), findsOneWidget);
-    await tester.tap(find.text('Got it'));
+    // No groups yet: the sheet points to creating one. Dismiss it.
+    expect(find.text('Create a group'), findsWidgets);
+    await tester.tapAt(const Offset(20, 20));
     await tester.pumpAndSettle();
     expect(find.byType(NotificationsScreen), findsOneWidget);
 
