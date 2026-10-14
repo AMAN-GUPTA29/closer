@@ -3,19 +3,18 @@
 The actionable list of deferred items, owner actions and credentials lives in
 [`ISSUES.md`](../ISSUES.md). This page describes current behaviour limits.
 
-_Last updated: Phase 3, 2026-10-14._
+_Last updated: Phase 4, 2026-10-14._
 
 ## Not built yet (planned phases)
 
 | Feature | Phase |
 |---|---|
-| Journal, milestones, notifications feed, settings, account deletion | 4 |
 | Native widgets, push notifications, purchase verification | 5 |
 | Release signing, iOS hosted builds, hardening | 6 |
 
-Disabled and labelled in the current build: the Closer Memories purchase button (store billing is
-Phase 5), "special moment" milestones (Phase 4), several Profile rows. Group covers use the newest
-photo; choosing a specific cover photo comes with Phase 4 settings.
+Disabled and labelled in the current build: the Closer Memories purchase button and "Restore
+purchases" (store billing is Phase 5); Help & support until `SUPPORT_EMAIL` is set. Notifications are
+in-app only; push delivery and upcoming-milestone reminders come in Phase 5.
 
 ## Environment / verification gaps
 

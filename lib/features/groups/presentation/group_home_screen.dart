@@ -23,15 +23,6 @@ class GroupHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final group = ref.watch(groupProvider(groupId));
     return Scaffold(
-      floatingActionButton: group.value == null
-          ? null
-          : FloatingActionButton(
-              tooltip: 'Share a memory',
-              backgroundColor: context.closerColors.accentStrong,
-              foregroundColor: Colors.white,
-              onPressed: () => context.push(Routes.addMemory(groupId)),
-              child: const Icon(CloserIcons.plus),
-            ),
       body: switch (group) {
         AsyncData(:final value) => _GroupHome(group: value),
         _ => SafeArea(
@@ -123,47 +114,65 @@ class _GroupHome extends ConsumerWidget {
         ],
         body: TabBarView(
           children: [
-            JournalList(
-              groupId: group.id,
-              header: (context) => [
-                ...pinnedSlivers(context, ref, group),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    CloserSpacing.gutter,
-                    CloserSpacing.sm,
-                    CloserSpacing.gutter,
-                    0,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            photoHistoryLabel(group),
-                            style: context.text.bodySmall,
-                          ),
+            Stack(
+              children: [
+                JournalList(
+                  groupId: group.id,
+                  header: (context) => [
+                    ...pinnedSlivers(context, ref, group),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(
+                        CloserSpacing.gutter,
+                        CloserSpacing.sm,
+                        CloserSpacing.gutter,
+                        0,
+                      ),
+                      sliver: SliverToBoxAdapter(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                photoHistoryLabel(group),
+                                style: context.text.bodySmall,
+                              ),
+                            ),
+                            if (group.photoCount > 0)
+                              TextButton(
+                                onPressed: () =>
+                                    context.push(Routes.allPhotos(group.id)),
+                                child: const Text('All photos'),
+                              ),
+                          ],
                         ),
-                        if (group.photoCount > 0)
-                          TextButton(
-                            onPressed: () =>
-                                context.push(Routes.allPhotos(group.id)),
-                            child: const Text('All photos'),
-                          ),
-                      ],
+                      ),
+                    ),
+                  ],
+                  emptyState: EmptyState(
+                    icon: CloserIcons.gallery,
+                    title: 'No memories yet',
+                    message: 'Share the first photo with ${group.name}.',
+                    action: CloserButton(
+                      label: 'Share a photo',
+                      icon: const Icon(CloserIcons.plus),
+                      onPressed: () => context.push(Routes.addMemory(group.id)),
                     ),
                   ),
                 ),
-              ],
-              emptyState: EmptyState(
-                icon: CloserIcons.gallery,
-                title: 'No memories yet',
-                message: 'Share the first photo with ${group.name}.',
-                action: CloserButton(
-                  label: 'Share a photo',
-                  icon: const Icon(CloserIcons.plus),
-                  onPressed: () => context.push(Routes.addMemory(group.id)),
+                // Journal-only shortcut, so it never covers other tabs' actions.
+                Positioned(
+                  right: CloserSpacing.gutter,
+                  bottom:
+                      MediaQuery.paddingOf(context).bottom + CloserSpacing.lg,
+                  child: FloatingActionButton(
+                    heroTag: 'share-${group.id}',
+                    tooltip: 'Share a memory',
+                    backgroundColor: c.accentStrong,
+                    foregroundColor: Colors.white,
+                    onPressed: () => context.push(Routes.addMemory(group.id)),
+                    child: const Icon(CloserIcons.plus),
+                  ),
                 ),
-              ),
+              ],
             ),
             MilestonesTab(group: group),
             _DetailsTab(group: group),

@@ -32,6 +32,20 @@ Every visible control either works or is clearly marked unavailable.
 
 Six gated phases (see [TRACKER.md](../TRACKER.md)). The owner approves each phase before the next starts.
 
+## Implemented in Phase 4
+
+- Journal per group and across all groups: photos + milestones newest first, day headers,
+  captions, uploader, pinned strip, infinite scroll, full-screen viewer.
+- Special moments: templates per group type (hearts for couples, celebration/classic for others),
+  title, date (past or upcoming), description, cover from the group's photos, theme, pin; edit and
+  delete for creator/owner; "Mark as special moment" when sharing a photo.
+- Couple counter with countdowns to the next round-number day and anniversary.
+- Notifications screen (Today/Yesterday/Earlier, unread markers, mark all read, open group) and
+  notification preferences; unread badge on Home.
+- Profile: edit name and photo, purchased groups, help, legal, sign out, account deletion with a
+  typed confirmation.
+- Group settings: choose a cover photo. Offline banner across the app.
+
 ## Implemented in Phase 3
 
 - Share a photo from the gallery or camera into a group: preview, caption, optional date (EXIF

@@ -5,6 +5,7 @@ Supabase Postgres 17. Migrations live in `supabase/migrations/` and are applied 
 | Migration | Phase | Contents |
 |---|---|---|
 | `20261014000001_core_groups.sql` | 2 | profiles, groups, memberships, invitations, RLS, trusted functions |
+| `20261014000003_journal_milestones_notifications.sql` | 4 | milestones, journal feed RPC, chosen covers, avatars bucket, notifications + preferences, account-deletion helper |
 | `20261014000002_photos_retention_entitlements.sql` | 3 | private `photos` bucket + storage policies, photos, retention, entitlements, purchases, cleanup queue |
 
 ## Running locally
@@ -86,6 +87,35 @@ Photo functions: `request_photo_upload`, `finalize_photo`, `delete_photo`, `set_
 (signed-in members); `expire_stale_uploads`, `claim_cleanup_jobs`, `complete_cleanup_job`,
 `grant_group_entitlement`, `revoke_group_entitlement` (service role only). Behaviour and the
 upload protocol are described in `docs/purchases-and-retention.md`.
+
+## Schema (Phase 4)
+
+| Table / object | Key columns | Notes |
+|---|---|---|
+| `milestones` | `id`, `group_id`, `created_by` (defaults to `auth.uid()`), `title` 1–80, `type`, `event_date date`, `description` ≤ 1000, `cover_photo_id`, `theme` (`heart`/`celebration`/`neutral`), `is_pinned` | Members create; creator or owner edits/deletes (RLS + column grants). Cover must be an active photo of the same group (trigger) |
+| `groups.cover_photo_id` | photo chosen by the owner via `set_group_cover` | `group_summaries.latest_thumb_path` prefers it over the newest photo |
+| `notifications` | `user_id`, `group_id`, `actor_id`, `kind` (`photo_added`/`member_joined`/`milestone_added`), `photo_id`, `milestone_id`, `created_at`, `read_at` | Written only by triggers; recipients read their own; unique per event+recipient; **no captions** |
+| `notification_preferences` | `user_id`, `photos`, `members`, `milestones` | Own row only |
+| storage bucket `avatars` | private, 2 MB JPEG, `<user_id>/<random>.jpg` | Readable by the user and people who share a group; set through `set_avatar` (old file queued for cleanup) |
+
+**References to removed photos (§13.14):** trigger `photos_after_removed` clears
+`milestones.cover_photo_id` and `groups.cover_photo_id` whenever a photo stops being active
+(user deletion or Basic retention), so nothing points at a missing photo (tested).
+
+**Journal:** `journal_entries(group?, before_at?, before_id?, limit)` (SECURITY INVOKER, so RLS
+applies) returns active photos and milestones dated today or earlier, newest first, keyset
+paginated on `(occurred_at, id)`. Photos use `coalesce(taken_at, uploaded_at)`; milestones the end
+of their calendar day. Future milestones appear only in the Milestones tab (countdowns).
+
+**Notifications fan-out:** triggers on photo activation, member join (role `member`) and milestone
+insert call `notify_group`, which skips the actor and respects preferences. Leaving a group deletes
+that group's notifications for the leaver.
+
+**Account deletion:** Edge Function `delete-account` (caller identified by their own JWT, typed
+"DELETE" confirmation) → `prepare_account_deletion` (queues avatar) → `auth.admin.deleteUser`.
+Cascades remove the profile, memberships (ownership hand-over / empty-group deletion),
+notifications and preferences; shared photos and milestones stay with their groups with a null
+uploader/creator (tested).
 
 ## Date and time policy
 
