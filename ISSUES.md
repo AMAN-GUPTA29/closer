@@ -66,7 +66,7 @@ _Last updated: 2026-10-14 (after Phase 4)._
 |---|---|---|---|
 | E1 | Byte-level upload progress (currently step-based) | Later / optional | 🟡 |
 | E8 | Upcoming-milestone reminders (scheduled job + push) | Phase 5 | 🟡 |
-| E9 | Byte-accurate realtime refresh of journals/notifications (now: refresh on open / pull) | Phase 5 | 🟡 |
+| E9 | Realtime refresh of journals/notifications (now: refresh on open / pull to refresh) | Phase 5 | 🟡 |
 | E4 | Store purchase verification + RevenueCat webhook + restore | Phase 5 | 🟡 |
 | E5 | Native widgets, push notifications, realtime refresh | Phase 5 | 🟡 |
 | E6 | Release signing, Codemagic iOS, TestFlight, hardening | Phase 6 | 🟡 |
