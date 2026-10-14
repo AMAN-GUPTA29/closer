@@ -6,10 +6,12 @@ Closer is a private photo-sharing app and shared journal for couples, friends an
 built with Flutter (Android + iOS) and Supabase. The full build is split into six phases;
 progress is tracked in [TRACKER.md](TRACKER.md).
 
-**Status:** Phase 4 — complete core app: journal, special moments, couple counters, notifications,
-profile and account deletion, on top of photos/retention (Phase 3), groups/invitations (Phase 2) and
-the design system, auth and navigation (Phase 1). Native widgets, push and store purchases are Phase 5. Photos, journal,
-widgets and purchases arrive in later phases (see [docs/known-limitations.md](docs/known-limitations.md)).
+**Status:** Phase 5: native home-screen widgets (Android + iOS WidgetKit), push notifications
+and reminders, realtime sync and RevenueCat purchases with server verification. These build on the
+journal and milestones (Phase 4), photos and retention (Phase 3), groups and invitations (Phase 2)
+and the foundation (Phase 1). Push and purchases need owner credentials before they work on real
+devices; see [ISSUES.md](ISSUES.md) and [docs/known-limitations.md](docs/known-limitations.md).
+Phase 6 covers release builds and hardening.
 
 ## Quick start
 

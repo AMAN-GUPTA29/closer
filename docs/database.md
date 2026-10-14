@@ -117,6 +117,22 @@ Cascades remove the profile, memberships (ownership hand-over / empty-group dele
 notifications and preferences; shared photos and milestones stay with their groups with a null
 uploader/creator (tested).
 
+## Schema (Phase 5)
+
+Migration `20261014000004_push_reminders_purchases_realtime.sql`:
+
+| Object | Notes |
+|---|---|
+| `device_registrations` (`token` unique, `user_id`, `platform`, `app_version`, `last_seen_at`) | Written only through `register_device` / `unregister_device`. A token moves to the newest user. At most 10 per user |
+| `notification_preferences.push`, `.reminders` | Own row only |
+| `notification_kind` value `milestone_upcoming` | Created by `enqueue_milestone_reminders(date)` (daily job, idempotent) |
+| `notifications.push_status/attempts/next_at/lease_until` | Hidden from clients (column grants). Rows from before Phase 5 are marked `skipped` so old activity is never pushed |
+| `claim_push_batch(limit)` / `complete_push(id, outcome, invalid_tokens)` | Service role only. Leased with `skip locked`, backoff 1, 2, 4 … min, `failed` after 6 attempts |
+| `purchase_records.status` adds `unassigned` | `record_store_purchase` (webhook) stores purchases whose group is not known yet. `grant_group_entitlement` assigns them later; it raises `closer:purchase_refunded` / `closer:transaction_already_used` |
+| Realtime publication | `photos`, `milestones`, `notifications`, `group_members` (RLS applies to subscribers) |
+
+pgTAP: `006_push_reminders_purchases.test.sql`.
+
 ## Date and time policy
 
 - Instants are `timestamptz`; calendar dates (relationship start) are `date`, with no time zone.

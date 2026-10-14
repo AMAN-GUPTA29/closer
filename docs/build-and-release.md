@@ -30,6 +30,12 @@ The CI APK connects to Supabase only if repository **variables** `SUPABASE_URL` 
 Release signing via keystore stored in GitHub Secrets, never committed. Not set up yet.
 
 ## iOS (Phase 5–6)
-No local Mac is assumed. Plan: Codemagic (hosted macOS) with App Store Connect API key,
-App Group + widget extension entitlements, TestFlight upload. Requires an Apple Developer
-account. Not set up yet.
+No local Mac is assumed. CI (`ios-build` job, macOS runner) adds the widget extension with
+`ruby ios/scripts/add_widget_extension.rb` and runs `flutter build ios --debug --no-codesign`.
+Signed builds and TestFlight come in Phase 6: Codemagic (hosted macOS), App Store Connect API key,
+App Group `group.com.closerapp.closer` on the app and extension (ISSUES A11, A14). Requires an
+Apple Developer account.
+
+## Android emulator tip
+The local emulator is almost out of space. Install a single-ABI debug APK:
+`flutter build apk --debug --split-per-abi` → `app-x86_64-debug.apk`.

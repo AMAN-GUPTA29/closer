@@ -74,6 +74,27 @@ All membership, role and invitation changes go through security-definer function
 - Account deletion runs server-side with the service role, only for the caller's own account,
   after a typed confirmation; failures return a generic error (no internal details).
 
+## Phase 5 additions
+
+- **Device tokens:** only through `register_device` (caller = `auth.uid()`). Users cannot read or
+  delete other people's tokens (tested). Tokens never appear in logs.
+- **Push content:** names only, no captions, photo URLs or journal text. Notification rows from
+  before push existed are never sent.
+- **Push dispatch / queue functions:** service role only. Any signed-in JWT can trigger
+  `dispatch-push` (same model as `cleanup-storage`), but it only drains the queue: leasing
+  prevents duplicates, and it cannot target anyone.
+- **Purchases:** the client never grants Premium. `verify-purchase` re-checks every transaction
+  with RevenueCat's REST API using a server-only secret, then calls `grant_group_entitlement`
+  (membership, one group per transaction, refunds refused). The webhook is authenticated with a
+  shared secret compared in constant time. Both paths are idempotent.
+- **Widgets:** shared storage holds group names, a subtitle and a downsampled cover, never
+  captions. Everything is wiped on sign-out, and a group's data is removed as soon as the user is
+  no longer a member. Widget and notification links only navigate; the router and RLS still
+  decide access.
+- **Secrets:** `FCM_SERVICE_ACCOUNT`, `REVENUECAT_SECRET_KEY` and `REVENUECAT_WEBHOOK_AUTH` live
+  only in Supabase secrets. Firebase client config and RevenueCat public SDK keys are dart-defines
+  (they are client-safe). No `google-services.json` / `GoogleService-Info.plist` is committed.
+
 ## Phase 1 status
 
 - Auth uses Supabase PKCE flow; passwords go only to Supabase Auth over HTTPS.

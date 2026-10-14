@@ -32,6 +32,18 @@ Every visible control either works or is clearly marked unavailable.
 
 Six gated phases (see [TRACKER.md](../TRACKER.md)). The owner approves each phase before the next starts.
 
+## Implemented in Phase 5
+
+- Native home-screen widgets: Android (Kotlin, per-widget group picker) and iOS (WidgetKit,
+  AppIntent per widget). Each shows one group's newest photo, name and "N days" / members /
+  "New memory". Tap opens the group. Any number of widgets, each independent.
+- Widget Setup screen (Profile → Home screen widgets) with previews and "Add a widget".
+- Push notifications for new photos, members and moments, plus reminders the day before a
+  milestone. Names only, no captions. Push and reminder switches in preferences.
+- Live refresh (realtime + on resume). A tapped notification opens its group.
+- Closer Memories purchase through the stores (RevenueCat), verified on the server; pending state;
+  restore; unused purchases can be applied to a group from Profile.
+
 ## Implemented in Phase 4
 
 - Journal per group and across all groups: photos + milestones newest first, day headers,

@@ -23,6 +23,11 @@ See [`.env.example`](../.env.example).
 | `PRIVACY_POLICY_URL` / `TERMS_URL` | before release | https only; otherwise in-app draft summaries are shown |
 | `SUPPORT_EMAIL` | no | enables Profile → Help & support |
 | `AUTH_REDIRECT_URL` | no | default `com.closerapp.closer://auth-callback` |
+| `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_SENDER_ID`, `FIREBASE_ANDROID_APP_ID`, `FIREBASE_IOS_APP_ID` | for push | Firebase client config; empty → push off (see notifications.md) |
+| `REVENUECAT_ANDROID_KEY` / `REVENUECAT_IOS_KEY` | for purchases | RevenueCat **public** SDK keys; empty → purchase buttons disabled |
+
+Server-only secrets (Supabase `secrets set`, never in `.env`): `FCM_SERVICE_ACCOUNT`,
+`REVENUECAT_SECRET_KEY`, `REVENUECAT_WEBHOOK_AUTH`, optional `MEMORIES_PRODUCT_ID`.
 
 Without Supabase values the app runs in "Backend not connected" mode (debug builds offer a preview).
 

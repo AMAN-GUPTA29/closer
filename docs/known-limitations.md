@@ -3,18 +3,31 @@
 The actionable list of deferred items, owner actions and credentials lives in
 [`ISSUES.md`](../ISSUES.md). This page describes current behaviour limits.
 
-_Last updated: Phase 4, 2026-10-14._
+_Last updated: Phase 5, 2026-10-14._
 
 ## Not built yet (planned phases)
 
 | Feature | Phase |
 |---|---|
-| Native widgets, push notifications, purchase verification | 5 |
-| Release signing, iOS hosted builds, hardening | 6 |
+| Release signing, Codemagic iOS builds, TestFlight, hardening | 6 |
 
-Disabled and labelled in the current build: the Closer Memories purchase button and "Restore
-purchases" (store billing is Phase 5); Help & support until `SUPPORT_EMAIL` is set. Notifications are
-in-app only; push delivery and upcoming-milestone reminders come in Phase 5.
+Disabled and labelled until credentials exist: the Closer Memories purchase button and "Restore
+purchases" (no RevenueCat keys in the build); push (no Firebase config, so the app runs without
+it); Help & support until `SUPPORT_EMAIL` is set.
+
+## Phase 5 limits
+
+- Push, reminders and purchases are implemented and tested with fakes and a local database, but
+  no message has reached a real phone and no store transaction has run (needs Firebase,
+  APNs and RevenueCat/store accounts, see ISSUES).
+- The iOS widget extension compiles in CI but has not run on an iPhone. Signing with the App
+  Group is still needed.
+- Android widget checked on an emulator only. Background refresh from a data push is unverified.
+- Widgets show the newest photo as a downsampled thumbnail. OS limits decide how often widgets
+  redraw (no exact interval).
+- Realtime events only trigger a refetch; there is no partial merging. Offline changes are not
+  queued (uploads already retry per step).
+- Basic $2 pricing is still an open decision (ISSUES D1); only Closer Memories is wired.
 
 ## Environment / verification gaps
 
@@ -37,7 +50,7 @@ in-app only; push delivery and upcoming-milestone reminders come in Phase 5.
 - Google/Apple sign-in are wired to Supabase OAuth but disabled; untested.
 - Auth deep link (`com.closerapp.closer://auth-callback`) is registered but not verified on a device.
 - The debug APK builds locally; it has not been installed on a physical phone by Claude.
-- iOS has not been built (no macOS available).
+- iOS is built in CI only (unsigned, macOS runner); never run on a device or simulator by Claude.
 - Legal pages are draft summaries, not reviewed legal documents.
 - Brand marks for Google/Apple buttons are monochrome Simple Icons; check provider brand
   guidelines before enabling those buttons in production.

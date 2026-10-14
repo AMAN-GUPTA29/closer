@@ -71,12 +71,32 @@ Total Flutter tests: 98.
 
 Total Flutter tests: 121. Latest CI: 220 pgTAP assertions, 10 Deno tests, both concurrency scripts.
 
+## Suites added in Phase 5
+
+| File | Covers |
+|---|---|
+| `supabase/tests/database/006_push_reminders_purchases.test.sql` | device registration (own tokens only, validation, no direct writes, token moves between accounts, sign-out, 10-device cap); push queue (names but no content, leasing, backoff, invalid token retirement, expired leases, no double send, clients can't claim or see bookkeeping); reminders (day before, once, preference respected); purchases (unassigned recording, webhook replay, unknown users, apply once, one group per purchase, every member gets Premium, refunds, clients can't record) |
+| `supabase/functions/dispatch-push/logic_test.ts` | message text (names only), sent/skipped/retry outcomes, invalid token retirement, FCM response classification, JWT assertion |
+| `supabase/functions/verify-purchase/logic_test.ts` | RevenueCat lookup, status mapping (200/404/403/409/400/401) |
+| `supabase/functions/revenuecat-webhook/logic_test.ts` | auth (constant-time), purchase → record, cancellation/refund → revoke, ignored events |
+| `test/features/phase5_logic_test.dart` | widget snapshots/index/covers, revoked groups removed, failing cover download, sign-out wipe, group-targeted refresh; group links (UUID + Preview ids, junk rejected); push payload parsing; RevenueCat flow (verified, cancelled, pending, retries, refused, unassigned, unavailable) |
+| `test/app/phase5_flow_test.dart` | sign-in starts push + realtime and fills widgets; tapped push opens group; realtime refresh; sign-out clears widgets; Widget Setup preview + add; applying an unused purchase |
+
+**Manual (emulator, Android 14, Preview mode):** add widget from the app, launcher pin dialog,
+group picker, widget shows "My Love · 182 days", and tapping it opens the group. This check found
+that Preview group ids were rejected by the link parser (fixed).
+
+**CI:** `ios-build` (macOS) adds the widget extension and compiles the app unsigned.
+
+Totals: 141 Flutter tests, 263 pgTAP assertions, 32 Deno tests, both concurrency scripts.
+
 ## Not yet covered (needs later phases or external resources)
 
 | Area | Needs |
 |---|---|
 | Real Supabase sign-up / email confirmation / reset links | Supabase project + email delivery; physical device for deep links |
 | Google / Apple OAuth | Provider credentials configured in Supabase |
-| Store purchase verification end to end, device registration (items 15 store side, 16) | Phase 5, store sandbox accounts |
 | Native image compression and camera | Physical device / emulator (plugin code is not exercised in unit tests) |
-| Native widgets, push | Phase 5, emulators/devices; iOS needs hosted macOS |
+| Push delivery to a real device, background widget refresh | Firebase project + APNs key, physical devices |
+| iOS widget on an iPhone, App Group sharing at runtime | Apple Developer account + signing, device |
+| Real store purchases (sandbox) end to end | Store accounts, RevenueCat project, hosted backend |
