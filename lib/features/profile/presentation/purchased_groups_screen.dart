@@ -9,7 +9,14 @@ import '../../../core/widgets/widgets.dart';
 import '../../groups/application/group_providers.dart';
 import '../../groups/presentation/group_widgets.dart';
 import '../../photos/presentation/photo_widgets.dart';
+import '../../../core/utils/dates.dart';
+import '../../groups/domain/group_models.dart';
 import '../../purchases/purchases.dart';
+
+final unassignedPurchasesProvider =
+    FutureProvider.autoDispose<List<UnassignedPurchase>>(
+      (ref) => ref.watch(purchaseServiceProvider).unassignedPurchases(),
+    );
 
 /// Groups with Closer Memories (entitlements belong to groups, so this
 /// includes groups upgraded by other members) and purchase restoration.
@@ -32,7 +39,9 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
     });
     try {
       await ref.read(purchaseServiceProvider).restore();
-      ref.invalidate(myGroupsProvider);
+      ref
+        ..invalidate(myGroupsProvider)
+        ..invalidate(unassignedPurchasesProvider);
       if (mounted) setState(() => _message = 'Purchases are up to date.');
     } catch (e) {
       if (mounted) showFailure(context, e);
@@ -41,9 +50,72 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
     }
   }
 
+  Future<void> _apply(UnassignedPurchase p, List<Group> groups) async {
+    final candidates = groups.where((g) => !g.isPremium).toList();
+    if (candidates.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All your groups already keep every memory.'),
+        ),
+      );
+      return;
+    }
+    final chosen = await showModalBottomSheet<Group>(
+      context: context,
+      useRootNavigator: true,
+      builder: (sheet) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(
+            CloserSpacing.gutter,
+            0,
+            CloserSpacing.gutter,
+            CloserSpacing.xl,
+          ),
+          children: [
+            Text(
+              'Which group should keep every memory?',
+              style: sheet.text.titleLarge,
+            ),
+            const SizedBox(height: CloserSpacing.sm),
+            for (final g in candidates)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  g.type.icon,
+                  color: g.type.tint(sheet.closerColors),
+                ),
+                title: Text(g.name, style: sheet.text.titleSmall),
+                onTap: () => Navigator.of(sheet).pop(g),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (chosen == null || !mounted) return;
+    setState(() => _restoring = true);
+    final outcome = await ref
+        .read(purchaseServiceProvider)
+        .applyPurchase(p.transactionId, chosen.id);
+    if (!mounted) return;
+    setState(() {
+      _restoring = false;
+      _message = switch (outcome) {
+        PurchaseOutcome.unlocked => '${chosen.name} now keeps every memory.',
+        PurchaseOutcome.pending =>
+          'Still confirming with the store. Try again in a minute.',
+        _ => 'That purchase couldn’t be applied. Contact support if this persists.',
+      };
+    });
+    ref
+      ..invalidate(myGroupsProvider)
+      ..invalidate(unassignedPurchasesProvider);
+  }
+
   @override
   Widget build(BuildContext context) {
     final groups = ref.watch(myGroupsProvider);
+    final unassigned = ref.watch(unassignedPurchasesProvider).value ?? const [];
     final service = ref.watch(purchaseServiceProvider);
     return Scaffold(
       appBar: AppBar(
@@ -69,6 +141,22 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
                 style: context.text.bodyMedium,
               ),
               const SizedBox(height: CloserSpacing.lg),
+              for (final p in unassigned) ...[
+                NoticeCard(
+                  icon: CloserIcons.crown,
+                  title: 'Unused Closer Memories purchase',
+                  message:
+                      'Bought ${formatMediumDate(p.purchasedAt.toLocal())}. '
+                      'Choose the group it should unlock.',
+                ),
+                const SizedBox(height: CloserSpacing.xs),
+                CloserButton(
+                  label: 'Choose a group',
+                  isLoading: _restoring,
+                  onPressed: () => _apply(p, all),
+                ),
+                const SizedBox(height: CloserSpacing.lg),
+              ],
               if (premium.isEmpty)
                 const EmptyState(
                   icon: CloserIcons.crown,

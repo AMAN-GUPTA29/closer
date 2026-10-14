@@ -4,6 +4,8 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/routing/app_router.dart';
+import '../../../core/routing/routes.dart';
 import '../../groups/application/group_providers.dart';
 import '../domain/invitation_models.dart';
 
@@ -28,6 +30,15 @@ String? inviteSecretFromUri(Uri uri) {
   return null;
 }
 
+/// Group id from a widget/notification link `com.closerapp.closer://group/<id>`.
+String? groupIdFromUri(Uri uri) {
+  if (uri.scheme != InviteCodes.scheme || uri.host != 'group') return null;
+  final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+  if (segments.length != 1) return null;
+  final id = segments.single;
+  return RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(id) ? id : null;
+}
+
 /// Listens for invite links and stores the secret as a pending invite; the
 /// router then opens the Join screen once the user is signed in.
 class InviteLinkListener extends ConsumerStatefulWidget {
@@ -50,6 +61,12 @@ class _InviteLinkListenerState extends ConsumerState<InviteLinkListener> {
         final secret = inviteSecretFromUri(uri);
         if (secret != null) {
           ref.read(pendingInviteProvider.notifier).set(secret);
+          return;
+        }
+        final groupId = groupIdFromUri(uri);
+        if (groupId != null) {
+          // Signed-out users are redirected to Welcome by the router.
+          ref.read(routerProvider).push(Routes.group(groupId));
         }
       },
       // A malformed link must never crash the app.

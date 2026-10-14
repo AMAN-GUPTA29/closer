@@ -43,6 +43,9 @@ abstract interface class PhotosBackend {
 
   /// Asks the server to process queued storage deletions (best effort).
   Future<void> requestCleanup();
+
+  /// Raw thumbnail bytes for a storage path (home-screen widgets).
+  Future<Uint8List> thumbnailBytes(String path);
 }
 
 class UnconfiguredPhotosBackend implements PhotosBackend {
@@ -87,6 +90,8 @@ class UnconfiguredPhotosBackend implements PhotosBackend {
       Future.error(_failure);
   @override
   Future<void> requestCleanup() async {}
+  @override
+  Future<Uint8List> thumbnailBytes(String path) => Future.error(_failure);
 }
 
 class SupabasePhotosBackend implements PhotosBackend {
@@ -261,6 +266,10 @@ class SupabasePhotosBackend implements PhotosBackend {
           cacheKey: 'photo-${photo.id}-${variant.name}',
         );
       });
+
+  @override
+  Future<Uint8List> thumbnailBytes(String path) =>
+      guardBackend(() => _db.storage.from(bucket).download(path));
 
   @override
   Future<void> requestCleanup() async {

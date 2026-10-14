@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sunset gradient used until a photo exists (matches the in-app placeholder art). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:centerColor="#E9879A"
+        android:endColor="#3E3A66"
+        android:startColor="#6E5B9A"
+        android:type="linear" />
+</shape>

@@ -89,6 +89,30 @@ jobs:
           deno check */index.ts
           deno test .
 
+  ios-build:
+    name: iOS build (unsigned, with widget extension)
+    needs: checks
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Add the CloserWidget extension to the Xcode project
+        run: |
+          gem install xcodeproj --no-document
+          ruby ios/scripts/add_widget_extension.rb
+
+      - name: Build iOS app and widget (no code signing)
+        run: |
+          flutter pub get
+          flutter build ios --debug --no-codesign
+
   android-apk:
     name: Debug APK
     needs: checks

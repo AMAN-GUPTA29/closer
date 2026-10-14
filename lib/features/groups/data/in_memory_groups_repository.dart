@@ -654,6 +654,13 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
   @override
   Future<void> requestCleanup() async {}
 
+  @override
+  Future<Uint8List> thumbnailBytes(String path) async {
+    final bytes = _objects[path];
+    if (bytes == null) _fail('photo_not_found');
+    return bytes;
+  }
+
   /// Seeds sample groups so Preview mode has something to show. Runs
   /// synchronously so the first read already sees every sample group.
   void seedPreview() {

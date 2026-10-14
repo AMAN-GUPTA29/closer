@@ -97,6 +97,11 @@ class ProfileScreen extends ConsumerWidget {
                 label: 'Purchased groups',
                 onTap: () => context.push(Routes.purchases),
               ),
+              _Tile(
+                icon: CloserIcons.widgets,
+                label: 'Home screen widgets',
+                onTap: () => context.push(Routes.widgetSetup),
+              ),
             ],
           ),
           const SizedBox(height: CloserSpacing.md),
