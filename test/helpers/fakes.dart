@@ -168,6 +168,8 @@ Future<void> pumpCloserApp(
   List<Override> extra = const [],
   bool online = true,
   FakeWidgetPlatform? widgets,
+  PushService? push,
+  RealtimeFeed? feed,
 }) async {
   tester.view.physicalSize = const Size(1170, 2532);
   tester.view.devicePixelRatio = 3;
@@ -184,8 +186,10 @@ Future<void> pumpCloserApp(
           links ?? const Stream<Uri>.empty(),
         ),
         isOnlineProvider.overrideWith((ref) => Stream.value(online)),
-        realtimeFeedProvider.overrideWithValue(const NoopRealtimeFeed()),
-        pushServiceProvider.overrideWithValue(const NoopPushService()),
+        realtimeFeedProvider.overrideWithValue(
+          feed ?? const NoopRealtimeFeed(),
+        ),
+        pushServiceProvider.overrideWithValue(push ?? const NoopPushService()),
         widgetSyncProvider.overrideWithValue(
           WidgetSync(widgets ?? FakeWidgetPlatform()),
         ),

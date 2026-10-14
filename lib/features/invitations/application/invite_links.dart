@@ -36,7 +36,9 @@ String? groupIdFromUri(Uri uri) {
   final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
   if (segments.length != 1) return null;
   final id = segments.single;
-  return RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(id) ? id : null;
+  // UUIDs in production; Preview mode uses short ids like `group-1`. Access
+  // is still enforced by RLS — this only keeps junk out of the router.
+  return RegExp(r'^[A-Za-z0-9-]{1,64}$').hasMatch(id) ? id : null;
 }
 
 /// Listens for invite links and stores the secret as a pending invite; the

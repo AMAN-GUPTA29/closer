@@ -38,6 +38,7 @@ end
 
 widget.build_configurations.each do |config|
   s = config.build_settings
+  s['PRODUCT_NAME'] = '$(TARGET_NAME)' # empty name => "Multiple commands produce .appex"
   s['PRODUCT_BUNDLE_IDENTIFIER'] = "#{BUNDLE_ID}.CloserWidget"
   s['INFOPLIST_FILE'] = 'CloserWidget/Info.plist'
   s['CODE_SIGN_ENTITLEMENTS'] = 'CloserWidget/CloserWidget.entitlements'
@@ -56,6 +57,13 @@ embed = runner.copy_files_build_phases.find { |p| p.name == 'Embed Foundation Ex
 embed.dst_subfolder_spec = '13' # PlugIns
 build_file = embed.add_file_reference(widget.product_reference, true)
 build_file.settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
+# Flutter's "Thin Binary" script must run after embedding, or Xcode reports a
+# dependency cycle.
+thin = runner.build_phases.find { |p| p.respond_to?(:name) && p.name == 'Thin Binary' }
+if thin
+  runner.build_phases.delete(embed)
+  runner.build_phases.insert(runner.build_phases.index(thin), embed)
+end
 runner.add_dependency(widget)
 
 project.save
