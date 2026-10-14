@@ -17,6 +17,27 @@ abstract final class Routes {
 
   static const componentGallery = '/dev/components';
 
+  // Group screens sit above the shell (no bottom bar) but keep Home below.
+  static const createGroup = '/home/create';
+  static const joinGroup = '/home/join';
+  static String group(String id) => '/home/groups/$id';
+  static String invite(String id) => '/home/groups/$id/invite';
+  static String members(String id) => '/home/groups/$id/members';
+  static String groupSettings(String id) => '/home/groups/$id/settings';
+  static String upgrade(String id) => '/home/groups/$id/upgrade';
+  static String allPhotos(String id) => '/home/groups/$id/photos';
+  static String newMoment(String id, {String? photoId}) =>
+      '/home/groups/$id/moments/new${photoId == null ? '' : '?photo=$photoId'}';
+  static String editMoment(String id, String milestoneId) =>
+      '/home/groups/$id/moments/$milestoneId';
+
+  static const notificationPreferences = '/notifications/preferences';
+  static const editProfile = '/profile/edit';
+  static const purchases = '/profile/purchases';
+  static const deleteAccount = '/profile/delete';
+  static String addMemory(String id, {String? source}) =>
+      '/home/groups/$id/add${source == null ? '' : '?source=$source'}';
+
   /// Routes reachable without a session.
   static const _public = {welcome, signIn, signUp, forgotPassword, verifyEmail};
 
@@ -27,7 +48,13 @@ abstract final class Routes {
 /// Pure redirect policy used by the router (unit tested).
 ///
 /// Returns the path to redirect to, or `null` to stay on [path].
-String? resolveRedirect(AuthStatus status, String path) {
+/// When [hasPendingInvite] is true (an invite link arrived), signed-in users
+/// are taken to the Join screen first.
+String? resolveRedirect(
+  AuthStatus status,
+  String path, {
+  bool hasPendingInvite = false,
+}) {
   if (Routes.isAlwaysAllowed(path)) return null;
   switch (status) {
     case SignedOut():
@@ -37,6 +64,9 @@ String? resolveRedirect(AuthStatus status, String path) {
     case SignedIn(:final user) when !user.emailConfirmed:
       return path == Routes.verifyEmail ? null : Routes.verifyEmail;
     case SignedIn() || PreviewSession():
+      if (hasPendingInvite && path != Routes.joinGroup) {
+        return Routes.joinGroup;
+      }
       if (Routes.isPublic(path) || path == Routes.updatePassword) {
         return Routes.home;
       }

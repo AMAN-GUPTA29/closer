@@ -4,16 +4,17 @@
 
 Single source of truth for build progress. Claude ticks items **only after they are implemented and verified**.
 Items that are implemented but not verifiable in this environment are marked ⚠️ with the reason.
+Deferred items, credentials and owner actions are collected in [ISSUES.md](ISSUES.md).
 
 **Legend:** `[x]` done & verified · `[ ]` not started / in progress · ⚠️ implemented, verification blocked · 🔒 needs external credential/account
 
 | Phase | Name | Status | Approved by owner |
 |---|---|---|---|
 | 0 | Setup & Git remote | 🟡 Owner actions pending | — |
-| 1 | Audit, design system, app foundation | 🟡 In progress | — |
-| 2 | Auth, database, groups, invitations | ⬜ Not started | — |
-| 3 | Photos, storage, retention, Premium foundation | ⬜ Not started | — |
-| 4 | Journal, milestones, core screens | ⬜ Not started | — |
+| 1 | Audit, design system, app foundation | ✅ Done (PR #1) | ✅ 2026-10-14 |
+| 2 | Auth, database, groups, invitations | ✅ Done (PR #2) | ✅ 2026-10-14 |
+| 3 | Photos, storage, retention, Premium foundation | ✅ Done (PR #3) | ✅ 2026-10-14 |
+| 4 | Journal, milestones, core screens | 🟡 Awaiting approval | — |
 | 5 | Native widgets, notifications, purchases | ⬜ Not started | — |
 | 6 | CI/CD, remote dev, hardening, release | ⬜ Not started | — |
 
@@ -75,71 +76,106 @@ _Last updated: 2026-10-14_
 
 **CI & tests**
 - [x] GitHub Actions `ci.yml`: format, analyze, test, debug APK artifact (SHA-pinned actions)
-- [ ] CI run green on GitHub ⚠️ check after push
+- [x] CI run green on GitHub (5/5 checks on PR #1)
 - [x] Unit tests (validators, config, redirect policy, error mapping, auth controller)
 - [x] Widget tests (components, onboarding, auth forms, shell navigation, sign-out, unconfigured mode)
 - [x] `flutter pub get` ✅ · `dart format` ✅ · `flutter analyze` ✅ (0 issues) · `flutter test` ✅ (51 passed)
 - [x] Debug APK builds locally and runs on an Android 14 emulator (Pixel 8) — screens checked visually
-- [ ] Commit + push, Phase 1 report, **wait for approval**
+- [x] Commit + push, Phase 1 report, approved 2026-10-14
 
 ## Phase 2 — Authentication, database, groups, invitations
 
-- [ ] Supabase project linked 🔒 (URL + anon key; service key only in secrets)
-- [ ] Supabase CLI + local migrations folder
-- [ ] Migration: `profiles` + auto-create trigger
-- [ ] Migration: `groups` (type couple/friends/family, cover, relationship_start_date)
-- [ ] Migration: `group_members` (unique membership, roles owner/admin/member)
-- [ ] Atomic couple capacity (locking RPC, max 2)
-- [ ] Migration: `invitations` (token hash, code, expiry, revocation, max redemptions) + `invitation_redemptions`
-- [ ] RPC: create invitation · revoke invitation · preview invitation · redeem invitation (atomic)
-- [ ] Leave group / transfer ownership / delete group (no orphans)
-- [ ] RLS on all tables, membership-based
-- [ ] Email auth wired (sign up, login, verify, reset)
-- [ ] Google / Apple sign-in 🔒 (if credentials provided)
-- [ ] Screens: Home/Groups, Create Group, Invite Members, Join Group (+ deep link), Group Home
-- [ ] Backend tests: unauthenticated denied, non-member denied, invite scoped to group, expired/revoked fail, duplicate redemption safe, concurrent couple joins ≤ 2
-- [ ] Flutter unit + widget tests for repos, forms, screens
-- [ ] Docs: database.md, security.md updated
-- [ ] Commit + push, Phase 2 report, **wait for approval**
+**Backend**
+- [ ] 🔒 Supabase hosted project linked (URL + anon key; service key only in secrets) — owner action
+- [x] Supabase CLI project (`supabase/config.toml`, email confirmation on, app redirect URL)
+- [x] Migration: `profiles` + auto-create trigger
+- [x] Migration: `groups` (couple/friends/family, relationship_start_date, counter toggle)
+- [x] Migration: `group_members` (unique membership, roles owner/member, one owner)
+- [x] Atomic couple capacity (row-locking trigger, max 2) — concurrency test: 5 parallel joins, 1 succeeds
+- [x] Migration: `invitations` (hashed code + token, hint, expiry, revocation, max uses) + `invitation_redemptions` + rate-limit attempts
+- [x] Functions: create_group, create/revoke/preview/redeem invitation, leave, transfer ownership, remove member, delete group
+- [x] No orphaned/ownerless groups (trigger covers leave, removal, account deletion)
+- [x] RLS on all tables + column-level grants; `group_summaries` view (security_invoker)
+- [x] pgTAP: 105 assertions passing in CI (unauth, non-member, invite scope, expired/revoked, duplicate redemption, capacity, lifecycle)
+- [x] CI "Database tests" job: db start, pgTAP, concurrency script, db lint
+- [ ] ⚠️ Migrations applied to a hosted project — needs Supabase credentials
+- [ ] ⚠️ Local backend tests — Docker Desktop did not start on the laptop; verified in CI only
+
+**App**
+- [x] Email auth wired (Phase 1) ⚠️ not yet exercised against a live project
+- [ ] 🔒 Google / Apple sign-in — needs provider credentials
+- [x] Groups repositories (Supabase / in-memory preview / unconfigured), Riverpod providers, error mapping
+- [x] Home: group list with counters/activity, pull to refresh, loading/error/offline/empty states
+- [x] Create Group: type cards, name, couple start date, validation
+- [x] Invite Members: expiry + use-limit choices, code + link, share sheet, copy, invitation list, revoke
+- [x] Join Group: code entry, paste invite message, preview, all failure states, rate-limit message
+- [x] Invite deep link `com.closerapp.closer://invite?t=...` (kept through sign-in) ⚠️ not tested on a device
+- [x] Group Home: hero, couple counter, avatars, actions, Journal/Milestones/Details tabs, upgrade card (disabled)
+- [x] Members (make owner, remove) and Group settings (rename, start date, counter, leave, delete)
+- [x] Preview mode uses in-memory sample groups (debug builds only)
+- [x] Flutter tests: 80 passing (29 new: logic + full group/invite flows)
+- [x] `dart format` ✅ · `flutter analyze` ✅ · debug APK ✅ · checked on Android 14 emulator
+- [x] Docs: database.md, security.md, testing.md, architecture.md, known-limitations.md updated
+- [x] Commit + push, Phase 2 report, approved 2026-10-14
 
 ## Phase 3 — Photo sharing, private storage, retention, Premium foundation
 
-- [ ] Private storage bucket + storage RLS by group membership
-- [ ] Migration: `photos` (uploader, path, caption, taken_at vs uploaded_at, status)
-- [ ] Migration: `storage_cleanup_jobs` (durable retry queue)
-- [ ] Gallery picker + camera capture
-- [ ] Preview, caption, optional date
-- [ ] Compression + thumbnail generation
-- [ ] Upload progress, retry, duplicate-submit protection (idempotency key)
-- [ ] Server-side Basic 10-photo retention (oldest eligible removed, concurrency-safe)
-- [ ] Failed upload never deletes existing photos
-- [ ] Cleanup Edge Function with retries
-- [ ] Retention warning UI before loss
-- [ ] Short-lived signed URLs + image caching
-- [ ] Full-screen photo viewer
-- [ ] Migration: `group_entitlements` + `purchase_records`
-- [ ] Server-side Premium checks (client flag ignored)
-- [ ] Upgrade UI ("Keep every memory from this group")
-- [ ] Billing approach researched & chosen (RevenueCat vs direct) — documented
-- [ ] Tests: retention ≤10, oldest removed, Premium >10, client flag bypass fails, entitlement isolated per group, concurrent uploads, cleanup retry, authorization
-- [ ] Docs: purchases-and-retention.md
-- [ ] Commit + push, Phase 3 report, **wait for approval**
+**Backend**
+- [x] Private `photos` bucket (JPEG, 15 MB) + storage policies (read active photos of your groups; write only your pending upload paths; no update/delete)
+- [x] Migration: `photos` (uploader, paths, caption, taken_at vs uploaded_at, status, pin)
+- [x] Upload protocol: request (idempotent) → store objects → finalize (verifies objects, group lock)
+- [x] Server-side Basic 10-photo retention, oldest eligible removed, concurrency-safe (3 parallel uploads test)
+- [x] Failed/abandoned upload never deletes photos; stale pending uploads expire
+- [x] Migration: `storage_cleanup_jobs` durable queue (leases, backoff, dead-letter) + group-deletion trigger
+- [x] Edge Function `cleanup-storage` + Deno tests (5)
+- [ ] 🔒 Deploy + schedule cleanup worker on hosted project — owner action (docs/purchases-and-retention.md)
+- [x] Migration: `group_entitlements` + `purchase_records`; grant/revoke functions (service role, idempotent)
+- [x] Server-side Premium checks; client flag cannot bypass; isolated per group; inherited by new members
+- [x] Refund grace policy (30 days, no deletion at revocation)
+- [x] pgTAP 004 + concurrency script in CI
 
-## Phase 4 — Journal, milestones, complete core screens
+**App**
+- [x] Gallery picker + camera (image_picker) — camera path verified on Android 14 emulator
+- [x] Validation (type by content, 30 MB), EXIF capture date, JPEG compression + thumbnail, metadata stripped — compression + EXIF date verified on emulator
+- [x] Add Memory screen: preview, caption, date, step progress, Retry, duplicate protection, retention warning
+- [x] Signed URLs + disk image cache keyed by photo id
+- [x] Journal photo grid with keyset pagination; full-screen viewer with delete / pin
+- [x] Group covers from newest photo; Home cards show covers and Premium crown
+- [x] Add tab: choose a group
+- [x] Upgrade screen ("Keep every memory from this group"), purchase disabled with reason, restore entry point
+- [x] Billing approach researched & documented (consumable per group via RevenueCat, server verification)
+- [x] `PurchaseService` foundation (no fake purchases)
+- [x] Flutter tests: 98 passing (18 new)
+- [x] Docs: purchases-and-retention, database, security, testing, architecture, known-limitations
+- [x] CI green: 168 pgTAP assertions, both concurrency scripts, Deno tests, Flutter, APK
+- [x] Commit + push, Phase 3 report, approved 2026-10-14
 
-- [ ] Journal: newest-first, cursor pagination, stable scroll
-- [ ] Captions/metadata, featured & pinned memories
-- [ ] Migration: `milestones` (+ safe photo reference on delete)
-- [ ] Milestone CRUD, pin/unpin, templates, themes (heart for couples, neutral/celebratory otherwise)
-- [ ] Special Moment screen
-- [ ] Relationship counter (documented date/timezone policy), editable start date, countdowns
-- [ ] Notifications screen (read/unread, group navigation, preferences)
-- [ ] Profile & settings (name, avatar, prefs, purchases, restore, help, sign out)
-- [ ] Account deletion (safe, server-side)
-- [ ] Group settings + members screens
-- [ ] Loading / empty / error / offline states everywhere
-- [ ] Design polish pass against reference image
-- [ ] Tests: journal sorting, milestone calculations, screens
+## Phase 4 — Journal, milestones, and complete core screens
+
+**Backend**
+- [x] Migration: `milestones` (types, themes, cover, pin) + RLS (members create as themselves; creator/owner edit)
+- [x] `journal_entries` RPC: photos + past milestones, newest first, keyset pagination, RLS-respecting
+- [x] Chosen group covers (`set_group_cover`) and cover thumbnails for milestones
+- [x] Removed photos cleared from milestone/group covers (spec §13.14) — tested for deletion and retention
+- [x] Notifications (triggers on photo/member/milestone, preferences, mark read, cleared on leave) — no captions
+- [x] Private `avatars` bucket + `set_avatar`
+- [x] Account deletion: `prepare_account_deletion` + Edge Function `delete-account` (+5 Deno tests)
+- [x] pgTAP 005 — CI: 220 assertions total, all passing
+- [ ] 🔒 Deploy `delete-account` on the hosted project (ISSUES B2)
+
+**App**
+- [x] Journal tab (all groups) + group journal: day headers, captions, uploader, pinned strip, infinite scroll, viewer
+- [x] Milestones tab: couple counter + countdowns (next 100s, anniversary), upcoming, past
+- [x] Special Moment screen: templates per group type, title, date, description, cover from group photos, theme, pin; edit/delete
+- [x] "Mark as special moment" after sharing a photo
+- [x] Notifications screen (Today/Yesterday/Earlier, unread, mark all read, open group) + preferences; Home badge
+- [x] Profile: edit name + avatar, purchased groups, restore entry point, help, legal, sign out
+- [x] Account deletion screen with typed confirmation
+- [x] Group settings: choose cover photo; members screen (Phase 2)
+- [x] Offline banner (connectivity) + loading/empty/error states on all new screens
+- [x] Design check on emulator (fixed share-button overlap)
+- [x] Flutter tests: 121 passing (23 new)
+- [x] Docs + ISSUES.md updated
 - [ ] Commit + push, Phase 4 report, **wait for approval**
 
 ## Phase 5 — Native widgets, notifications, purchase integration
@@ -186,3 +222,7 @@ _Last updated: 2026-10-14_
 - 2026-10-14 — Tracker created; design image located; toolchain verified.
 - 2026-10-14 — Repo pushed; remote-development setup (cloud sessions + @claude workflow) committed; Phase 1 started.
 - 2026-10-14 — Phase 1 implemented: design system, onboarding, auth, shell, docs, CI; 51 tests passing; APK verified on emulator.
+- 2026-10-14 — Phase 2 implemented: Supabase schema + RLS + trusted functions, groups and invitations UI; 105 pgTAP + concurrency + 80 Flutter tests passing.
+- 2026-10-14 — Phase 3 implemented: photos, private storage, retention, entitlements, cleanup queue, upload UI; 98 Flutter tests.
+- 2026-10-14 — Added ISSUES.md (open issues register) at the owner's request.
+- 2026-10-14 — Phase 4 implemented: journal, milestones, notifications, profile, account deletion; 220 pgTAP + 10 Deno + 121 Flutter tests.

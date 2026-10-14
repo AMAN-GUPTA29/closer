@@ -6,9 +6,10 @@ Closer is a private photo-sharing app and shared journal for couples, friends an
 built with Flutter (Android + iOS) and Supabase. The full build is split into six phases;
 progress is tracked in [TRACKER.md](TRACKER.md).
 
-**Status:** Phase 1 (foundation) — design system, onboarding, authentication UI wired to
-Supabase Auth, and the main navigation shell. Groups, photos, journal, widgets and purchases
-arrive in later phases (see [docs/known-limitations.md](docs/known-limitations.md)).
+**Status:** Phase 4 — complete core app: journal, special moments, couple counters, notifications,
+profile and account deletion, on top of photos/retention (Phase 3), groups/invitations (Phase 2) and
+the design system, auth and navigation (Phase 1). Native widgets, push and store purchases are Phase 5. Photos, journal,
+widgets and purchases arrive in later phases (see [docs/known-limitations.md](docs/known-limitations.md)).
 
 ## Quick start
 
@@ -42,6 +43,7 @@ Every push runs the **CI** workflow. Open the repo on GitHub → **Actions** →
 |---|---|
 | [CLAUDE.md](CLAUDE.md) | Working rules for Claude sessions (local, cloud, GitHub) |
 | [TRACKER.md](TRACKER.md) | Step-by-step progress tracker |
+| [ISSUES.md](ISSUES.md) | Open issues: credentials, owner actions, unverified items, decisions |
 | [docs/product-requirements.md](docs/product-requirements.md) | What Closer does |
 | [docs/architecture.md](docs/architecture.md) | Code structure and decisions |
 | [docs/design-system.md](docs/design-system.md) | Tokens, components, reference image |

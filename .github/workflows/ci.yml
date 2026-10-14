@@ -44,6 +44,51 @@ jobs:
       - name: Unit and widget tests
         run: flutter test --reporter expanded
 
+  backend:
+    name: Database tests (Supabase)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.120.0
+
+      - name: Start local Postgres with migrations
+        run: supabase db start
+
+      - name: pgTAP tests (RLS, invitations, membership lifecycle)
+        run: supabase test db
+
+      - name: Concurrent couple joins
+        run: bash supabase/tests/concurrency/couple_capacity.sh
+
+      - name: Concurrent uploads to a full Basic group
+        run: bash supabase/tests/concurrency/basic_retention.sh
+
+      - name: Lint database (security advisories)
+        run: supabase db lint --level warning --fail-on error
+
+  edge-functions:
+    name: Edge Function tests (Deno)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.x
+
+      - name: Format, lint, type-check and test
+        working-directory: supabase/functions
+        run: |
+          deno fmt --check .
+          deno lint
+          deno check cleanup-storage/index.ts delete-account/index.ts
+          deno test .
+
   android-apk:
     name: Debug APK
     needs: checks
