@@ -27,7 +27,9 @@ Deno.serve(async (req) => {
         return (data as number) ?? 0;
       },
       claim: async (limit) => {
-        const { data, error } = await db.rpc("claim_cleanup_jobs", { p_limit: limit });
+        const { data, error } = await db.rpc("claim_cleanup_jobs", {
+          p_limit: limit,
+        });
         if (error) throw new Error(error.message);
         return data ?? [];
       },
@@ -48,7 +50,12 @@ Deno.serve(async (req) => {
     console.log(JSON.stringify({ event: "cleanup", ...result }));
     return Response.json(result);
   } catch (e) {
-    console.error(JSON.stringify({ event: "cleanup_failed", message: String(e).slice(0, 200) }));
+    console.error(
+      JSON.stringify({
+        event: "cleanup_failed",
+        message: String(e).slice(0, 200),
+      }),
+    );
     return new Response("Cleanup failed", { status: 500 });
   }
 });

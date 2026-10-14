@@ -1,9 +1,14 @@
 import 'dart:math';
+import 'dart:typed_data';
+
+import 'package:flutter/widgets.dart';
 
 import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/backend_errors.dart';
 import '../../../core/models/group_type.dart';
 import '../../invitations/domain/invitation_models.dart';
+import '../../photos/data/photos_backend.dart';
+import '../../photos/domain/photo_models.dart';
 import '../domain/group_models.dart';
 import 'groups_repository.dart';
 
@@ -11,7 +16,7 @@ import 'groups_repository.dart';
 /// widget tests. It mirrors the server's rules (capacity, invitation
 /// statuses, ownership hand-over) closely enough to exercise the UI, but it
 /// is never used when a real backend is configured.
-class InMemoryGroupsRepository implements GroupsBackend {
+class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
   InMemoryGroupsRepository({
     required this.currentUserId,
     this.currentUserName = 'You',
@@ -29,7 +34,19 @@ class InMemoryGroupsRepository implements GroupsBackend {
   final _members = <String, List<_MemberRow>>{};
   final _invites = <String, _InviteRow>{};
   final _names = <String, String>{};
+  final _photos = <String, _PhotoRow>{};
+  final _objects = <String, Uint8List>{};
+  final _premium = <String>{};
   int _seq = 0;
+
+  /// Test hook: fail the next [putObject] call (simulates a dropped upload).
+  bool failNextPut = false;
+
+  /// Test/preview helper: marks a group as Closer Memories.
+  void grantPremium(String groupId) => _premium.add(groupId);
+
+  /// Object paths currently stored (for tests).
+  Set<String> get storedObjects => _objects.keys.toSet();
 
   /// Simulated network delay (0 in tests).
   Duration latency = Duration.zero;
@@ -69,8 +86,21 @@ class InMemoryGroupsRepository implements GroupsBackend {
       lastActivityAt: g.lastActivityAt,
       memberCount: members.length,
       myRole: me?.role ?? MemberRole.member,
+      photoCount: _active(id).length,
+      isPremium: _premium.contains(id),
+      latestThumbPath: _active(id).firstOrNull?.thumbPath,
     );
   }
+
+  /// Active photos of a group, newest first.
+  List<_PhotoRow> _active(String groupId) =>
+      _photos.values
+          .where((p) => p.groupId == groupId && p.status == 'active')
+          .toList()
+        ..sort((a, b) {
+          final c = b.uploadedAt!.compareTo(a.uploadedAt!);
+          return c != 0 ? c : b.id.compareTo(a.id);
+        });
 
   /// Test/preview helper: adds a user to a group directly.
   void addMember(String groupId, String userId, String name) {
@@ -183,6 +213,7 @@ class InMemoryGroupsRepository implements GroupsBackend {
   void _afterRemoval(String groupId) {
     final list = _members[groupId]!;
     if (list.isEmpty) {
+      _dropPhotos(groupId);
       _groups.remove(groupId);
       _members.remove(groupId);
       _invites.removeWhere((_, i) => i.groupId == groupId);
@@ -230,6 +261,7 @@ class InMemoryGroupsRepository implements GroupsBackend {
   Future<void> deleteGroup(String groupId) async {
     await _wait();
     if (!_isOwner(groupId)) _fail('not_allowed');
+    _dropPhotos(groupId);
     _groups.remove(groupId);
     _members.remove(groupId);
     _invites.removeWhere((_, i) => i.groupId == groupId);
@@ -385,6 +417,193 @@ class InMemoryGroupsRepository implements GroupsBackend {
     return RedeemResult(status: InviteStatus.joined, groupId: inv.groupId);
   }
 
+  // ---- Photos ---------------------------------------------------------------
+
+  void _dropPhotos(String groupId) {
+    for (final p in _photos.values.where((p) => p.groupId == groupId)) {
+      _objects
+        ..remove(p.storagePath)
+        ..remove(p.thumbPath);
+    }
+    _photos.removeWhere((_, p) => p.groupId == groupId);
+  }
+
+  Photo _toPhoto(_PhotoRow p) => Photo(
+    id: p.id,
+    groupId: p.groupId,
+    uploaderId: p.uploaderId,
+    uploaderName: p.uploaderId == currentUserId
+        ? currentUserName
+        : _names[p.uploaderId] ?? 'Member',
+    storagePath: p.storagePath,
+    thumbPath: p.thumbPath,
+    caption: p.caption,
+    takenAt: p.takenAt,
+    uploadedAt: p.uploadedAt!,
+    width: p.width,
+    height: p.height,
+    isPinned: p.isPinned,
+  );
+
+  @override
+  Future<PhotoPage> photos(
+    String groupId, {
+    PhotoCursor? before,
+    int limit = 30,
+  }) async {
+    await _wait();
+    _requireMember(groupId);
+    var list = _active(groupId);
+    if (before != null) {
+      list = list.where((p) {
+        final c = p.uploadedAt!.compareTo(before.uploadedAt);
+        return c < 0 || (c == 0 && p.id.compareTo(before.id) < 0);
+      }).toList();
+    }
+    final hasMore = list.length > limit;
+    return PhotoPage(
+      photos: list.take(limit).map(_toPhoto).toList(),
+      hasMore: hasMore,
+    );
+  }
+
+  @override
+  Future<UploadSlot> requestUpload(
+    String groupId, {
+    required String clientUploadId,
+    String? caption,
+    DateTime? takenAt,
+    int? width,
+    int? height,
+    int? byteSize,
+  }) async {
+    await _wait();
+    _requireMember(groupId);
+    final existing = _photos.values
+        .where(
+          (p) =>
+              p.uploaderId == currentUserId &&
+              p.clientUploadId == clientUploadId,
+        )
+        .firstOrNull;
+    final row =
+        existing ??
+        _PhotoRow(
+          id: _id('photo'),
+          groupId: groupId,
+          uploaderId: currentUserId,
+          clientUploadId: clientUploadId,
+          caption: caption,
+          takenAt: takenAt,
+          width: width,
+          height: height,
+        );
+    _photos[row.id] = row;
+    return UploadSlot(
+      photoId: row.id,
+      storagePath: row.storagePath,
+      thumbPath: row.thumbPath,
+      alreadyActive: row.status == 'active',
+    );
+  }
+
+  @override
+  Future<void> putObject(String path, Uint8List bytes) async {
+    await _wait();
+    if (failNextPut) {
+      failNextPut = false;
+      throw const UnexpectedFailure(
+        'The photo couldn’t be uploaded. Please try again.',
+      );
+    }
+    final allowed = _photos.values.any(
+      (p) =>
+          p.status == 'pending' &&
+          p.uploaderId == currentUserId &&
+          (p.storagePath == path || p.thumbPath == path),
+    );
+    if (!allowed) throw const PermissionFailure();
+    _objects.putIfAbsent(path, () => bytes);
+  }
+
+  @override
+  Future<UploadResult> finalize(String photoId) async {
+    await _wait();
+    final p = _photos[photoId];
+    if (p == null || p.uploaderId != currentUserId) _fail('photo_not_found');
+    if (p.status == 'active') {
+      return UploadResult(photoId: photoId, removedCount: 0);
+    }
+    if (!_objects.containsKey(p.storagePath) ||
+        !_objects.containsKey(p.thumbPath)) {
+      _fail('upload_incomplete');
+    }
+    p
+      ..status = 'active'
+      ..uploadedAt = _clock().add(Duration(microseconds: ++_seq));
+    var removed = 0;
+    if (!_premium.contains(p.groupId)) {
+      final active = _active(p.groupId)
+        ..sort((a, b) {
+          if (a.isPinned != b.isPinned) return a.isPinned ? 1 : -1;
+          return a.uploadedAt!.compareTo(b.uploadedAt!);
+        });
+      final excess = active.length - Group.basicPhotoLimit;
+      for (final old in active.take(max(0, excess))) {
+        old.status = 'removed';
+        _objects
+          ..remove(old.storagePath)
+          ..remove(old.thumbPath);
+        removed++;
+      }
+    }
+    _groups[p.groupId]!.lastActivityAt = _clock();
+    return UploadResult(photoId: photoId, removedCount: removed);
+  }
+
+  @override
+  Future<void> deletePhoto(String photoId) async {
+    await _wait();
+    final p = _photos[photoId];
+    if (p == null || p.status != 'active') _fail('photo_not_found');
+    _requireMember(p.groupId);
+    if (p.uploaderId != currentUserId && !_isOwner(p.groupId)) {
+      _fail('not_allowed');
+    }
+    p.status = 'removed';
+    _objects
+      ..remove(p.storagePath)
+      ..remove(p.thumbPath);
+  }
+
+  @override
+  Future<void> updateCaption(String photoId, String? caption) async {
+    await _wait();
+    final p = _photos[photoId];
+    if (p == null || p.uploaderId != currentUserId) _fail('photo_not_found');
+    final t = caption?.trim();
+    p.caption = (t == null || t.isEmpty) ? null : t;
+  }
+
+  @override
+  Future<void> setPinned(String photoId, bool pinned) async {
+    await _wait();
+    final p = _photos[photoId];
+    if (p == null || p.status != 'active') _fail('photo_not_found');
+    if (pinned && !_premium.contains(p.groupId)) _fail('premium_required');
+    p.isPinned = pinned;
+  }
+
+  @override
+  Future<ImageProvider> image(Photo photo, PhotoVariant variant) async {
+    final bytes = _objects[photo.pathFor(variant)];
+    if (bytes == null) _fail('photo_not_found');
+    return MemoryImage(bytes);
+  }
+
+  @override
+  Future<void> requestCleanup() async {}
+
   /// Seeds sample groups so Preview mode has something to show. Runs
   /// synchronously so the first read already sees every sample group.
   void seedPreview() {
@@ -454,4 +673,32 @@ class _InviteRow {
   final int? maxRedemptions;
   DateTime? revokedAt;
   final redeemedBy = <String>{};
+}
+
+class _PhotoRow {
+  _PhotoRow({
+    required this.id,
+    required this.groupId,
+    required this.uploaderId,
+    required this.clientUploadId,
+    this.caption,
+    this.takenAt,
+    this.width,
+    this.height,
+  }) : storagePath = '$groupId/$id/original.jpg',
+       thumbPath = '$groupId/$id/thumb.jpg';
+
+  final String id;
+  final String groupId;
+  final String uploaderId;
+  final String clientUploadId;
+  final String storagePath;
+  final String thumbPath;
+  String? caption;
+  final DateTime? takenAt;
+  final int? width;
+  final int? height;
+  String status = 'pending';
+  DateTime? uploadedAt;
+  bool isPinned = false;
 }

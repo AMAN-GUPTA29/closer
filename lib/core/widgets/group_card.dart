@@ -15,6 +15,7 @@ class GroupCard extends StatelessWidget {
     required this.memberCount,
     required this.onTap,
     this.cover,
+    this.coverWidget,
     this.activity,
     this.isPremium = false,
     this.placeholderVariant = 0,
@@ -25,6 +26,9 @@ class GroupCard extends StatelessWidget {
   final int memberCount;
   final VoidCallback onTap;
   final ImageProvider? cover;
+
+  /// Custom cover (e.g. a lazily resolved private photo); wins over [cover].
+  final Widget? coverWidget;
 
   /// e.g. "182 days together", "3 new memories", "New photo 2h ago".
   final String? activity;
@@ -69,10 +73,12 @@ class GroupCard extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: CloserRadii.mdAll,
-                          child: CloserPhoto(
-                            image: cover,
-                            placeholderVariant: placeholderVariant,
-                          ),
+                          child:
+                              coverWidget ??
+                              CloserPhoto(
+                                image: cover,
+                                placeholderVariant: placeholderVariant,
+                              ),
                         ),
                         if (type == GroupType.couple)
                           Positioned(

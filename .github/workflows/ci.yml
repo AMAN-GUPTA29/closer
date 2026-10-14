@@ -84,10 +84,10 @@ jobs:
       - name: Format, lint, type-check and test
         working-directory: supabase/functions
         run: |
-          deno fmt --check
+          deno fmt --check .
           deno lint
           deno check cleanup-storage/index.ts
-          deno test --allow-none cleanup-storage/
+          deno test cleanup-storage/
 
   android-apk:
     name: Debug APK

@@ -18,6 +18,9 @@ import '../../features/groups/presentation/group_settings_screen.dart';
 import '../../features/groups/presentation/members_screen.dart';
 import '../../features/invitations/presentation/invite_screen.dart';
 import '../../features/invitations/presentation/join_group_screen.dart';
+import '../../features/photos/application/photo_providers.dart';
+import '../../features/photos/presentation/add_memory_screen.dart';
+import '../../features/purchases/upgrade_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/journal/presentation/journal_screen.dart';
 import '../../features/legal/legal_screen.dart';
@@ -129,6 +132,25 @@ final routerProvider = Provider<GoRouter>((ref) {
                         path: 'members',
                         parentNavigatorKey: _rootKey,
                         builder: (context, state) => MembersScreen(
+                          groupId: state.pathParameters['groupId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'add',
+                        parentNavigatorKey: _rootKey,
+                        builder: (context, state) => AddMemoryScreen(
+                          groupId: state.pathParameters['groupId']!,
+                          source: switch (state.uri.queryParameters['source']) {
+                            'camera' => PhotoSource.camera,
+                            'gallery' => PhotoSource.gallery,
+                            _ => null,
+                          },
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'upgrade',
+                        parentNavigatorKey: _rootKey,
+                        builder: (context, state) => UpgradeScreen(
                           groupId: state.pathParameters['groupId']!,
                         ),
                       ),

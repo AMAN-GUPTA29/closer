@@ -40,7 +40,11 @@ Deno.test("marks jobs failed so the database retries them", async () => {
   );
   const result = await runCleanup(deps);
   assertEquals(result.failed, 1);
-  assertEquals(completed, [{ id: 7, success: false, error: "storage unavailable" }]);
+  assertEquals(completed, [{
+    id: 7,
+    success: false,
+    error: "storage unavailable",
+  }]);
 });
 
 Deno.test("a thrown storage error is recorded, not fatal", async () => {

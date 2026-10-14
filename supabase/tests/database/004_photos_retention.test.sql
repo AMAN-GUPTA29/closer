@@ -368,8 +368,8 @@ select is(
   'done', 'completed jobs are marked done');
 
 -- Expired leases return jobs to workers.
-update public.storage_cleanup_jobs set status = 'running', lease_until = now() - interval '1 minute'
-  where id = (select min(id) from public.storage_cleanup_jobs where status = 'queued');
+update public.storage_cleanup_jobs set lease_until = now() - interval '1 minute'
+  where id = (select min(id) from public.storage_cleanup_jobs where status = 'running');
 set local role service_role;
 select ok((select count(*) from public.claim_cleanup_jobs(500)) > 0,
   'jobs whose worker died are reclaimed after the lease');
