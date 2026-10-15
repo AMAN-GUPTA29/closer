@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/routing/app_router.dart';
 import '../core/theme/closer_theme.dart';
+import '../core/sync/app_sync.dart';
 import '../features/invitations/application/invite_links.dart';
 
 class CloserApp extends ConsumerWidget {
@@ -21,8 +22,9 @@ class CloserApp extends ConsumerWidget {
       routerConfig: router,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       supportedLocales: const [Locale('en')],
-      builder: (context, child) =>
-          InviteLinkListener(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => InviteLinkListener(
+        child: AppSync(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 }

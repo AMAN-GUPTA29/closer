@@ -29,7 +29,49 @@ Product id is configurable: `--dart-define=MEMORIES_PRODUCT_ID=...` (default `cl
 - **Restore:** stores don't restore consumables, but entitlements live on the server and
   belong to the group, so reinstalling or signing in on a new device restores access
   automatically. "Restore purchases" re-syncs any transactions the server hasn't seen.
-- **Basic $2:** to be decided in Phase 5 between a paid app and a one-time non-consumable.
+- **Basic $2:** still an open decision (ISSUES D1). A paid app needs no code; a non-consumable
+  unlock would add a second product. Phase 5 implements only Closer Memories.
+
+## Store integration (Phase 5)
+
+Product: one consumable, `closer_memories_group` (override with `MEMORIES_PRODUCT_ID`), sold
+through RevenueCat (`purchases_flutter`). The app's public SDK keys come from dart-defines
+`REVENUECAT_ANDROID_KEY` / `REVENUECAT_IOS_KEY`. Without them the purchase buttons stay
+disabled, with the label "Purchases aren't available in this build yet". Nothing is ever simulated.
+
+**Buy flow**
+1. The app identifies the RevenueCat customer with the Supabase user id and buys the product.
+   Cancelled → nothing happens. Pending (e.g. Play "slow card") → "Waiting for the store".
+2. The app calls the **`verify-purchase`** Edge Function with `{group_id, transaction_id}`. The
+   function (signed-in caller only):
+   - looks the transaction up through the RevenueCat REST API (`/v1/subscribers/{user}`
+     `non_subscriptions`), so the client's word is never trusted;
+   - calls `grant_group_entitlement`.
+   Status codes: 200 granted / already granted · 404 not visible yet · 403 not a member ·
+   409 transaction already used for another group, or refunded · 400 bad input · 401 not signed in.
+3. On 404 the app retries after 2, 4 and 8 s, then shows "pending". The purchase stays recoverable.
+
+**Webhook safety net: `revenuecat-webhook`** (deployed with `--no-verify-jwt`, authenticated by
+a constant-time comparison of the `Authorization` header with `REVENUECAT_WEBHOOK_AUTH`):
+- `NON_RENEWING_PURCHASE` → `record_store_purchase`. If the app never told us the group, the
+  purchase is stored as **unassigned**.
+- `CANCELLATION` / `REFUND` → `revoke_group_entitlement` (30-day grace, see below).
+- Replays are idempotent (tested).
+
+**Unassigned purchases / restore:** Profile → Purchased groups lists "Unused Closer Memories
+purchase". The user picks a group and the app sends it through `verify-purchase` again, so the
+same server checks apply. "Restore purchases" asks the store to re-sync, so missed transactions
+reach the webhook. Entitlements already live on the server, so a reinstall or a new phone keeps
+Premium without any restore.
+
+**Owner setup** (ISSUES A9, B2): create the product in both stores and RevenueCat, then:
+```bash
+npx supabase@2.120.0 secrets set REVENUECAT_SECRET_KEY=... REVENUECAT_WEBHOOK_AUTH=...
+npx supabase@2.120.0 functions deploy verify-purchase
+npx supabase@2.120.0 functions deploy revenuecat-webhook --no-verify-jwt
+```
+RevenueCat → Integrations → Webhooks: URL `https://<PROJECT_REF>.supabase.co/functions/v1/revenuecat-webhook`,
+with the same authorization value.
 - Verify against the current App Review Guidelines (3.1.1) before submission; App Review notes
   should explain that each consumable unlocks one group permanently.
 

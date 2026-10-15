@@ -1,5 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
+
+import '../auth/application/auth_providers.dart';
+import '../auth/domain/auth_models.dart';
+import 'revenuecat_purchase_service.dart';
 
 /// Store product identifiers. Prices come from the store at runtime, never
 /// from code. Override with --dart-define for other environments.
@@ -33,9 +38,32 @@ enum PurchaseOutcome {
   unlocked,
   cancelled,
 
-  /// Awaiting approval (e.g. Ask to Buy); the group unlocks when it completes.
+  /// Awaiting approval (e.g. Ask to Buy) or server confirmation; the group
+  /// unlocks when it completes.
   pending,
   failed,
+}
+
+/// A verified store purchase that hasn't been applied to a group yet (e.g.
+/// the app closed mid-purchase, or after reinstalling).
+@immutable
+class UnassignedPurchase {
+  const UnassignedPurchase({
+    required this.transactionId,
+    required this.store,
+    required this.purchasedAt,
+  });
+
+  factory UnassignedPurchase.fromJson(Map<String, dynamic> json) =>
+      UnassignedPurchase(
+        transactionId: json['transaction_id'] as String,
+        store: json['store'] as String,
+        purchasedAt: DateTime.parse(json['purchased_at'] as String),
+      );
+
+  final String transactionId;
+  final String store;
+  final DateTime purchasedAt;
 }
 
 /// Client side of buying Closer Memories. The client never decides
@@ -47,12 +75,18 @@ abstract interface class PurchaseService {
   Future<StoreProduct?> memoriesProduct();
   Future<PurchaseOutcome> buyMemories(String groupId);
 
-  /// Re-syncs past purchases with the server (e.g. after reinstalling).
+  /// Re-syncs past purchases with the store and the server.
   Future<void> restore();
+
+  /// Purchases the user owns that aren't attached to a group yet.
+  Future<List<UnassignedPurchase>> unassignedPurchases();
+
+  /// Applies an unassigned purchase to a group (server-verified).
+  Future<PurchaseOutcome> applyPurchase(String transactionId, String groupId);
 }
 
-/// Used until store billing is configured (Phase 5). Never pretends a
-/// purchase succeeded.
+/// Used until store billing is configured. Never pretends a purchase
+/// succeeded.
 class UnavailablePurchaseService implements PurchaseService {
   const UnavailablePurchaseService();
 
@@ -70,8 +104,42 @@ class UnavailablePurchaseService implements PurchaseService {
 
   @override
   Future<void> restore() async {}
+
+  @override
+  Future<List<UnassignedPurchase>> unassignedPurchases() async => const [];
+
+  @override
+  Future<PurchaseOutcome> applyPurchase(
+    String transactionId,
+    String groupId,
+  ) async => PurchaseOutcome.failed;
 }
 
-final purchaseServiceProvider = Provider<PurchaseService>(
-  (ref) => const UnavailablePurchaseService(),
-);
+/// RevenueCat when a platform key is configured and the user is signed in
+/// to a real backend; otherwise purchases are clearly unavailable.
+final purchaseServiceProvider = Provider<PurchaseService>((ref) {
+  final status = ref.watch(authControllerProvider);
+  final key = RevenueCatKeys.forPlatform;
+  if (status is! SignedIn ||
+      key.isEmpty ||
+      !ref.watch(authRepositoryProvider).isConfigured) {
+    return const UnavailablePurchaseService();
+  }
+  final db = sb.Supabase.instance.client;
+  return RevenueCatPurchaseService(
+    apiKey: key,
+    // RevenueCat's app user id is the Supabase user id, so webhooks and
+    // server verification can tie purchases to accounts.
+    userId: status.user.id,
+    store: RevenueCatGateway(),
+    verifier: SupabasePurchaseVerifier(db),
+    loadUnassigned: () async {
+      final rows = await db
+          .from('purchase_records')
+          .select('transaction_id, store, purchased_at')
+          .eq('status', 'unassigned')
+          .order('purchased_at', ascending: false);
+      return rows.map(UnassignedPurchase.fromJson).toList();
+    },
+  );
+});

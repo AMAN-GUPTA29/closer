@@ -14,8 +14,8 @@ Deferred items, credentials and owner actions are collected in [ISSUES.md](ISSUE
 | 1 | Audit, design system, app foundation | ✅ Done (PR #1) | ✅ 2026-10-14 |
 | 2 | Auth, database, groups, invitations | ✅ Done (PR #2) | ✅ 2026-10-14 |
 | 3 | Photos, storage, retention, Premium foundation | ✅ Done (PR #3) | ✅ 2026-10-14 |
-| 4 | Journal, milestones, core screens | 🟡 Awaiting approval | — |
-| 5 | Native widgets, notifications, purchases | ⬜ Not started | — |
+| 4 | Journal, milestones, core screens | ✅ Done (PR #5) | ✅ 2026-10-14 |
+| 5 | Native widgets, notifications, purchases | 🟡 Awaiting approval | — |
 | 6 | CI/CD, remote dev, hardening, release | ⬜ Not started | — |
 
 _Last updated: 2026-10-14_
@@ -176,29 +176,43 @@ _Last updated: 2026-10-14_
 - [x] Design check on emulator (fixed share-button overlap)
 - [x] Flutter tests: 121 passing (23 new)
 - [x] Docs + ISSUES.md updated
-- [ ] Commit + push, Phase 4 report, **wait for approval**
+- [x] Commit + push, Phase 4 report, approved 2026-10-14 (merged to `main` via PR #5)
 
 ## Phase 5 — Native widgets, notifications, purchase integration
 
-- [ ] Android Kotlin App Widget provider + sizes
-- [ ] Android per-instance configuration activity (group picker)
-- [ ] Android photo cache, refresh, deep links, empty/error states
-- [ ] iOS WidgetKit extension (SwiftUI) + App Groups ⚠️ (needs hosted macOS to build)
-- [ ] iOS per-instance AppIntent configuration, timeline, snapshot, placeholder
-- [ ] Flutter ↔ native bridge (`home_widget`)
-- [ ] Widget Setup screen (previews, instructions, troubleshooting)
-- [ ] Revoked membership clears widget cache
-- [ ] FCM setup 🔒 + APNs 🔒
-- [ ] Device token registration/rotation/invalid cleanup
-- [ ] Push dispatch Edge Function (idempotent, no private content in payload)
-- [ ] Foreground realtime sync
-- [ ] Group-targeted widget refresh
-- [ ] Purchase SDK integration + restore 🔒 (store accounts)
-- [ ] Purchase webhook verification + idempotency
-- [ ] Refund/revocation grace policy implemented
-- [ ] Tests: widget config independence, routing, cache invalidation, device registration auth, purchase idempotency
-- [ ] Physical-device verification list documented
-- [ ] Commit + push, Phase 5 report, **wait for approval**
+**Widgets**
+- [x] Android Kotlin App Widget provider (2×2, resizable) with signed-out / unconfigured / unavailable / group states
+- [x] Android per-instance configuration activity (group picker, reconfigurable, also opens from an unconfigured widget)
+- [x] Android downsampled photo cache, app-driven refresh, deep link to the group — checked on emulator
+- [x] iOS WidgetKit extension (SwiftUI) + App Group; CI adds the target and compiles unsigned ⚠️ not run on an iPhone (ISSUES C9)
+- [x] iOS per-instance AppIntent configuration, timeline, snapshot, placeholder ⚠️ (C9)
+- [x] Flutter ↔ native bridge (`home_widget` + MethodChannel for refresh/pin)
+- [x] Widget Setup screen (previews, "Add a widget" pin request, manual steps, troubleshooting)
+- [x] Revoked membership / sign-out clears widget data (tested)
+- [x] Group-targeted widget refresh (tested)
+
+**Push & sync**
+- [ ] 🔒 FCM project + APNs key (ISSUES A10, A13) — app runs without push until configured
+- [x] Device token registration / rotation / move between accounts / invalid cleanup (pgTAP)
+- [x] `dispatch-push` Edge Function: leased queue, idempotent, backoff, names-only payload (pgTAP + Deno) ⚠️ no real delivery yet (C10)
+- [x] Milestone reminders (daily job) + push/reminder preferences
+- [x] Foreground realtime sync (Supabase Realtime) + refresh on resume; tapped push opens group
+- [x] Background widget refresh from data push ⚠️ unverified (C10)
+
+**Purchases**
+- [x] RevenueCat SDK integration + restore; disabled and labelled without keys 🔒 (A9)
+- [x] `verify-purchase` (server-side REST verification) + `revenuecat-webhook` (auth, idempotent) — Deno + pgTAP
+- [x] Unassigned purchases can be applied to a group from Profile
+- [x] Refund/revocation → 30-day grace (Phase 3 policy, now wired to webhook)
+- [ ] 🔒 Sandbox purchase end to end (C12)
+
+**Quality**
+- [x] Tests: widget data independence, routing/links, cache invalidation, device registration auth, purchase idempotency — 141 Flutter, 263 pgTAP, 32 Deno
+- [x] Emulator check of the Android widget (found + fixed Preview link bug)
+- [x] Physical-device verification list documented (ISSUES C9–C13)
+- [x] Docs: widget-implementation, notifications (new), purchases-and-retention, database, security, architecture, testing, known-limitations, README
+- [x] Commit + push, PR #6 into `main`, CI green (incl. iOS unsigned build), Phase 5 report
+- [ ] **Owner approval** to start Phase 6
 
 ## Phase 6 — CI/CD, remote development, hardening, release readiness
 
@@ -226,3 +240,4 @@ _Last updated: 2026-10-14_
 - 2026-10-14 — Phase 3 implemented: photos, private storage, retention, entitlements, cleanup queue, upload UI; 98 Flutter tests.
 - 2026-10-14 — Added ISSUES.md (open issues register) at the owner's request.
 - 2026-10-14 — Phase 4 implemented: journal, milestones, notifications, profile, account deletion; 220 pgTAP + 10 Deno + 121 Flutter tests.
+- 2026-10-14 — Phase 4 approved and merged (PR #5). Phase 5 implemented: Android + iOS widgets, push queue + FCM dispatch, reminders, realtime, RevenueCat purchases with server verification; 263 pgTAP + 32 Deno + 141 Flutter tests; Android widget checked on emulator.

@@ -32,6 +32,8 @@ dependencies:
   cached_network_image: ^4.0.4
   connectivity_plus: ^7.3.2
   exif: ^3.3.0
+  firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
   flutter:
     sdk: flutter
   flutter_image_compress: ^2.5.1
@@ -40,9 +42,13 @@ dependencies:
   flutter_riverpod: ^3.4.3
   flutter_svg: ^2.3.0
   go_router: ^18.0.2
+  home_widget: ^0.10.0
   image_picker: ^1.2.4
   intl: ^0.20.3
   lucide_icons_flutter: ^3.1.25
+  path_provider: ^2.1.6
+  path_provider_foundation: ^2.6.0
+  purchases_flutter: ^10.15.2
   share_plus: ^13.3.1
   supabase_flutter: ^2.18.3
   url_launcher: ^6.3.3

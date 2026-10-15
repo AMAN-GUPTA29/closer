@@ -1,9 +1,14 @@
+import 'dart:typed_data';
 import 'dart:async';
 
 import 'package:closer/app/app.dart';
 import 'package:closer/core/config/app_config.dart';
 import 'package:closer/core/errors/app_failure.dart';
 import 'package:closer/core/network/connectivity.dart';
+import 'package:closer/core/sync/app_sync.dart';
+import 'package:closer/core/sync/realtime_feed.dart';
+import 'package:closer/features/notifications/push/push_service.dart';
+import 'package:closer/features/widgets/widget_sync.dart';
 import 'package:closer/core/theme/closer_theme.dart';
 import 'package:closer/features/auth/application/auth_providers.dart';
 import 'package:closer/features/auth/data/auth_repository.dart';
@@ -162,6 +167,9 @@ Future<void> pumpCloserApp(
   Stream<Uri>? links,
   List<Override> extra = const [],
   bool online = true,
+  FakeWidgetPlatform? widgets,
+  PushService? push,
+  RealtimeFeed? feed,
 }) async {
   tester.view.physicalSize = const Size(1170, 2532);
   tester.view.devicePixelRatio = 3;
@@ -178,6 +186,13 @@ Future<void> pumpCloserApp(
           links ?? const Stream<Uri>.empty(),
         ),
         isOnlineProvider.overrideWith((ref) => Stream.value(online)),
+        realtimeFeedProvider.overrideWithValue(
+          feed ?? const NoopRealtimeFeed(),
+        ),
+        pushServiceProvider.overrideWithValue(push ?? const NoopPushService()),
+        widgetSyncProvider.overrideWithValue(
+          WidgetSync(widgets ?? FakeWidgetPlatform()),
+        ),
         ...extra,
       ],
       child: const CloserApp(),
@@ -199,4 +214,39 @@ Widget themed(Widget child) {
     theme: CloserTheme.light,
     home: Scaffold(body: child),
   );
+}
+
+/// In-memory stand-in for home_widget storage and native widget refresh.
+class FakeWidgetPlatform implements WidgetPlatform {
+  final values = <String, String>{};
+  final images = <String, int>{};
+  final refreshes = <String?>[];
+
+  @override
+  Future<void> save(String key, String? value) async {
+    if (value == null) {
+      values.remove(key);
+    } else {
+      values[key] = value;
+    }
+  }
+
+  @override
+  Future<String?> read(String key) async => values[key];
+
+  @override
+  Future<String?> writeImage(String groupId, Uint8List? bytes) async {
+    if (bytes == null) {
+      images.remove(groupId);
+      return null;
+    }
+    images[groupId] = bytes.length;
+    return '/widgets/$groupId.jpg';
+  }
+
+  @override
+  Future<void> deleteImage(String groupId) async => images.remove(groupId);
+
+  @override
+  Future<void> refresh({String? groupId}) async => refreshes.add(groupId);
 }

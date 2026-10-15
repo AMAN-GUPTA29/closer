@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app/app.dart';
 import 'core/config/app_config.dart';
 import 'features/auth/application/auth_providers.dart';
+import 'features/notifications/push/push_service.dart';
+import 'features/widgets/background_refresh.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +29,12 @@ Future<void> main() async {
         authFlowType: AuthFlowType.pkce,
       ),
     );
+  }
+
+  if (FirebaseConfig.isConfigured) {
+    // Must be registered before runApp; refreshes widgets for pushes that
+    // arrive while the app is in the background.
+    FirebaseMessaging.onBackgroundMessage(closerBackgroundMessage);
   }
 
   runApp(

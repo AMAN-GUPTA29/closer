@@ -25,6 +25,7 @@ import '../../features/photos/presentation/all_photos_screen.dart';
 import '../../features/profile/presentation/delete_account_screen.dart';
 import '../../features/profile/presentation/edit_profile_screen.dart';
 import '../../features/profile/presentation/purchased_groups_screen.dart';
+import '../../features/widgets/widget_setup_screen.dart';
 import '../../features/photos/application/photo_providers.dart';
 import '../../features/photos/presentation/add_memory_screen.dart';
 import '../../features/purchases/upgrade_screen.dart';
@@ -235,6 +236,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'purchases',
                     parentNavigatorKey: _rootKey,
                     builder: (context, state) => const PurchasedGroupsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'widgets',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => const WidgetSetupScreen(),
                   ),
                   GoRoute(
                     path: 'delete',
