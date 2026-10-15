@@ -7,16 +7,16 @@ never silently deleted. Secrets themselves are **never** written here or in chat
 **Owner:** 👤 = you (needs your account, credentials or decision) · 🤖 = Claude · 🤝 = both
 **Status:** 🔴 blocking a feature · 🟡 open · ✅ resolved
 
-_Last updated: 2026-10-14 (after Phase 6). Release order: docs/release-readiness.md §3._
+_Last updated: 2026-10-15 (backend live). Release order: docs/release-readiness.md §3._
 
 ## A. Credentials and accounts (👤 owner actions)
 
 | # | Item | Needed for | How (safe way) | Status |
 |---|---|---|---|---|
-| A1 | **Supabase project URL + anon/publishable key** | Real sign-up/sign-in, groups, photos on devices | Create project at supabase.com → Settings → API. Send only URL + anon key (client-safe). Put them in `.env` locally and as GitHub repo **variables** `SUPABASE_URL`, `SUPABASE_ANON_KEY` for CI APKs | 🔴 |
-| A2 | Supabase **service-role key** | Cleanup worker, purchase verification (server only) | Never share in chat or commit. It is injected automatically into Edge Functions; for the cron job store it with `vault.create_secret` in the SQL editor | 🔴 (with A1) |
-| A3 | Supabase **database password / CLI login** | Applying migrations to the hosted project | Run yourself: `npx supabase@2.120.0 login`, `link --project-ref <ref>`, `db push` | 🔴 (with A1) |
-| A4 | Supabase Auth redirect URL | Email confirmation / password reset links opening the app | Dashboard → Authentication → URL Configuration → add `com.closerapp.closer://auth-callback` | 🟡 |
+| A1 | **Supabase project URL + anon/publishable key** | Real sign-up/sign-in, groups, photos on devices | Create project at supabase.com → Settings → API. Send only URL + anon key (client-safe). Put them in `.env` locally and as GitHub repo **variables** `SUPABASE_URL`, `SUPABASE_ANON_KEY` for CI APKs | ✅ 2026-10-15 (project `yvompyeqlhjzhrogodqp`; `.env` + GitHub variables set) |
+| A2 | Supabase **service-role key** | Cleanup worker, purchase verification (server only) | Never share in chat or commit. It is injected automatically into Edge Functions; for the cron job store it with `vault.create_secret` in the SQL editor | ✅ not needed: functions get it automatically; cron uses the Vault cron secret (migration 5) |
+| A3 | Supabase **database password / CLI login** | Applying migrations to the hosted project | Run yourself: `npx supabase@2.120.0 login`, `link --project-ref <ref>`, `db push` | ✅ 2026-10-15 (owner logged in + linked the CLI) |
+| A4 | Supabase Auth redirect URL | Email confirmation / password reset links opening the app | Dashboard → Authentication → URL Configuration → add `com.closerapp.closer://auth-callback` | ✅ 2026-10-15 (owner added the redirect URL) |
 | A5 | Claude GitHub App install | `@claude` from GitHub with laptop off | https://github.com/apps/claude → select `closer` | 🟡 |
 | A6 | `CLAUDE_CODE_OAUTH_TOKEN` repo secret | `@claude` workflow | `claude setup-token` on the laptop → GitHub repo Settings → Secrets → Actions | 🟡 |
 | A7 | Google / Apple sign-in credentials | Social sign-in buttons | Enable providers in Supabase Auth (Google OAuth client; Apple Services ID + key), then build with `GOOGLE_AUTH_ENABLED=true` / `APPLE_AUTH_ENABLED=true` | 🟡 |
@@ -32,11 +32,11 @@ _Last updated: 2026-10-14 (after Phase 6). Release order: docs/release-readiness
 
 | # | Item | Details | Status |
 |---|---|---|---|
-| B1 | Apply migrations | `npx supabase@2.120.0 db push` (4 migrations so far) | 🔴 |
-| B2 | Deploy Edge Functions | `npx supabase@2.120.0 functions deploy` for `cleanup-storage`, `delete-account`, `dispatch-push`, `verify-purchase`, and `revenuecat-webhook --no-verify-jwt` | 🔴 |
-| B3 | Schedule cleanup every 10 min | Enable `pg_cron` + `pg_net`, then the SQL in `docs/purchases-and-retention.md` | 🔴 |
-| B5 | Schedule push dispatch (every minute) + milestone reminders (daily) | SQL in `docs/notifications.md` (`pg_cron` + `pg_net`, Vault secret) | 🔴 push |
-| B6 | Enable Realtime for the app tables | The migration adds them to `supabase_realtime`; check Dashboard → Database → Publications after `db push` | 🟡 |
+| B1 | Apply migrations | `npx supabase@2.120.0 db push` (4 migrations so far) | ✅ 2026-10-15 (5 migrations applied) |
+| B2 | Deploy Edge Functions | `npx supabase@2.120.0 functions deploy` for `cleanup-storage`, `delete-account`, `dispatch-push`, `verify-purchase`, and `revenuecat-webhook --no-verify-jwt` | ✅ 2026-10-15 (all 5 deployed; cleanup/dispatch/webhook without gateway JWT check) |
+| B3 | Schedule cleanup every 10 min | Enable `pg_cron` + `pg_net`, then the SQL in `docs/purchases-and-retention.md` | ✅ 2026-10-15 (`closer-storage-cleanup` every 10 min; test call 200) |
+| B5 | Schedule push dispatch (every minute) + milestone reminders (daily) | SQL in `docs/notifications.md` (`pg_cron` + `pg_net`, Vault secret) | 🟡 reminders scheduled 2026-10-15; push dispatch waits for Firebase (A10) |
+| B6 | Enable Realtime for the app tables | The migration adds them to `supabase_realtime`; check Dashboard → Database → Publications after `db push` | ✅ 2026-10-15 (photos, milestones, notifications, group_members in `supabase_realtime`) |
 | B7 | Review Supabase Auth settings | Dashboard → Authentication: keep email confirmation on, enable leaked-password protection, check rate limits and the minimum password length (8), set the site URL | 🟡 |
 | B4 | Verify live flows once connected | Sign-up + email confirm, create/join group, upload photo, retention on the 11th photo, cleanup deletes files, milestones, notifications, avatar upload, account deletion | 🟡 🤝 |
 
@@ -107,3 +107,4 @@ _Last updated: 2026-10-14 (after Phase 6). Release order: docs/release-readiness
 | R18 | Large text clipped group actions/onboarding; 44 dp header buttons; danger red below AA | 2026-10-14 | Found by the new accessibility tests; fixed |
 | R19 | Widget covers re-downloaded on every group change | 2026-10-14 | Phase 6 performance review: cached by thumbnail path |
 | R20 | Android backups could copy the signed-in session | 2026-10-14 | `allowBackup=false` + data-extraction rules |
+| R21 | Cron could not call functions with new non-JWT `sb_secret_` keys | 2026-10-15 | Migration 5: Vault-generated cron secret + `check_cron_secret()`; also closes the dispatch-push trigger risk |

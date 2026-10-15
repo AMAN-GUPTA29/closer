@@ -15,8 +15,8 @@ Deferred items, credentials and owner actions are collected in [ISSUES.md](ISSUE
 | 2 | Auth, database, groups, invitations | ✅ Done (PR #2) | ✅ 2026-10-14 |
 | 3 | Photos, storage, retention, Premium foundation | ✅ Done (PR #3) | ✅ 2026-10-14 |
 | 4 | Journal, milestones, core screens | ✅ Done (PR #5) | ✅ 2026-10-14 |
-| 5 | Native widgets, notifications, purchases | ✅ Done (PR #6, merge pending) | ✅ 2026-10-14 |
-| 6 | CI/CD, remote dev, hardening, release | 🟡 Final review | — |
+| 5 | Native widgets, notifications, purchases | ✅ Done (PR #6) | ✅ 2026-10-14 |
+| 6 | CI/CD, remote dev, hardening, release | ✅ Done (PR #7) | ✅ 2026-10-15 (merged) |
 
 _Last updated: 2026-10-14_
 
@@ -234,7 +234,7 @@ _Last updated: 2026-10-14_
 - [x] Purchase & retention review (no client grants, idempotency, grace; App Review risk D8)
 - [x] Performance review (cover cache fix) & accessibility review (26 new tests, 3 fixes)
 - [x] All docs in sync; `docs/release-readiness.md` (report + launch checklist)
-- [ ] Commit + push, PR into `main`, final report, **owner review**
+- [x] Commit + push, PR #7, final report; owner merged 2026-10-15
 
 ---
 
@@ -248,3 +248,4 @@ _Last updated: 2026-10-14_
 - 2026-10-14 — Phase 4 implemented: journal, milestones, notifications, profile, account deletion; 220 pgTAP + 10 Deno + 121 Flutter tests.
 - 2026-10-14 — Phase 4 approved and merged (PR #5). Phase 5 implemented: Android + iOS widgets, push queue + FCM dispatch, reminders, realtime, RevenueCat purchases with server verification; 263 pgTAP + 32 Deno + 141 Flutter tests; Android widget checked on emulator.
 - 2026-10-14 — Phase 5 approved. Phase 6: release + secret-scan + R8 CI, Codemagic, signing, security/purchase/performance/accessibility reviews, release-readiness report; 167 Flutter tests.
+- 2026-10-15 — Launch: Supabase project live (5 migrations, 5 Edge Functions, cleanup + reminder schedules, realtime); cron auth via Vault secret (migration 5, pgTAP 008).

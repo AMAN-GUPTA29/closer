@@ -1,7 +1,9 @@
 // Edge Function: delivers queued notifications as push messages via FCM.
-// Scheduled every minute (pg_cron + pg_net, see docs/notifications.md).
+// Scheduled every minute (pg_cron + pg_net, see docs/notifications.md); only the
+// Vault cron secret is accepted (deployed with --no-verify-jwt).
 // Secrets: FCM_SERVICE_ACCOUNT (JSON) — set with `supabase secrets set`.
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { callerAllowed } from "../_shared/caller.ts";
 import { FcmClient, type ServiceAccount } from "./fcm.ts";
 import { runDispatch } from "./logic.ts";
 
@@ -13,10 +15,20 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
-  if (!url || !serviceKey || !serviceAccountJson) {
-    return new Response("Push is not configured", { status: 503 });
+  if (!url || !serviceKey) {
+    return new Response("Not configured", { status: 500 });
   }
   const db = createClient(url, serviceKey, { auth: { persistSession: false } });
+  const caller = await callerAllowed(req, {
+    isCronSecret: async (token) => {
+      const { data } = await db.rpc("check_cron_secret", { p_secret: token });
+      return data === true;
+    },
+  });
+  if (!caller) return new Response("Unauthorized", { status: 401 });
+  if (!serviceAccountJson) {
+    return new Response("Push is not configured", { status: 503 });
+  }
   const fcm = new FcmClient(JSON.parse(serviceAccountJson) as ServiceAccount);
 
   try {
