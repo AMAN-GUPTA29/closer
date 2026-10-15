@@ -58,22 +58,31 @@ Server side (never committed):
 
 ```bash
 npx supabase@2.120.0 secrets set FCM_SERVICE_ACCOUNT="$(cat service-account.json)"
-npx supabase@2.120.0 functions deploy dispatch-push
+npx supabase@2.120.0 functions deploy dispatch-push --no-verify-jwt
 ```
 
-Schedules, set in the SQL editor (reuse the Vault secret from the cleanup worker):
+Scheduled calls authenticate with **`closer_cron_secret`**, a random value that migration 5
+generates inside the database's Vault. Nobody copies it. The functions check it with
+`check_cron_secret()` and are deployed with `verify_jwt = false`, because the new `sb_secret_`
+API keys are not JWTs. Run the SQL with `npx supabase@2.120.0 db query --linked -f <file>` or
+paste it into the SQL editor.
 
 ```sql
 select cron.schedule('closer-dispatch-push', '* * * * *', $$
   select net.http_post(
     url := 'https://<PROJECT_REF>.supabase.co/functions/v1/dispatch-push',
-    headers := jsonb_build_object('Authorization', 'Bearer ' ||
-      (select decrypted_secret from vault.decrypted_secrets where name = 'cleanup_service_key'))
+    headers := jsonb_build_object(
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets
+                                     where name = 'closer_cron_secret'),
+      'Content-Type', 'application/json'),
+    body := '{}'::jsonb
   );
 $$);
-select cron.schedule('closer-milestone-reminders', '0 9 * * *',
+-- 03:30 UTC = 09:00 IST
+select cron.schedule('closer-milestone-reminders', '30 3 * * *',
   $$ select public.enqueue_milestone_reminders(); $$);
 ```
+**Live (2026-10-15):** reminders are scheduled. Push dispatch will be scheduled once Firebase is set up.
 
 For iOS, upload the APNs auth key (.p8) to Firebase → Project settings → Cloud Messaging.
 `Runner.entitlements` declares `aps-environment` as `development`; release signing switches it to
