@@ -8,6 +8,8 @@ import 'app_failure.dart';
 /// Friendly text for each `closer:<key>` raised by the database.
 String backendMessage(String key) => switch (key) {
   'group_full' => 'This couple group already has two people.',
+  'already_in_couple' =>
+    'You’re already in a couple group. Leave it first to start a new one.',
   'not_a_member' => 'You are not a member of this group anymore.',
   'not_allowed' => 'Only the group owner can do that.',
   'not_authenticated' => 'Please sign in again.',
