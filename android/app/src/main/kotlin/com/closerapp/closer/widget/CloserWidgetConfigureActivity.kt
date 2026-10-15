@@ -2,6 +2,7 @@ package com.closerapp.closer.widget
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -32,7 +33,12 @@ class CloserWidgetConfigureActivity : Activity() {
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID,
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
-        if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+        // The activity is exported (launchers must start it), so ignore ids that
+        // don't belong to a Closer widget.
+        val provider = AppWidgetManager.getInstance(this).getAppWidgetInfo(widgetId)?.provider
+        if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID ||
+            provider != ComponentName(this, CloserWidgetProvider::class.java)
+        ) {
             finish()
             return
         }

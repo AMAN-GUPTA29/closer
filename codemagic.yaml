@@ -1,0 +1,77 @@
+# Codemagic (hosted macOS): signed iOS build of the app + CloserWidget, uploaded to TestFlight.
+# UNVERIFIED until the owner connects Codemagic, an Apple Developer account and App Store
+# Connect (ISSUES A8, A11, A14). Nothing secret is stored here.
+#
+# Codemagic setup (owner):
+#   1. Teams → Integrations → App Store Connect: add an API key named "Closer ASC".
+#   2. App → Environment variables, group "closer_signing" (secure):
+#        CERTIFICATE_PRIVATE_KEY   RSA private key for the distribution certificate
+#   3. Group "closer_client" (client-safe build config):
+#        SUPABASE_URL, SUPABASE_ANON_KEY, FIREBASE_API_KEY, FIREBASE_PROJECT_ID,
+#        FIREBASE_SENDER_ID, FIREBASE_IOS_APP_ID, REVENUECAT_IOS_KEY,
+#        PRIVACY_POLICY_URL, TERMS_URL, SUPPORT_EMAIL, APP_STORE_APPLE_ID
+#   4. Apple identifiers com.closerapp.closer and com.closerapp.closer.CloserWidget with the
+#      App Group group.com.closerapp.closer (+ Push Notifications on the app).
+workflows:
+  ios-release:
+    name: iOS release (TestFlight)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: Closer ASC
+    environment:
+      flutter: 3.47.4
+      xcode: latest
+      cocoapods: default
+      groups:
+        - closer_signing
+        - closer_client
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: "v*"
+    scripts:
+      - name: Add the widget extension to the Xcode project
+        script: |
+          gem install xcodeproj --no-document
+          ruby ios/scripts/add_widget_extension.rb
+
+      - name: Production push environment
+        script: |
+          /usr/libexec/PlistBuddy -c "Set :aps-environment production" ios/Runner/Runner.entitlements
+
+      - name: Code signing (app + widget extension)
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "com.closerapp.closer" \
+            --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files "com.closerapp.closer.CloserWidget" \
+            --type IOS_APP_STORE --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Client config
+        script: |
+          for k in SUPABASE_URL SUPABASE_ANON_KEY FIREBASE_API_KEY FIREBASE_PROJECT_ID \
+                   FIREBASE_SENDER_ID FIREBASE_IOS_APP_ID REVENUECAT_IOS_KEY \
+                   PRIVACY_POLICY_URL TERMS_URL SUPPORT_EMAIL; do
+            echo "$k=${!k}"
+          done > "$CM_BUILD_DIR/release.env"
+          test -n "$SUPABASE_URL" || { echo "SUPABASE_URL is not set"; exit 1; }
+
+      - name: Build IPA
+        script: |
+          flutter pub get
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" || echo 0)
+          flutter build ipa --release \
+            --build-number=$((LATEST + 1)) \
+            --dart-define-from-file="$CM_BUILD_DIR/release.env" \
+            --export-options-plist=/Users/builder/export_options.plist
+          rm -f "$CM_BUILD_DIR/release.env"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

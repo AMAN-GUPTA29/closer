@@ -36,6 +36,7 @@ class WidgetSnapshot {
     required this.subtitle,
     required this.updatedAt,
     this.imagePath,
+    this.coverKey,
   });
 
   final String groupId;
@@ -47,6 +48,10 @@ class WidgetSnapshot {
   /// Local file with the cover thumbnail, readable by the widget.
   final String? imagePath;
 
+  /// Storage path of the thumbnail [imagePath] was made from, so unchanged
+  /// covers are not downloaded again.
+  final String? coverKey;
+
   Map<String, dynamic> toJson() => {
     'id': groupId,
     'name': name,
@@ -54,6 +59,7 @@ class WidgetSnapshot {
     'subtitle': subtitle,
     'updatedAt': updatedAt.toUtc().toIso8601String(),
     'imagePath': imagePath,
+    'coverKey': coverKey,
   };
 
   /// "182 days" for couples with a counter, otherwise recent activity.
@@ -171,7 +177,14 @@ class WidgetSync {
   }) async {
     final previous = await _indexIds();
     for (final g in groups) {
-      await _writeGroup(g, await _safe(() => coverBytes(g)));
+      final key = g.latestThumbPath;
+      final cached = await _cachedImage(g.id, key);
+      if (cached != null) {
+        await _writeSnapshot(g, cached, key);
+      } else {
+        final bytes = key == null ? null : await _safe(() => coverBytes(g));
+        await _writeGroup(g, bytes, coverKey: bytes == null ? null : key);
+      }
     }
     final current = groups.map((g) => g.id).toSet();
     for (final gone in previous.difference(current)) {
@@ -206,8 +219,16 @@ class WidgetSync {
     await _platform.refresh();
   }
 
-  Future<void> _writeGroup(Group g, Uint8List? cover) async {
+  Future<void> _writeGroup(
+    Group g,
+    Uint8List? cover, {
+    String? coverKey,
+  }) async {
     final path = await _platform.writeImage(g.id, cover);
+    await _writeSnapshot(g, path, path == null ? null : coverKey);
+  }
+
+  Future<void> _writeSnapshot(Group g, String? path, String? coverKey) async {
     final snap = WidgetSnapshot(
       groupId: g.id,
       name: g.name,
@@ -215,8 +236,22 @@ class WidgetSync {
       subtitle: WidgetSnapshot.subtitleFor(g, _clock()),
       updatedAt: _clock(),
       imagePath: path,
+      coverKey: coverKey,
     );
     await _platform.save(WidgetKeys.group(g.id), jsonEncode(snap.toJson()));
+  }
+
+  /// The image already written for this cover, if the cover hasn't changed.
+  Future<String?> _cachedImage(String groupId, String? key) async {
+    if (key == null) return null;
+    final raw = await _platform.read(WidgetKeys.group(groupId));
+    if (raw == null) return null;
+    try {
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      return json['coverKey'] == key ? json['imagePath'] as String? : null;
+    } on FormatException {
+      return null;
+    }
   }
 
   Future<Set<String>> _indexIds() async {

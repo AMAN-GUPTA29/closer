@@ -153,6 +153,28 @@ void main() {
       expect(platform.images, isEmpty);
     });
 
+    test('unchanged covers are not downloaded again', () async {
+      var downloads = 0;
+      Future<Uint8List?> cover(Group g) async {
+        downloads++;
+        return Uint8List(3);
+      }
+
+      await sync.syncAll([
+        mkGroup('a', 'A', thumb: 'a/1.jpg'),
+      ], coverBytes: cover);
+      await sync.syncAll([
+        mkGroup('a', 'A', thumb: 'a/1.jpg'),
+      ], coverBytes: cover);
+      expect(downloads, 1);
+      await sync.syncAll([
+        mkGroup('a', 'A', thumb: 'a/2.jpg'),
+      ], coverBytes: cover);
+      expect(downloads, 2, reason: 'new photo, new cover');
+      final snap = jsonDecode(platform.values[WidgetKeys.group('a')]!) as Map;
+      expect(snap['coverKey'], 'a/2.jpg');
+    });
+
     test('updating one group refreshes only its widgets', () async {
       await sync.updateGroup(mkGroup('a', 'A'));
       expect(platform.refreshes, ['a']);

@@ -119,7 +119,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         const Spacer(),
                         SizedBox(
-                          height: 170,
+                          // Grows with the user's text size; the page scrolls.
+                          height: MediaQuery.textScalerOf(context)
+                              .scale(170)
+                              .clamp(170, 420),
                           child: PageView.builder(
                             controller: _controller,
                             itemCount: _pages.length,

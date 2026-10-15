@@ -153,4 +153,6 @@ in the database / Edge Functions, never only in Flutter.
 | 2026-10-14 | Phase 5: `home_widget` bridge + native Kotlin/SwiftUI widgets; one group per widget instance chosen in a native picker (Android) / AppIntent (iOS). |
 | 2026-10-14 | Push via FCM HTTP v1 from an Edge Function draining a leased queue in `notifications`; Firebase config via dart-defines, not committed files. |
 | 2026-10-14 | Purchases via RevenueCat; app-initiated server verification (REST API) plus webhook safety net; purchases without a known group stay "unassigned" for the user to apply. |
+| 2026-10-14 | Phase 6: signed Android builds only from a protected GitHub environment; iOS signing + TestFlight on Codemagic; release builds fall back to the debug key only locally. |
+| 2026-10-14 | Phase 6: Android app data excluded from backups/device transfer (session tokens stay on the device). |
 | 2026-10-14 | Account deletion keeps photos/milestones a user shared with others (uploader becomes anonymous) rather than deleting other people's memories. |

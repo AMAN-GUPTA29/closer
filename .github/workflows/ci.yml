@@ -1,5 +1,6 @@
-# Format, analyze and test on every push and pull request, then build a
-# debug APK and upload it as a downloadable artifact.
+# Format, analyze and test on every push and pull request; database, Edge
+# Function and secret-scan checks; unsigned iOS build; a release (R8) build
+# check; and a debug APK uploaded as a downloadable artifact.
 name: CI
 
 on:
@@ -88,6 +89,49 @@ jobs:
           deno lint
           deno check */index.ts
           deno test .
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-build:
+    name: Release build check (R8, debug-signed)
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # Catches R8/minification and release-only compile errors early. Signed
+      # store builds come from the Release workflow.
+      - name: Build release App Bundle
+        run: |
+          flutter pub get
+          flutter build appbundle --release
 
   ios-build:
     name: iOS build (unsigned, with widget extension)

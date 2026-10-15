@@ -244,12 +244,14 @@ class _Hero extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: CloserSpacing.xs),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          days == 1 ? 'day together' : 'days together',
-                          style: context.text.titleMedium?.copyWith(
-                            color: Colors.white,
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            days == 1 ? 'day together' : 'days together',
+                            style: context.text.titleMedium?.copyWith(
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -283,6 +285,7 @@ class _ActionRow extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Action(
             icon: CloserIcons.camera,
@@ -332,31 +335,40 @@ class _Action extends StatelessWidget {
     final c = context.closerColors;
     final enabled = onTap != null;
     final color = enabled ? c.textPrimary : c.textTertiary;
-    return Tooltip(
-      message: hint ?? label,
-      child: Semantics(
-        button: true,
-        enabled: enabled,
-        label: hint == null ? label : '$label. $hint',
-        excludeSemantics: true,
-        child: InkWell(
-          borderRadius: CloserRadii.mdAll,
-          onTap: onTap,
-          child: Opacity(
-            opacity: enabled ? 1 : 0.5,
-            child: SizedBox(
-              width: 72,
-              height: 64,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: color, size: 24),
-                  const SizedBox(height: CloserSpacing.xxs),
-                  Text(
-                    label,
-                    style: context.text.labelMedium?.copyWith(color: color),
+    return Flexible(
+      child: Tooltip(
+        message: hint ?? label,
+        child: Semantics(
+          button: true,
+          enabled: enabled,
+          label: hint == null ? label : '$label. $hint',
+          excludeSemantics: true,
+          child: InkWell(
+            borderRadius: CloserRadii.mdAll,
+            onTap: onTap,
+            child: Opacity(
+              opacity: enabled ? 1 : 0.5,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 72, minHeight: 64),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: CloserSpacing.xxs,
+                    vertical: CloserSpacing.xs,
                   ),
-                ],
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(icon, color: color, size: 24),
+                      const SizedBox(height: CloserSpacing.xxs),
+                      Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        style: context.text.labelMedium?.copyWith(color: color),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -435,11 +447,12 @@ class _RoundIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(4),
       child: Material(
         color: Colors.black.withValues(alpha: 0.25),
         shape: const CircleBorder(),
         child: IconButton(
+          constraints: const BoxConstraints.tightFor(width: 48, height: 48),
           tooltip: tooltip,
           icon: Icon(icon, color: Colors.white, size: 20),
           onPressed: onPressed,
