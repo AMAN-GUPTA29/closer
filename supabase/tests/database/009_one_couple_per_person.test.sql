@@ -54,11 +54,12 @@ select is(public.preview_invitation(current_setting('t.ann_code')) ->> 'status',
   'already_in_couple', 'the preview warns before joining');
 select is(public.redeem_invitation(current_setting('t.ann_code')) ->> 'status',
   'already_in_couple', 'redeeming is refused');
+reset role;
+-- Counted as admin: RLS rightly hides Ann's members from Ben.
 select is(
   (select count(*)::int from public.group_members
    where group_id = current_setting('t.ann_couple')::uuid),
   1, 'Ann''s group still has only Ann');
-reset role;
 
 -- Cat is in no couple group and can join.
 select pg_temp.claims('cat');
