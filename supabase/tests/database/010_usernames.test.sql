@@ -54,9 +54,10 @@ select is(public.set_username('@Bob_1'), 'bob_1', 'set_username normalises and s
 select ok(public.username_available('bob_1'), 'your own name counts as available');
 select throws_ok($$ update public.profiles set username = 'hacked' where id = auth.uid() $$,
   '42501', null, 'the column cannot be written directly');
+reset role;
+-- Checked as admin: RLS rightly hides Ann's profile from Bob (no shared group).
 select is((select username from public.profiles where id = current_setting('t.ann')::uuid),
   'ann.lee', 'other people''s usernames are untouched');
-reset role;
 
 select ok(not has_function_privilege('anon', 'public.username_available(text)', 'execute'),
   'anonymous callers cannot probe usernames');
