@@ -88,6 +88,24 @@ abstract final class CloserTheme {
           minimumSize: const Size(48, 48),
         ),
       ),
+      // Selected chips: dark rose on blush, never white on pink (contrast).
+      chipTheme: ChipThemeData(
+        backgroundColor: c.surface,
+        selectedColor: c.accentSoft,
+        labelStyle: WidgetStateTextStyle.resolveWith(
+          (states) => (text.labelLarge ?? const TextStyle()).copyWith(
+            color: states.contains(WidgetState.selected)
+                ? c.accentStrong
+                : c.textPrimary,
+          ),
+        ),
+        side: WidgetStateBorderSide.resolveWith(
+          (states) => BorderSide(
+            color: states.contains(WidgetState.selected) ? c.accent : c.line,
+          ),
+        ),
+        iconTheme: IconThemeData(color: c.accentStrong, size: 18),
+      ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: c.surface,
         surfaceTintColor: Colors.transparent,

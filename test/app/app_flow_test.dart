@@ -95,7 +95,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AllJournalScreen), findsOneWidget);
 
-    await tester.tap(find.text('Notifications'));
+    await tester.tap(find.text('Alerts'));
     await tester.pumpAndSettle();
     expect(find.byType(NotificationsScreen), findsOneWidget);
 

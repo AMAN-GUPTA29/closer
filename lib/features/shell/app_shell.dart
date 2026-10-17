@@ -77,7 +77,9 @@ class AppShell extends ConsumerWidget {
           NavigationDestination(
             icon: Icon(CloserIcons.notifications),
             selectedIcon: Icon(CloserIcons.notificationsActive),
-            label: 'Notifications',
+            // Short so it never wraps at large system font sizes.
+            label: 'Alerts',
+            tooltip: 'Notifications',
           ),
           NavigationDestination(
             icon: Icon(CloserIcons.profile),

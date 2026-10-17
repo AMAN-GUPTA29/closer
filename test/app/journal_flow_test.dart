@@ -188,7 +188,7 @@ void main() {
     await pump(tester);
     expect(find.bySemanticsLabel('Notifications, 1 unread'), findsOneWidget);
 
-    await tester.tap(find.text('Notifications'));
+    await tester.tap(find.text('Alerts'));
     await tester.pumpAndSettle();
     expect(find.text('Emma shared a new photo in Us'), findsOneWidget);
     expect(find.text('Today'), findsOneWidget);
