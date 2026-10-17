@@ -120,7 +120,16 @@ void main() {
       });
     }
 
-    for (final name in ['Home', 'Profile', 'Notification preferences']) {
+    for (final name in [
+      'Home',
+      'Profile',
+      'Notification preferences',
+      // Chips here once rendered white-on-white; keep them covered.
+      'New special moment',
+      'Create group',
+      'Invite',
+      'Edit profile',
+    ]) {
       testWidgets('$name: text contrast', (tester) async {
         final handle = tester.ensureSemantics();
         await open(tester, signedInRoutes[name]!());

@@ -6,6 +6,9 @@ import 'package:closer/core/sync/realtime_feed.dart';
 import 'package:closer/features/auth/domain/auth_models.dart';
 import 'package:closer/features/groups/data/in_memory_groups_repository.dart';
 import 'package:closer/features/groups/presentation/group_home_screen.dart';
+import 'package:closer/features/journal/application/content_providers.dart';
+import 'package:closer/features/journal/data/in_memory_content_backend.dart';
+import 'package:closer/features/notifications/domain/notification_models.dart';
 import 'package:closer/features/notifications/push/push_service.dart';
 import 'package:closer/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:closer/features/profile/presentation/purchased_groups_screen.dart';
@@ -140,6 +143,57 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Crew'), findsOneWidget, reason: 'Home refetched');
     expect(widgets.values.containsKey(WidgetKeys.group(other)), isTrue);
+  });
+
+  testWidgets('a new notification shows a banner that opens its group', (
+    tester,
+  ) async {
+    final content = InMemoryContentBackend(groups);
+    await pump(
+      tester,
+      extra: [contentBackendProvider.overrideWithValue(content)],
+    );
+    content.addNotification(
+      AppNotification(
+        id: 77,
+        groupId: us,
+        kind: NotificationKind.photoAdded,
+        createdAt: DateTime.now(),
+        actorName: 'Sam',
+      ),
+    );
+    feed.changes.add(RealtimeChange('notifications', groupId: us, rowId: 77));
+    await tester.pumpAndSettle();
+    expect(find.text('Sam shared a new photo in Us'), findsOneWidget);
+
+    await tester.tap(find.text('Sam shared a new photo in Us'));
+    await tester.pumpAndSettle();
+    expect(find.byType(GroupHomeScreen), findsOneWidget);
+    expect(find.text('Sam shared a new photo in Us'), findsNothing);
+    expect((await content.notifications()).single.isUnread, isFalse);
+  });
+
+  testWidgets('the banner hides itself after a few seconds', (tester) async {
+    final content = InMemoryContentBackend(groups);
+    await pump(
+      tester,
+      extra: [contentBackendProvider.overrideWithValue(content)],
+    );
+    content.addNotification(
+      AppNotification(
+        id: 78,
+        groupId: us,
+        kind: NotificationKind.memberJoined,
+        createdAt: DateTime.now(),
+        actorName: 'Sam',
+      ),
+    );
+    feed.changes.add(RealtimeChange('notifications', groupId: us, rowId: 78));
+    await tester.pumpAndSettle();
+    expect(find.text('Sam joined Us'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+    expect(find.text('Sam joined Us'), findsNothing);
   });
 
   testWidgets('signing out stops push and clears widget data', (tester) async {

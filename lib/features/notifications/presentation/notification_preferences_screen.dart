@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
-import '../../../core/widgets/widgets.dart';
 import '../../groups/presentation/group_widgets.dart';
 import '../../journal/application/content_providers.dart';
 import '../domain/notification_models.dart';
@@ -82,12 +81,27 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                 style: context.text.bodySmall,
               ),
             ),
-            const SizedBox(height: CloserSpacing.lg),
-            const NoticeCard(
-              icon: CloserIcons.phone,
-              message:
-                  'Push notifications on your phone arrive in a later update. '
-                  'For now these settings control the in-app list.',
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: p.reminders,
+              onChanged: (v) => _save(context, ref, p.copyWith(reminders: v)),
+              title: Text('Reminders', style: context.text.bodyLarge),
+              subtitle: Text(
+                'The day before an upcoming special moment',
+                style: context.text.bodySmall,
+              ),
+            ),
+            const Divider(height: CloserSpacing.xl),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: p.push,
+              onChanged: (v) => _save(context, ref, p.copyWith(push: v)),
+              title: Text('Phone notifications', style: context.text.bodyLarge),
+              subtitle: Text(
+                'Pop-ups on this phone. When off, everything still appears in '
+                'Alerts inside Closer.',
+                style: context.text.bodySmall,
+              ),
             ),
           ],
         ),

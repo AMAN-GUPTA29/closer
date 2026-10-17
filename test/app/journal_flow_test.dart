@@ -188,7 +188,7 @@ void main() {
     await pump(tester);
     expect(find.bySemanticsLabel('Notifications, 1 unread'), findsOneWidget);
 
-    await tester.tap(find.text('Notifications'));
+    await tester.tap(find.text('Alerts'));
     await tester.pumpAndSettle();
     expect(find.text('Emma shared a new photo in Us'), findsOneWidget);
     expect(find.text('Today'), findsOneWidget);
@@ -205,16 +205,81 @@ void main() {
     expect((await content.notificationPreferences()).photos, isFalse);
   });
 
+  testWidgets('phone notifications and reminders can be switched off', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Notification preferences'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('arrive in a later update'), findsNothing);
+    await tester.tap(find.text('Phone notifications'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reminders'));
+    await tester.pumpAndSettle();
+    final prefs = await content.notificationPreferences();
+    expect(prefs.push, isFalse);
+    expect(prefs.reminders, isFalse);
+    expect(prefs.toJson()['push'], isFalse, reason: 'saved to the server row');
+  });
+
   testWidgets('edit profile name', (tester) async {
     await pump(tester);
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Edit profile'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField), 'Alexandra');
+    await tester.enterText(find.byType(TextFormField).first, 'Alexandra');
     await tapButton(tester, 'Save');
     expect(find.text('Profile updated'), findsOneWidget);
     expect(find.text('Alexandra'), findsOneWidget);
+  });
+
+  testWidgets('edit username: taken names are refused, free ones saved', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('@alex.kim'), findsOneWidget);
+    await tester.tap(find.text('Edit profile'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).last, 'taken.name');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Taken: try another one'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).last, '@Alex_K');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Available'), findsOneWidget);
+    await tapButton(tester, 'Save');
+    expect(content.username, 'alex_k');
+  });
+
+  testWidgets('people without a username must choose one first', (
+    tester,
+  ) async {
+    content.username = null;
+    await pump(tester);
+    expect(find.text('Pick a username'), findsOneWidget);
+    expect(find.byType(HomeScreen), findsNothing);
+
+    await tester.enterText(find.byType(TextFormField), 'sam');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Taken: try another one'), findsOneWidget);
+    await tapButton(tester, 'Continue');
+    expect(find.byType(HomeScreen), findsNothing);
+
+    await tester.enterText(find.byType(TextFormField), 'alex.k');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    await tapButton(tester, 'Continue');
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(content.username, 'alex.k');
   });
 
   testWidgets('account deletion needs the typed confirmation', (tester) async {

@@ -104,6 +104,13 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
 
   String _id(String prefix) => '$prefix-${++_seq}';
 
+  /// One couple group per person (server: enforce_one_couple_per_person).
+  bool _inCouple(String userId) => _groups.entries.any(
+    (e) =>
+        e.value.type == GroupType.couple &&
+        (_members[e.key]?.any((m) => m.userId == userId) ?? false),
+  );
+
   void _requireMember(String groupId) {
     if (!(_members[groupId]?.any((m) => m.userId == currentUserId) ?? false)) {
       _fail('not_a_member');
@@ -224,6 +231,9 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
     if (relationshipStartDate != null &&
         relationshipStartDate.isAfter(_clock())) {
       _fail('relationship_date_in_future');
+    }
+    if (type == GroupType.couple && _inCouple(currentUserId)) {
+      _fail('already_in_couple');
     }
     final id = _id('group');
     final now = _clock();
@@ -431,6 +441,8 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
       status = InviteStatus.alreadyMember;
     } else if (cap != null && members.length >= cap) {
       status = InviteStatus.full;
+    } else if (g.type == GroupType.couple && _inCouple(currentUserId)) {
+      status = InviteStatus.alreadyInCouple;
     }
     return InvitePreview(
       status: status,
@@ -460,6 +472,10 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
     final cap = _groups[inv.groupId]!.type.maxMembers;
     if (cap != null && members.length >= cap) {
       return const RedeemResult(status: InviteStatus.full);
+    }
+    if (_groups[inv.groupId]!.type == GroupType.couple &&
+        _inCouple(currentUserId)) {
+      return const RedeemResult(status: InviteStatus.alreadyInCouple);
     }
     members.add(_MemberRow(currentUserId, MemberRole.member, _clock()));
     inv.redeemedBy.add(currentUserId);

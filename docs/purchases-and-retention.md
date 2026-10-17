@@ -138,17 +138,25 @@ app says so.
 ### Scheduling the worker (owner action on the hosted project)
 
 ```bash
-npx supabase@2.120.0 functions deploy cleanup-storage
+npx supabase@2.120.0 functions deploy cleanup-storage --no-verify-jwt
 ```
-Then, in the SQL editor (stores the key in Vault, not in a migration):
+Scheduled calls authenticate with **`closer_cron_secret`**, a random value that migration 5
+generates inside the database's Vault. Nobody copies it. The functions check it with
+`check_cron_secret()` and are deployed with `verify_jwt = false`, because the new `sb_secret_`
+API keys are not JWTs. Run the SQL with `npx supabase@2.120.0 db query --linked -f <file>` or
+paste it into the SQL editor.
 ```sql
-select vault.create_secret('<SERVICE_ROLE_KEY>', 'cleanup_service_key');
+create extension if not exists pg_cron;
+create extension if not exists pg_net with schema extensions;
 select cron.schedule('closer-storage-cleanup', '*/10 * * * *', $$
   select net.http_post(
     url := 'https://<PROJECT_REF>.supabase.co/functions/v1/cleanup-storage',
-    headers := jsonb_build_object('Authorization', 'Bearer ' ||
-      (select decrypted_secret from vault.decrypted_secrets where name = 'cleanup_service_key'))
+    headers := jsonb_build_object(
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets
+                                     where name = 'closer_cron_secret'),
+      'Content-Type', 'application/json'),
+    body := '{}'::jsonb
   );
 $$);
 ```
-(Requires the `pg_cron` and `pg_net` extensions enabled in the dashboard.)
+**Live (2026-10-15):** scheduled on project `yvompyeqlhjzhrogodqp`. A test call returned 200.

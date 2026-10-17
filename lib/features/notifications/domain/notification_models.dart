@@ -86,6 +86,8 @@ class NotificationPreferences {
     this.photos = true,
     this.members = true,
     this.milestones = true,
+    this.push = true,
+    this.reminders = true,
   });
 
   factory NotificationPreferences.fromJson(Map<String, dynamic> json) =>
@@ -93,26 +95,40 @@ class NotificationPreferences {
         photos: json['photos'] as bool? ?? true,
         members: json['members'] as bool? ?? true,
         milestones: json['milestones'] as bool? ?? true,
+        push: json['push'] as bool? ?? true,
+        reminders: json['reminders'] as bool? ?? true,
       );
 
   final bool photos;
   final bool members;
   final bool milestones;
 
+  /// Phone (push) notifications at all; the in-app list is unaffected.
+  final bool push;
+
+  /// A reminder the day before a special moment.
+  final bool reminders;
+
   NotificationPreferences copyWith({
     bool? photos,
     bool? members,
     bool? milestones,
+    bool? push,
+    bool? reminders,
   }) => NotificationPreferences(
     photos: photos ?? this.photos,
     members: members ?? this.members,
     milestones: milestones ?? this.milestones,
+    push: push ?? this.push,
+    reminders: reminders ?? this.reminders,
   );
 
   Map<String, dynamic> toJson() => {
     'photos': photos,
     'members': members,
     'milestones': milestones,
+    'push': push,
+    'reminders': reminders,
   };
 
   @override
@@ -120,10 +136,12 @@ class NotificationPreferences {
       other is NotificationPreferences &&
       other.photos == photos &&
       other.members == members &&
-      other.milestones == milestones;
+      other.milestones == milestones &&
+      other.push == push &&
+      other.reminders == reminders;
 
   @override
-  int get hashCode => Object.hash(photos, members, milestones);
+  int get hashCode => Object.hash(photos, members, milestones, push, reminders);
 }
 
 @immutable
@@ -132,15 +150,21 @@ class UserProfile {
     required this.id,
     required this.displayName,
     this.avatarPath,
+    this.username,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
     id: json['id'] as String,
     displayName: json['display_name'] as String,
     avatarPath: json['avatar_path'] as String?,
+    username: json['username'] as String?,
   );
 
   final String id;
   final String displayName;
   final String? avatarPath;
+
+  /// Unique handle, lowercase. Null until chosen (Google sign-in, older
+  /// accounts); the app then asks for one before anything else.
+  final String? username;
 }

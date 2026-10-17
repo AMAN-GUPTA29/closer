@@ -71,6 +71,13 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // One couple group per person (also enforced on the server).
+    final inCouple =
+        ref
+            .watch(myGroupsProvider)
+            .value
+            ?.any((g) => g.type == GroupType.couple) ??
+        false;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create a Group'),
@@ -92,6 +99,9 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                 GroupTypeOption(
                   type: t,
                   selected: _type == t,
+                  disabledReason: t == GroupType.couple && inCouple
+                      ? 'You’re already in a couple group'
+                      : null,
                   onTap: () => setState(() {
                     _type = t;
                     _error = null;
@@ -142,8 +152,8 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
               Text('Cover photo (optional)', style: context.text.titleMedium),
               const SizedBox(height: CloserSpacing.xs),
               Text(
-                'You can add a cover once photo sharing arrives in the next '
-                'update. Until then we use a painted placeholder.',
+                'Your newest photo becomes the cover. The owner can pick a '
+                'different one any time in Group settings.',
                 style: context.text.bodySmall,
               ),
               const SizedBox(height: CloserSpacing.xl),

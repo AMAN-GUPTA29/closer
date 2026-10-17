@@ -214,16 +214,13 @@ class _MomentFormState extends ConsumerState<_MomentForm> {
               runSpacing: CloserSpacing.xs,
               children: [
                 for (final t in templates)
-                  ChoiceChip(
-                    label: Text(t.label),
-                    avatar: Icon(t.theme.icon, size: 18),
+                  _Choice(
+                    label: t.label,
+                    icon: t.theme.icon,
                     selected:
                         _type == t.type &&
                         (t.title.isEmpty || _title.text == t.title),
-                    onSelected: (_) => _applyTemplate(t),
-                    showCheckmark: false,
-                    selectedColor: c.accentSoft,
-                    side: BorderSide(color: c.line),
+                    onSelected: () => _applyTemplate(t),
                   ),
               ],
             ),
@@ -291,14 +288,11 @@ class _MomentFormState extends ConsumerState<_MomentForm> {
                 if (t != MilestoneTheme.heart ||
                     widget.group.type == GroupType.couple ||
                     _theme == MilestoneTheme.heart)
-                  ChoiceChip(
-                    label: Text(t.label),
-                    avatar: Icon(t.icon, size: 18),
+                  _Choice(
+                    label: t.label,
+                    icon: t.icon,
                     selected: _theme == t,
-                    onSelected: (_) => setState(() => _theme = t),
-                    showCheckmark: false,
-                    selectedColor: c.accentSoft,
-                    side: BorderSide(color: c.line),
+                    onSelected: () => setState(() => _theme = t),
                   ),
             ],
           ),
@@ -451,6 +445,38 @@ class PhotoChooserSheet extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Readable choice chip: dark text on white, dark rose on blush when selected.
+class _Choice extends StatelessWidget {
+  const _Choice({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.closerColors;
+    final fg = selected ? c.accentStrong : c.textPrimary;
+    return ChoiceChip(
+      label: Text(label),
+      avatar: Icon(icon, size: 18, color: c.accentStrong),
+      selected: selected,
+      onSelected: (_) => onSelected(),
+      showCheckmark: false,
+      backgroundColor: c.surface,
+      selectedColor: c.accentSoft,
+      side: BorderSide(color: selected ? c.accent : c.line),
+      labelStyle: context.text.labelLarge?.copyWith(color: fg),
     );
   }
 }

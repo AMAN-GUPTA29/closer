@@ -14,6 +14,7 @@ import '../../journal/application/content_providers.dart';
 import '../../notifications/domain/notification_models.dart';
 import '../../photos/application/photo_providers.dart';
 import 'profile_widgets.dart';
+import 'username_field.dart';
 
 class EditProfileScreen extends ConsumerWidget {
   const EditProfileScreen({super.key});
@@ -54,6 +55,9 @@ class _EditForm extends ConsumerStatefulWidget {
 class _EditFormState extends ConsumerState<_EditForm> {
   final _form = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.profile.displayName);
+  late final _username = TextEditingController(
+    text: widget.profile.username ?? '',
+  );
   bool _saving = false;
   bool _photoBusy = false;
   String? _error;
@@ -61,6 +65,7 @@ class _EditFormState extends ConsumerState<_EditForm> {
   @override
   void dispose() {
     _name.dispose();
+    _username.dispose();
     super.dispose();
   }
 
@@ -102,7 +107,12 @@ class _EditFormState extends ConsumerState<_EditForm> {
       _error = null;
     });
     try {
-      await ref.read(profileActionsProvider).rename(_name.text);
+      final actions = ref.read(profileActionsProvider);
+      final username = Validators.normalizeUsername(_username.text);
+      if (username != widget.profile.username) {
+        await actions.setUsername(username);
+      }
+      await actions.rename(_name.text);
       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Profile updated')));
@@ -161,6 +171,13 @@ class _EditFormState extends ConsumerState<_EditForm> {
             validator: Validators.displayName,
             maxLength: Validators.maxDisplayNameLength,
             textCapitalization: TextCapitalization.words,
+          ),
+          const SizedBox(height: CloserSpacing.lg),
+          Text('Username', style: context.text.titleMedium),
+          const SizedBox(height: CloserSpacing.sm),
+          UsernameField(
+            controller: _username,
+            current: widget.profile.username,
           ),
           const SizedBox(height: CloserSpacing.xl),
           FormErrorText(_error),

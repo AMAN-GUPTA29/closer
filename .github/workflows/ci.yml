@@ -183,11 +183,17 @@ jobs:
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_SENDER_ID: ${{ vars.FIREBASE_SENDER_ID }}
+          FIREBASE_ANDROID_APP_ID: ${{ vars.FIREBASE_ANDROID_APP_ID }}
         run: |
+          for k in SUPABASE_URL SUPABASE_ANON_KEY FIREBASE_API_KEY FIREBASE_PROJECT_ID \
+                   FIREBASE_SENDER_ID FIREBASE_ANDROID_APP_ID; do
+            echo "$k=${!k}"
+          done > "$RUNNER_TEMP/client.env"
           flutter pub get
-          flutter build apk --debug \
-            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          flutter build apk --debug --dart-define-from-file="$RUNNER_TEMP/client.env"
 
       - name: Upload APK
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -15,65 +15,77 @@ class GroupTypeOption extends StatelessWidget {
     required this.type,
     required this.selected,
     required this.onTap,
+    this.disabledReason,
   });
 
   final GroupType type;
   final bool selected;
   final VoidCallback onTap;
 
+  /// When set, the option can't be chosen and this explains why.
+  final String? disabledReason;
+
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
     final tint = type.tint(c);
+    final disabled = disabledReason != null;
     return Semantics(
       selected: selected,
       inMutuallyExclusiveGroup: true,
       button: true,
-      label: '${type.label}. ${type.blurb}',
+      enabled: !disabled,
+      label: '${type.label}. ${disabledReason ?? type.blurb}',
       excludeSemantics: true,
-      child: Material(
-        color: selected ? c.accentSoft : c.surface,
-        borderRadius: CloserRadii.lgAll,
-        child: InkWell(
+      child: Opacity(
+        opacity: disabled ? 0.55 : 1,
+        child: Material(
+          color: selected ? c.accentSoft : c.surface,
           borderRadius: CloserRadii.lgAll,
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: CloserMotion.of(context, CloserMotion.fast),
-            padding: const EdgeInsets.all(CloserSpacing.md),
-            decoration: BoxDecoration(
-              borderRadius: CloserRadii.lgAll,
-              border: Border.all(
-                color: selected ? c.accent : c.line,
-                width: selected ? 1.5 : 1,
+          child: InkWell(
+            borderRadius: CloserRadii.lgAll,
+            onTap: disabled ? null : onTap,
+            child: AnimatedContainer(
+              duration: CloserMotion.of(context, CloserMotion.fast),
+              padding: const EdgeInsets.all(CloserSpacing.md),
+              decoration: BoxDecoration(
+                borderRadius: CloserRadii.lgAll,
+                border: Border.all(
+                  color: selected ? c.accent : c.line,
+                  width: selected ? 1.5 : 1,
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: tint.withValues(alpha: 0.14),
-                    borderRadius: CloserRadii.mdAll,
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: tint.withValues(alpha: 0.14),
+                      borderRadius: CloserRadii.mdAll,
+                    ),
+                    child: Icon(type.icon, color: tint, size: 26),
                   ),
-                  child: Icon(type.icon, color: tint, size: 26),
-                ),
-                const SizedBox(width: CloserSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(type.label, style: context.text.titleMedium),
-                      Text(type.blurb, style: context.text.bodySmall),
-                    ],
+                  const SizedBox(width: CloserSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(type.label, style: context.text.titleMedium),
+                        Text(
+                          disabledReason ?? type.blurb,
+                          style: context.text.bodySmall,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                AnimatedOpacity(
-                  opacity: selected ? 1 : 0,
-                  duration: CloserMotion.of(context, CloserMotion.fast),
-                  child: Icon(CloserIcons.success, color: c.accentStrong),
-                ),
-              ],
+                  AnimatedOpacity(
+                    opacity: selected ? 1 : 0,
+                    duration: CloserMotion.of(context, CloserMotion.fast),
+                    child: Icon(CloserIcons.success, color: c.accentStrong),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

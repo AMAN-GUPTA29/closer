@@ -36,6 +36,7 @@ abstract final class Routes {
   static const purchases = '/profile/purchases';
   static const deleteAccount = '/profile/delete';
   static const widgetSetup = '/profile/widgets';
+  static const chooseUsername = '/username';
   static String addMemory(String id, {String? source}) =>
       '/home/groups/$id/add${source == null ? '' : '?source=$source'}';
 
@@ -55,6 +56,7 @@ String? resolveRedirect(
   AuthStatus status,
   String path, {
   bool hasPendingInvite = false,
+  bool needsUsername = false,
 }) {
   if (Routes.isAlwaysAllowed(path)) return null;
   switch (status) {
@@ -65,6 +67,11 @@ String? resolveRedirect(
     case SignedIn(:final user) when !user.emailConfirmed:
       return path == Routes.verifyEmail ? null : Routes.verifyEmail;
     case SignedIn() || PreviewSession():
+      // A username comes first; invites resume right after.
+      if (needsUsername) {
+        return path == Routes.chooseUsername ? null : Routes.chooseUsername;
+      }
+      if (path == Routes.chooseUsername) return Routes.home;
       if (hasPendingInvite && path != Routes.joinGroup) {
         return Routes.joinGroup;
       }

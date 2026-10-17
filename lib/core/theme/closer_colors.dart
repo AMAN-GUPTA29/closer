@@ -12,6 +12,12 @@ abstract final class CloserPalette {
   static const coralLight = Color(0xFFF89A8E);
   static const rose = Color(0xFFE84F6D);
   static const roseDark = Color(0xFFC93A58);
+
+  /// Accent text on light surfaces: >= 4.5:1 on ivory and blush (WCAG AA).
+  static const roseDeep = Color(0xFFB8304F);
+
+  /// Start of the button gradient: white text stays >= 3:1 across it.
+  static const coralDeep = Color(0xFFEC5F78);
   static const plum = Color(0xFF2B1A2E);
   static const plumSoft = Color(0xFF5B4A5C);
   static const mauve = Color(0xFF8E7D8C);
@@ -89,7 +95,7 @@ class CloserColors extends ThemeExtension<CloserColors> {
     textSecondary: CloserPalette.plumSoft,
     textTertiary: CloserPalette.mauve,
     accent: CloserPalette.coral,
-    accentStrong: CloserPalette.rose,
+    accentStrong: CloserPalette.roseDeep,
     accentSoft: CloserPalette.blush,
     onAccent: CloserPalette.white,
     line: CloserPalette.mist,
@@ -102,7 +108,7 @@ class CloserColors extends ThemeExtension<CloserColors> {
     accentGradient: LinearGradient(
       begin: Alignment.centerLeft,
       end: Alignment.centerRight,
-      colors: [CloserPalette.coralLight, CloserPalette.rose],
+      colors: [CloserPalette.coralDeep, CloserPalette.roseDark],
     ),
     heroScrim: LinearGradient(
       begin: Alignment.topCenter,

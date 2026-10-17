@@ -47,14 +47,20 @@ class MainActivity : FlutterActivity() {
             }
     }
 
-    /** Channel used by push notifications (matches dispatch-push). */
+    /**
+     * Channel used by push notifications (matches dispatch-push). High
+     * importance so new moments pop up; people can lower it in system settings.
+     * A channel's importance can't change after creation, hence the new id.
+     */
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.deleteNotificationChannel("closer_activity") // pre-launch channel
         val channel = NotificationChannel(
-            "closer_activity",
+            "closer_moments",
             getString(R.string.notification_channel_name),
-            NotificationManager.IMPORTANCE_DEFAULT,
+            NotificationManager.IMPORTANCE_HIGH,
         ).apply { description = getString(R.string.notification_channel_description) }
-        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        manager.createNotificationChannel(channel)
     }
 }

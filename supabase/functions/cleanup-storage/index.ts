@@ -1,10 +1,11 @@
 // Edge Function: works through the storage cleanup queue.
 //
 // Invoked by a scheduled job (pg_cron + pg_net, see docs/purchases-and-retention.md)
-// and optionally by signed-in clients after an upload removed photos. Callers
-// need a valid Supabase JWT (verify_jwt is on); the function itself uses the
-// service role, which never leaves the server.
+// with the Vault cron secret, and optionally by signed-in clients after an upload
+// removed photos. Deployed with --no-verify-jwt; callers are checked below. The
+// function itself uses the service role, which never leaves the server.
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { callerAllowed } from "../_shared/caller.ts";
 import { runCleanup } from "./logic.ts";
 
 const url = Deno.env.get("SUPABASE_URL");
@@ -18,6 +19,15 @@ Deno.serve(async (req) => {
     return new Response("Not configured", { status: 500 });
   }
   const db = createClient(url, serviceKey, { auth: { persistSession: false } });
+
+  const caller = await callerAllowed(req, {
+    isCronSecret: async (token) => {
+      const { data } = await db.rpc("check_cron_secret", { p_secret: token });
+      return data === true;
+    },
+    isUser: async (token) => !(await db.auth.getUser(token)).error,
+  });
+  if (!caller) return new Response("Unauthorized", { status: 401 });
 
   try {
     const result = await runCleanup({
