@@ -114,7 +114,11 @@ export class FcmClient {
             data: message.data,
             android: {
               priority: "high",
-              notification: { channel_id: "closer_activity" },
+              notification: {
+                channel_id: "closer_moments",
+                icon: "ic_stat_closer",
+                color: "#E84F6D",
+              },
             },
             apns: {
               payload: { aps: { sound: "default", "content-available": 1 } },
