@@ -132,15 +132,21 @@ class UserProfile {
     required this.id,
     required this.displayName,
     this.avatarPath,
+    this.username,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
     id: json['id'] as String,
     displayName: json['display_name'] as String,
     avatarPath: json['avatar_path'] as String?,
+    username: json['username'] as String?,
   );
 
   final String id;
   final String displayName;
   final String? avatarPath;
+
+  /// Unique handle, lowercase. Null until chosen (Google sign-in, older
+  /// accounts); the app then asks for one before anything else.
+  final String? username;
 }

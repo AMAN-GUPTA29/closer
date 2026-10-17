@@ -87,13 +87,18 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Stream<AuthEvent> get events => _events.stream;
 
+  /// Username passed to the last sign-up.
+  String? lastUsername;
+
   @override
   Future<SignUpResult> signUp({
     required String email,
     required String password,
     required String displayName,
+    String? username,
   }) async {
     calls.add('signUp:$email');
+    lastUsername = username;
     await _maybeFail();
     if (!signUpNeedsConfirmation) {
       emit(

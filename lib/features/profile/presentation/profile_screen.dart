@@ -65,6 +65,12 @@ class ProfileScreen extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: context.text.headlineSmall,
           ),
+          if (profile?.username != null)
+            Text(
+              '@${profile!.username}',
+              textAlign: TextAlign.center,
+              style: context.text.titleSmall?.copyWith(color: c.accentStrong),
+            ),
           Text(
             user?.email ?? '',
             textAlign: TextAlign.center,

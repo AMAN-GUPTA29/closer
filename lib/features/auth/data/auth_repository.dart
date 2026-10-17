@@ -16,6 +16,7 @@ abstract interface class AuthRepository {
     required String email,
     required String password,
     required String displayName,
+    String? username,
   });
   Future<void> signIn({required String email, required String password});
   Future<void> signInWithProvider(SocialProvider provider);
@@ -49,6 +50,7 @@ class UnconfiguredAuthRepository implements AuthRepository {
     required String email,
     required String password,
     required String displayName,
+    String? username,
   }) => Future.error(_failure);
   @override
   Future<void> signIn({required String email, required String password}) =>
@@ -93,11 +95,14 @@ class SupabaseAuthRepository implements AuthRepository {
     required String email,
     required String password,
     required String displayName,
+    String? username,
   }) => _guard(() async {
     final res = await _auth.signUp(
       email: email.trim(),
       password: password,
-      data: {'display_name': displayName.trim()},
+      // The server stores the username if it's still free; otherwise the
+      // app asks for another one after sign-in.
+      data: {'display_name': displayName.trim(), 'username': ?username},
       emailRedirectTo: _config.authRedirectUrl,
     );
     return SignUpResult(needsEmailConfirmation: res.session == null);

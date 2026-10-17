@@ -38,6 +38,31 @@ abstract final class Validators {
     };
   }
 
+  static final _usernameShape = RegExp(r'^[a-z0-9][a-z0-9._]{1,18}[a-z0-9_]$');
+
+  /// "@Alex.Kim " -> "alex.kim" (same rule as public.normalize_username).
+  static String normalizeUsername(String value) {
+    var v = value.trim();
+    if (v.startsWith('@')) v = v.substring(1);
+    return v.trim().toLowerCase();
+  }
+
+  /// 3–20 of a–z, 0–9, "." and "_"; starts with a letter or digit, doesn't
+  /// end with "." and has no "..". Uniqueness is checked by the server.
+  static String? username(String? value) {
+    final v = normalizeUsername(value ?? '');
+    if (v.isEmpty) return 'Choose a username.';
+    if (v.length < 3) return 'Use at least 3 characters.';
+    if (v.length > 20) return 'Keep it to 20 characters or fewer.';
+    if (!RegExp(r'^[a-z0-9._]+$').hasMatch(v)) {
+      return 'Use letters, numbers, dots and underscores only.';
+    }
+    if (!_usernameShape.hasMatch(v) || v.contains('..')) {
+      return 'Start with a letter or number; no dot at the end or two in a row.';
+    }
+    return null;
+  }
+
   static String? displayName(String? value) {
     final v = value?.trim() ?? '';
     if (v.isEmpty) return 'Tell us what to call you.';

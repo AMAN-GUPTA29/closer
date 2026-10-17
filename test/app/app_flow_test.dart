@@ -28,6 +28,8 @@ void main() {
     expect(find.byType(SignUpScreen), findsOneWidget);
     expect(find.text('Welcome to Closer'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('Sign In'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Sign In'));
     await tester.pumpAndSettle();
     expect(find.byType(SignInScreen), findsOneWidget);
@@ -114,6 +116,12 @@ void main() {
     expect(find.byType(ProfileScreen), findsOneWidget);
     expect(find.text('alex@example.com'), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      find.text('Sign out'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
     expect(find.text('Sign out?'), findsOneWidget);
@@ -131,12 +139,16 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).at(0), 'Sam Lee');
-    await tester.enterText(find.byType(TextFormField).at(1), 'sam@example.com');
-    await tester.enterText(find.byType(TextFormField).at(2), 'goodpass1');
+    await tester.enterText(find.byType(TextFormField).at(1), '@Sam.Lee');
+    await tester.enterText(find.byType(TextFormField).at(2), 'sam@example.com');
+    await tester.enterText(find.byType(TextFormField).at(3), 'goodpass1');
+    await tester.ensureVisible(find.widgetWithText(InkWell, 'Sign Up'));
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(InkWell, 'Sign Up'));
     await tester.pumpAndSettle();
 
     expect(find.byType(VerifyEmailScreen), findsOneWidget);
+    expect(repo.lastUsername, 'sam.lee', reason: 'sent normalised');
     expect(find.textContaining('sam@example.com'), findsOneWidget);
 
     await tester.tap(find.text('Resend confirmation email'));

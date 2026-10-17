@@ -211,10 +211,56 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Edit profile'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField), 'Alexandra');
+    await tester.enterText(find.byType(TextFormField).first, 'Alexandra');
     await tapButton(tester, 'Save');
     expect(find.text('Profile updated'), findsOneWidget);
     expect(find.text('Alexandra'), findsOneWidget);
+  });
+
+  testWidgets('edit username: taken names are refused, free ones saved', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('@alex.kim'), findsOneWidget);
+    await tester.tap(find.text('Edit profile'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).last, 'taken.name');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Taken: try another one'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).last, '@Alex_K');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Available'), findsOneWidget);
+    await tapButton(tester, 'Save');
+    expect(content.username, 'alex_k');
+  });
+
+  testWidgets('people without a username must choose one first', (
+    tester,
+  ) async {
+    content.username = null;
+    await pump(tester);
+    expect(find.text('Pick a username'), findsOneWidget);
+    expect(find.byType(HomeScreen), findsNothing);
+
+    await tester.enterText(find.byType(TextFormField), 'sam');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Taken: try another one'), findsOneWidget);
+    await tapButton(tester, 'Continue');
+    expect(find.byType(HomeScreen), findsNothing);
+
+    await tester.enterText(find.byType(TextFormField), 'alex.k');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    await tapButton(tester, 'Continue');
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(content.username, 'alex.k');
   });
 
   testWidgets('account deletion needs the typed confirmation', (tester) async {

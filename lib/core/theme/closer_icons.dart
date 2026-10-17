@@ -46,6 +46,7 @@ abstract final class CloserIcons {
   static const IconData email = LucideIcons.mail;
   static const IconData lock = LucideIcons.lock;
   static const IconData user = LucideIcons.user;
+  static const IconData atSign = LucideIcons.atSign;
   static const IconData eye = LucideIcons.eye;
   static const IconData eyeOff = LucideIcons.eyeOff;
 
