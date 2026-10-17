@@ -92,12 +92,12 @@ class _UsernameFieldState extends ConsumerState<UsernameField> {
   Widget build(BuildContext context) {
     final c = context.closerColors;
     final (text, color) = switch (_check) {
-      UsernameCheck.checking => ('Checking…', c.textTertiary),
+      UsernameCheck.checking => ('Checking…', c.textSecondary),
       UsernameCheck.available => ('Available', c.success),
       UsernameCheck.taken => ('Taken: try another one', c.danger),
       UsernameCheck.idle => (
         'Letters, numbers, dots and underscores. 3–20 characters.',
-        c.textTertiary,
+        c.textSecondary,
       ),
     };
     return Column(

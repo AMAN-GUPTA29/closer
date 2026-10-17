@@ -92,13 +92,8 @@ abstract final class CloserTheme {
       chipTheme: ChipThemeData(
         backgroundColor: c.surface,
         selectedColor: c.accentSoft,
-        labelStyle: WidgetStateTextStyle.resolveWith(
-          (states) => (text.labelLarge ?? const TextStyle()).copyWith(
-            color: states.contains(WidgetState.selected)
-                ? c.accentStrong
-                : c.textPrimary,
-          ),
-        ),
+        labelStyle: text.labelLarge?.copyWith(color: c.textPrimary),
+        secondaryLabelStyle: text.labelLarge?.copyWith(color: c.accentStrong),
         side: WidgetStateBorderSide.resolveWith(
           (states) => BorderSide(
             color: states.contains(WidgetState.selected) ? c.accent : c.line,

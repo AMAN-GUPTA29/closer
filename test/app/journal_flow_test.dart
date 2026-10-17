@@ -205,6 +205,25 @@ void main() {
     expect((await content.notificationPreferences()).photos, isFalse);
   });
 
+  testWidgets('phone notifications and reminders can be switched off', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Notification preferences'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('arrive in a later update'), findsNothing);
+    await tester.tap(find.text('Phone notifications'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reminders'));
+    await tester.pumpAndSettle();
+    final prefs = await content.notificationPreferences();
+    expect(prefs.push, isFalse);
+    expect(prefs.reminders, isFalse);
+    expect(prefs.toJson()['push'], isFalse, reason: 'saved to the server row');
+  });
+
   testWidgets('edit profile name', (tester) async {
     await pump(tester);
     await tester.tap(find.text('Profile'));
