@@ -146,7 +146,18 @@ class HomeWidgetPlatform implements WidgetPlatform {
   @override
   Future<void> refresh({String? groupId}) async {
     if (Platform.isAndroid) {
-      await _channel.invokeMethod<void>('refresh', {'groupId': groupId});
+      try {
+        await _channel.invokeMethod<void>('refresh', {'groupId': groupId});
+      } on MissingPluginException {
+        // Background isolate (push while the app is closed): MainActivity's
+        // channel doesn't exist there, so ask the provider to redraw all
+        // Closer widgets through home_widget's broadcast instead.
+        await _init();
+        await HomeWidget.updateWidget(
+          qualifiedAndroidName:
+              'com.closerapp.closer.widget.CloserWidgetProvider',
+        );
+      }
     } else if (Platform.isIOS) {
       // WidgetKit reloads by kind; instances re-read their own group.
       await HomeWidget.updateWidget(iOSName: 'CloserWidget');
