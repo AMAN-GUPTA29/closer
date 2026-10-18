@@ -46,7 +46,7 @@ class GroupCard extends StatelessWidget {
       label:
           '$name, ${type.label} group, $members'
           '${activity != null ? ', $activity' : ''}'
-          '${isPremium ? ', Closer Memories' : ''}',
+          '${isPremium ? ', Keeploom Memories' : ''}',
       excludeSemantics: true,
       // The shadow sits behind the opaque Material; a shadow on a transparent
       // box inside it would tint the whole card grey.

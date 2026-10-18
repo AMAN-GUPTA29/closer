@@ -1,86 +1,117 @@
-"""Generates the Closer app icon and splash images from the brand palette.
+"""Generates every Keeploom brand asset from tool/keeploom_logo.py.
 
-Run:  python tool/make_icons.py   (needs Pillow)
-Then: dart run flutter_launcher_icons && dart run flutter_native_splash:create
+Run (needs Pillow):
+    python tool/make_icons.py
+    dart run flutter_launcher_icons
+    dart run flutter_native_splash:create
 
-Mark = white heart on a coral-light -> rose diagonal gradient, the same as the
-in-app CloserLogo widget (lib/core/widgets/closer_logo.dart).
+Outputs
+  assets/brand/keeploom_mark.svg      vector mark (transparent)
+  assets/brand/keeploom_mark.png      1024 px mark (transparent)
+  assets/icon/icon.png                full-bleed app icon (iOS, legacy Android)
+  assets/icon/foreground.png          adaptive icon foreground (mark in safe zone)
+  assets/icon/monochrome.png          Android 13 themed-icon silhouette
+  assets/icon/splash.png              splash mark
+  assets/icon/splash_android12.png    Android 12+ splash icon
+  android/.../drawable/ic_stat_keeploom.xml   white status-bar silhouette
 """
-import math
 import pathlib
+import sys
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
-OUT = pathlib.Path(__file__).resolve().parent.parent / "assets" / "icon"
-CORAL_LIGHT = (0xF8, 0x9A, 0x8E)
-ROSE = (0xE8, 0x4F, 0x6D)
-SIZE = 1024
-SS = 4  # supersampling for smooth edges
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import keeploom_logo as K  # noqa: E402
 
-
-def gradient(size):
-    img = Image.new("RGB", (size, size))
-    px = img.load()
-    for y in range(size):
-        for x in range(size):
-            t = (x + y) / (2 * (size - 1))
-            px[x, y] = tuple(round(a + (b - a) * t) for a, b in zip(CORAL_LIGHT, ROSE))
-    return img
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+ICON = ROOT / "assets" / "icon"
+BRAND = ROOT / "assets" / "brand"
+OVERLAP = (0x5A, 0x33, 0x48)  # plum over coral
 
 
-def heart_mask(size, scale):
-    """Classic heart curve, centred, `scale` = width as a fraction of size."""
-    big = size * SS
-    pts = []
-    for i in range(720):
-        t = 2 * math.pi * i / 720
-        x = 16 * math.sin(t) ** 3
-        y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
-        pts.append((x, -y))
-    w = big * scale / 32.0
-    cy_shift = big * 0.03  # optical centring (the heart's mass sits high)
-    pts = [(big / 2 + x * w, big / 2 + y * w + cy_shift) for x, y in pts]
-    m = Image.new("L", (big, big), 0)
-    ImageDraw.Draw(m).polygon(pts, fill=255)
-    # Round the tip and notch like Material's favorite_rounded: blur, then
-    # re-threshold (a morphological "open/close"), then a light anti-alias.
-    m = m.filter(ImageFilter.GaussianBlur(big * 0.012))
-    m = m.point(lambda v: 255 if v >= 128 else 0)
-    m = m.filter(ImageFilter.GaussianBlur(SS * 0.6))
-    return m.resize((size, size), Image.LANCZOS)
+def mask(points, radius, size):
+    m = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(m).polygon(
+        [(x * size / 100, y * size / 100) for x, y in K.rounded_polygon(points, radius)],
+        fill=255,
+    )
+    return m
+
+
+def mark(size, scale=1.0):
+    """The coloured mark on a transparent canvas; `scale` shrinks it about
+    the centre (e.g. to sit inside an adaptive-icon safe zone)."""
+    ss = size * 4
+    inner = int(ss * scale)
+    coral = mask(K.CORAL_QUAD, K.RADIUS, inner)
+    plum = mask(K.PLUM_QUAD, K.RADIUS, inner)
+    seed = mask(K.SEED, K.SEED_RADIUS, inner)
+    overlap = ImageChops.multiply(coral, plum)
+    img = Image.new("RGBA", (inner, inner), (0, 0, 0, 0))
+    for m, color in ((coral, K.CORAL), (plum, K.PLUM), (overlap, OVERLAP), (seed, K.IVORY)):
+        img.paste(color + (255,), (0, 0), m)
+    canvas = Image.new("RGBA", (ss, ss), (0, 0, 0, 0))
+    off = (ss - inner) // 2
+    canvas.paste(img, (off, off), img)
+    return canvas.resize((size, size), Image.LANCZOS)
+
+
+def silhouette(size, scale):
+    """Single-colour mark: union of both shapes, overlap cut out, seed kept."""
+    ss = size * 4
+    inner = int(ss * scale)
+    coral = mask(K.CORAL_QUAD, K.RADIUS, inner)
+    plum = mask(K.PLUM_QUAD, K.RADIUS, inner)
+    seed = mask(K.SEED, K.SEED_RADIUS, inner)
+    union = ImageChops.lighter(coral, plum)
+    cut = ImageChops.subtract(union, ImageChops.multiply(coral, plum))
+    alpha = ImageChops.lighter(cut, seed)
+    canvas = Image.new("L", (ss, ss), 0)
+    off = (ss - inner) // 2
+    canvas.paste(alpha, (off, off))
+    img = Image.new("RGBA", (ss, ss), (255, 255, 255, 0))
+    img.putalpha(canvas)
+    return img.resize((size, size), Image.LANCZOS)
 
 
 def main():
-    OUT.mkdir(parents=True, exist_ok=True)
-    bg = gradient(SIZE)
+    ICON.mkdir(parents=True, exist_ok=True)
+    BRAND.mkdir(parents=True, exist_ok=True)
 
-    # Full-bleed icon (iOS masks it; legacy Android).
-    icon = bg.copy()
-    icon.paste((255, 255, 255), (0, 0), heart_mask(SIZE, 0.52))
-    icon.save(OUT / "icon.png")
+    (BRAND / "keeploom_mark.svg").write_text(K.svg(), encoding="utf-8")
+    mark(1024).save(BRAND / "keeploom_mark.png")
 
-    # Adaptive icon layers: heart inside the 66 % safe zone.
-    fg = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
-    fg.paste((255, 255, 255, 255), (0, 0), heart_mask(SIZE, 0.36))
-    fg.save(OUT / "foreground.png")
-    bg.save(OUT / "background.png")
+    full = Image.new("RGBA", (1024, 1024), K.IVORY + (255,))
+    m = mark(1024, 0.88)
+    full.alpha_composite(m)
+    full.convert("RGB").save(ICON / "icon.png")
 
-    # Splash mark: rounded gradient tile with the heart (like CloserLogo).
-    tile = 512
-    mark = Image.new("RGBA", (tile, tile), (0, 0, 0, 0))
-    rounded = Image.new("L", (tile * SS, tile * SS), 0)
-    ImageDraw.Draw(rounded).rounded_rectangle(
-        (0, 0, tile * SS - 1, tile * SS - 1), radius=int(tile * SS * 0.28), fill=255)
-    rounded = rounded.resize((tile, tile), Image.LANCZOS)
-    mark.paste(gradient(tile), (0, 0), rounded)
-    mark.paste((255, 255, 255, 255), (0, 0), heart_mask(tile, 0.56))
-    mark.save(OUT / "splash.png")
+    mark(1024, 0.56).save(ICON / "foreground.png")
+    silhouette(1024, 0.56).save(ICON / "monochrome.png")
 
-    # Android 12+ splash: icon on a circle-safe canvas (centre 2/3 is shown).
+    mark(768, 1.0).save(ICON / "splash.png")
     a12 = Image.new("RGBA", (1152, 1152), (0, 0, 0, 0))
-    a12.paste(mark.resize((640, 640), Image.LANCZOS), (256, 256))
-    a12.save(OUT / "splash_android12.png")
-    print("icons written to", OUT)
+    a12.alpha_composite(mark(1152, 0.52))
+    a12.save(ICON / "splash_android12.png")
+
+    drawable = ROOT / "android/app/src/main/res/drawable/ic_stat_keeploom.xml"
+    drawable.write_text(
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        "<!-- Status-bar icon: white Keeploom silhouette, generated by tool/make_icons.py.\n"
+        "     Even-odd fill: the overlap is a window, the seed sits inside it. -->\n"
+        '<vector xmlns:android="http://schemas.android.com/apk/res/android"\n'
+        '    android:width="24dp"\n'
+        '    android:height="24dp"\n'
+        '    android:viewportWidth="100"\n'
+        '    android:viewportHeight="100">\n'
+        "    <path\n"
+        '        android:fillColor="#FFFFFFFF"\n'
+        '        android:fillType="evenOdd"\n'
+        f'        android:pathData="{K.android_vector_paths()}" />\n'
+        "</vector>\n",
+        encoding="utf-8",
+    )
+    print("brand assets written")
 
 
 if __name__ == "__main__":

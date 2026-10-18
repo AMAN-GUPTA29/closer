@@ -40,9 +40,9 @@ class LegalScreen extends ConsumerWidget {
     'Only share photos you have the right to share.',
     'Basic groups keep the latest 10 photos. Older photos are removed '
         'permanently when new ones are added.',
-    'Closer Memories is a one-time upgrade for a single group that keeps '
+    'Keeploom Memories is a one-time upgrade for a single group that keeps '
         'every photo for all of its members.',
-    'Do not use Closer to harass others or share illegal content.',
+    'Do not use Keeploom to harass others or share illegal content.',
   ];
 
   @override
@@ -102,7 +102,7 @@ class LegalScreen extends ConsumerWidget {
               const NoticeCard(
                 message:
                     'This is a draft summary. The full document will be '
-                    'published before Closer is released.',
+                    'published before Keeploom is released.',
               ),
           ],
         ),

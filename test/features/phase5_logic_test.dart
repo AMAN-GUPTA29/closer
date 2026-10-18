@@ -45,7 +45,7 @@ class FakeGateway implements StoreGateway {
   @override
   Future<StoreProduct?> product(String productId) async => StoreProduct(
     id: productId,
-    title: 'Closer Memories',
+    title: 'Keeploom Memories',
     priceLabel: r'$9.99',
   );
   @override

@@ -42,7 +42,7 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
   /// Test hook: fail the next [putObject] call (simulates a dropped upload).
   bool failNextPut = false;
 
-  /// Test/preview helper: marks a group as Closer Memories.
+  /// Test/preview helper: marks a group as Keeploom Memories.
   void grantPremium(String groupId) => _premium.add(groupId);
 
   /// Object paths currently stored (for tests).

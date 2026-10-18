@@ -34,7 +34,7 @@ class UnconfiguredAuthRepository implements AuthRepository {
   const UnconfiguredAuthRepository();
 
   static const _failure = NotConfiguredFailure(
-    'Sign-in is not available in this build because the Closer backend '
+    'Sign-in is not available in this build because the Keeploom backend '
     'is not configured yet.',
   );
 

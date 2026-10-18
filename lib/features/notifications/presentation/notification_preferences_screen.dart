@@ -46,7 +46,7 @@ class NotificationPreferencesScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(CloserSpacing.gutter),
           children: [
             Text(
-              'Choose what Closer tells you about. These apply to all of your '
+              'Choose what Keeploom tells you about. These apply to all of your '
               'groups.',
               style: context.text.bodyMedium,
             ),
@@ -99,7 +99,7 @@ class NotificationPreferencesScreen extends ConsumerWidget {
               title: Text('Phone notifications', style: context.text.bodyLarge),
               subtitle: Text(
                 'Pop-ups on this phone. When off, everything still appears in '
-                'Alerts inside Closer.',
+                'Alerts inside Keeploom.',
                 style: context.text.bodySmall,
               ),
             ),

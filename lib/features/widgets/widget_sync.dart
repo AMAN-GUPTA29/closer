@@ -85,7 +85,7 @@ abstract interface class WidgetPlatform {
   Future<void> deleteImage(String groupId);
 
   /// Asks the OS to redraw widgets: only those showing [groupId] where the
-  /// platform allows it (Android), all Closer widgets otherwise (iOS).
+  /// platform allows it (Android), all Keeploom widgets otherwise (iOS).
   Future<void> refresh({String? groupId});
 }
 
@@ -151,7 +151,7 @@ class HomeWidgetPlatform implements WidgetPlatform {
       } on MissingPluginException {
         // Background isolate (push while the app is closed): MainActivity's
         // channel doesn't exist there, so ask the provider to redraw all
-        // Closer widgets through home_widget's broadcast instead.
+        // Keeploom widgets through home_widget's broadcast instead.
         await _init();
         await HomeWidget.updateWidget(
           qualifiedAndroidName:
@@ -164,7 +164,7 @@ class HomeWidgetPlatform implements WidgetPlatform {
     }
   }
 
-  /// Android 8+: asks the launcher to pin a new Closer widget.
+  /// Android 8+: asks the launcher to pin a new Keeploom widget.
   Future<bool> requestPin() async {
     if (!Platform.isAndroid) return false;
     return await _channel.invokeMethod<bool>('requestPin') ?? false;

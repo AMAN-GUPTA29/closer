@@ -13,6 +13,7 @@ import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/auth_models.dart';
 import '../../journal/application/content_providers.dart';
 import 'profile_widgets.dart';
+import 'theme_settings_tile.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -111,6 +112,8 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: CloserSpacing.md),
+          const _Section(children: [ThemeSettingsTile()]),
+          const SizedBox(height: CloserSpacing.md),
           _Section(
             children: [
               _Tile(
@@ -172,14 +175,18 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         borderRadius: CloserRadii.lgAll,
-        boxShadow: CloserElevation.low,
+        boxShadow: dark ? CloserElevation.none : CloserElevation.low,
       ),
       child: Material(
         color: c.surface,
-        borderRadius: CloserRadii.lgAll,
+        shape: RoundedRectangleBorder(
+          borderRadius: CloserRadii.lgAll,
+          side: dark ? BorderSide(color: c.line) : BorderSide.none,
+        ),
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [

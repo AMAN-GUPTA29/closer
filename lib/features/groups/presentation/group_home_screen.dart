@@ -230,11 +230,7 @@ class _Hero extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Icon(
-                        CloserIcons.heart,
-                        color: CloserPalette.coral,
-                        size: 30,
-                      ),
+                      Icon(CloserIcons.heart, color: c.accent, size: 30),
                       const SizedBox(width: CloserSpacing.xs),
                       Text(
                         '$days',

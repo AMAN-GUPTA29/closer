@@ -222,7 +222,7 @@ abstract final class InviteCodes {
     required String groupName,
     required CreatedInvitation invitation,
   }) {
-    return 'Join "$groupName" on Closer.\n'
+    return 'Join "$groupName" on Keeploom.\n'
         'Invite code: ${invitation.displayCode}\n'
         'Or open: ${invitation.link}';
   }

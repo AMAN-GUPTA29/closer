@@ -95,7 +95,7 @@ class _JoinGroupScreenState extends ConsumerState<JoinGroupScreen> {
     if (secret == null) {
       setState(
         () => _error =
-            'There’s no Closer invite link or code on your clipboard. Copy '
+            'There’s no Keeploom invite link or code on your clipboard. Copy '
             'the invite message first.',
       );
       return;

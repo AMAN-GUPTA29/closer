@@ -5,8 +5,9 @@ abstract final class CloserFonts {
   /// UI font: Plus Jakarta Sans (variable weight).
   static const sans = 'PlusJakartaSans';
 
-  /// Display serif for milestone numbers and moments: Fraunces (variable).
-  static const display = 'Fraunces';
+  /// Display sizes use the same family at heavier weights (Keeploom boards
+  /// use a single geometric sans).
+  static const display = sans;
 }
 
 /// Builds a style for a bundled variable font. Both [FontWeight] and the
@@ -28,20 +29,20 @@ TextStyle closerStyle({
   );
 }
 
-/// Closer type scale. Minimum body size is 14 for legibility.
+/// Keeploom type scale. Minimum body size is 14 for legibility.
 abstract final class CloserTypography {
   static TextTheme textTheme(Color primary, Color secondary) {
     return TextTheme(
       displayLarge: closerStyle(
         size: 56,
-        weight: FontWeight.w600,
+        weight: FontWeight.w800,
         height: 1.0,
         family: CloserFonts.display,
         letterSpacing: -1,
       ).copyWith(color: primary),
       displayMedium: closerStyle(
         size: 40,
-        weight: FontWeight.w600,
+        weight: FontWeight.w800,
         height: 1.05,
         family: CloserFonts.display,
         letterSpacing: -0.5,

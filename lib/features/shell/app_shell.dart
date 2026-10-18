@@ -5,36 +5,27 @@ import 'package:go_router/go_router.dart';
 import '../../core/network/connectivity.dart';
 import '../../core/routing/routes.dart';
 import '../groups/application/group_providers.dart';
+import '../journal/application/content_providers.dart';
+import 'keeploom_bottom_nav.dart';
 
 import '../../core/theme/closer_icons.dart';
 import '../../core/theme/closer_theme.dart';
 import '../../core/widgets/widgets.dart';
 
-/// Bottom-navigation shell: Home, Journal, Add, Notifications, Profile.
-/// "Add" is an action (share a memory), not a tab.
+/// Shell with Keeploom's floating dock: Home, Journal, [Add], Alerts,
+/// Profile. "Add" is an action (share a memory), not a tab.
 class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.shell});
 
   final StatefulNavigationShell shell;
 
-  static const _addSlot = 2;
-
-  int get _selected => shell.currentIndex >= _addSlot
-      ? shell.currentIndex + 1
-      : shell.currentIndex;
-
-  void _onSelect(BuildContext context, int slot) {
-    if (slot == _addSlot) {
-      showAddMemorySheet(context);
-      return;
-    }
-    final branch = slot > _addSlot ? slot - 1 : slot;
-    shell.goBranch(branch, initialLocation: branch == shell.currentIndex);
-  }
+  void _onSelect(int branch) =>
+      shell.goBranch(branch, initialLocation: branch == shell.currentIndex);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final online = ref.watch(isOnlineProvider).value ?? true;
+    final unread = ref.watch(unreadCountProvider) > 0;
     return Scaffold(
       body: Column(
         children: [
@@ -53,39 +44,21 @@ class AppShell extends ConsumerWidget {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selected,
-        onDestinationSelected: (i) => _onSelect(context, i),
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(CloserIcons.home),
-            selectedIcon: Icon(CloserIcons.homeActive),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(CloserIcons.journal),
-            selectedIcon: Icon(CloserIcons.journalActive),
-            label: 'Journal',
-          ),
-          NavigationDestination(
-            icon: Icon(CloserIcons.add),
-            selectedIcon: Icon(CloserIcons.addActive),
-            label: 'Add',
-            tooltip: 'Share a memory',
-          ),
-          NavigationDestination(
-            icon: Icon(CloserIcons.notifications),
-            selectedIcon: Icon(CloserIcons.notificationsActive),
+      bottomNavigationBar: KeeploomBottomNav(
+        selectedIndex: shell.currentIndex,
+        onSelect: _onSelect,
+        onAdd: () => showAddMemorySheet(context),
+        items: [
+          const DockItem(icon: CloserIcons.home, label: 'Home'),
+          const DockItem(icon: CloserIcons.journal, label: 'Journal'),
+          DockItem(
+            icon: CloserIcons.notifications,
             // Short so it never wraps at large system font sizes.
             label: 'Alerts',
             tooltip: 'Notifications',
+            badge: unread,
           ),
-          NavigationDestination(
-            icon: Icon(CloserIcons.profile),
-            selectedIcon: Icon(CloserIcons.profileActive),
-            label: 'Profile',
-          ),
+          const DockItem(icon: CloserIcons.profile, label: 'Profile'),
         ],
       ),
     );

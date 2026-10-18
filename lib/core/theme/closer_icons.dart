@@ -2,7 +2,7 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// The single icon vocabulary for Closer.
+/// The single icon vocabulary for Keeploom.
 ///
 /// Lucide (ISC licence) supplies the outline UI glyphs. Lucide has no filled
 /// glyphs, so the few solid accents (heart, pin, star, check) use Material's
@@ -66,6 +66,9 @@ abstract final class CloserIcons {
   static const IconData star = Icons.star_rounded;
   static const IconData widgets = LucideIcons.layoutGrid;
   static const IconData phone = LucideIcons.smartphone;
+  static const IconData appearance = LucideIcons.palette;
+  static const IconData sun = LucideIcons.sun;
+  static const IconData moon = LucideIcons.moon;
 
   // Status
   static const IconData success = Icons.check_circle_rounded;

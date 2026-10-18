@@ -1,6 +1,6 @@
 // Edge Function: the app calls this after a store purchase. It confirms the
 // transaction with RevenueCat's REST API (server-side secret) and grants
-// Closer Memories to the chosen group. Also used to apply "unassigned"
+// Keeploom Memories to the chosen group. Also used to apply "unassigned"
 // purchases (restore).
 // Secrets: REVENUECAT_SECRET_KEY, MEMORIES_PRODUCT_ID (optional).
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";

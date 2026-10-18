@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../theme/closer_icons.dart';
 
-/// Text field with Closer styling, a leading icon and an optional
+/// Text field with Keeploom styling, a leading icon and an optional
 /// show/hide toggle for passwords.
 class CloserTextField extends StatefulWidget {
   const CloserTextField({

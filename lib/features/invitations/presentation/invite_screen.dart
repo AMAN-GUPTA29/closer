@@ -75,7 +75,7 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
     await SharePlus.instance.share(
       ShareParams(
         text: InviteCodes.shareMessage(groupName: group.name, invitation: inv),
-        subject: 'Join ${group.name} on Closer',
+        subject: 'Join ${group.name} on Keeploom',
       ),
     );
   }

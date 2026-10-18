@@ -11,7 +11,7 @@ import '../groups/domain/group_models.dart';
 import '../groups/presentation/group_widgets.dart';
 import 'purchases.dart';
 
-/// Explains Basic vs Closer Memories for one group and starts a purchase.
+/// Explains Basic vs Keeploom Memories for one group and starts a purchase.
 /// The group only becomes Premium after the server confirms it.
 class UpgradeScreen extends ConsumerStatefulWidget {
   const UpgradeScreen({super.key, required this.groupId});
@@ -76,7 +76,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
     final group = ref.watch(groupProvider(widget.groupId));
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Closer Memories'),
+        title: const Text('Keeploom Memories'),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(CloserIcons.back),
@@ -104,7 +104,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
         icon: CloserIcons.crown,
         title: '${group.name} keeps every memory',
         message:
-            'Closer Memories is active for everyone in this group, including '
+            'Keeploom Memories is active for everyone in this group, including '
             'people who join later.',
       );
     }
@@ -119,7 +119,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
         ),
         const SizedBox(height: CloserSpacing.xs),
         Text(
-          'Basic lets you share the moment. Closer Memories lets you keep the '
+          'Basic lets you share the moment. Keeploom Memories lets you keep the '
           'story.',
           style: context.text.bodyLarge,
         ),
@@ -133,7 +133,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
         ),
         const SizedBox(height: CloserSpacing.md),
         const _Compare(
-          label: 'Closer Memories',
+          label: 'Keeploom Memories',
           highlight: true,
           points: [
             'Every photo, kept for the whole group',

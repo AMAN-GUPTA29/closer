@@ -17,7 +17,7 @@ import 'widget_sync.dart';
 /// launchers). Overridden in tests.
 final canPinWidgetProvider = Provider<bool>((ref) => Platform.isAndroid);
 
-/// Asks the launcher to add a Closer widget. Overridden in tests.
+/// Asks the launcher to add a Keeploom widget. Overridden in tests.
 final pinWidgetProvider = Provider<Future<bool> Function()>(
   (ref) =>
       () => HomeWidgetPlatform().requestPin(),
@@ -64,14 +64,14 @@ class WidgetSetupScreen extends ConsumerWidget {
     final steps = isIos
         ? const [
             'Touch and hold an empty area of your Home Screen until the apps jiggle.',
-            'Tap the + button in the top corner and search for Closer.',
+            'Tap the + button in the top corner and search for Keeploom.',
             'Choose a size and tap Add Widget.',
             'Touch and hold the new widget, tap Edit Widget, and choose a group.',
           ]
         : const [
             'Touch and hold an empty area of your home screen.',
-            'Tap Widgets and find Closer.',
-            'Drag the Closer widget onto your home screen.',
+            'Tap Widgets and find Keeploom.',
+            'Drag the Keeploom widget onto your home screen.',
             'Choose which group it shows.',
           ];
 
@@ -166,7 +166,7 @@ class WidgetSetupScreen extends ConsumerWidget {
             const SizedBox(height: CloserSpacing.sm),
             for (final tip in const [
               'A new photo can take a minute or two to appear — your phone '
-                  'decides when widgets refresh. Opening Closer refreshes them.',
+                  'decides when widgets refresh. Opening Keeploom refreshes them.',
               '“Tap to choose a group” means the widget isn’t set up yet: tap it.',
               '“No longer available” means you left the group or it was '
                   'deleted. Tap the widget to choose another group.',

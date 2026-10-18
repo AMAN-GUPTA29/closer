@@ -49,7 +49,7 @@ class UnconfiguredContentBackend implements ContentBackend {
   const UnconfiguredContentBackend();
 
   static const _f = NotConfiguredFailure(
-    'This needs the Closer backend, which is not configured in this build.',
+    'This needs the Keeploom backend, which is not configured in this build.',
   );
 
   @override

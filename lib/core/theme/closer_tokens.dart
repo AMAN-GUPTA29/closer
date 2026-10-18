@@ -34,15 +34,15 @@ abstract final class CloserElevation {
   static const List<BoxShadow> none = [];
 
   static const List<BoxShadow> low = [
-    BoxShadow(color: Color(0x0F2B1A2E), blurRadius: 10, offset: Offset(0, 2)),
+    BoxShadow(color: Color(0x0F2E2A2A), blurRadius: 10, offset: Offset(0, 2)),
   ];
 
   static const List<BoxShadow> medium = [
-    BoxShadow(color: Color(0x142B1A2E), blurRadius: 24, offset: Offset(0, 8)),
+    BoxShadow(color: Color(0x142E2A2A), blurRadius: 24, offset: Offset(0, 8)),
   ];
 
   static const List<BoxShadow> accentGlow = [
-    BoxShadow(color: Color(0x40E84F6D), blurRadius: 18, offset: Offset(0, 8)),
+    BoxShadow(color: Color(0x40E23A5E), blurRadius: 18, offset: Offset(0, 8)),
   ];
 }
 

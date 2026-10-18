@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../theme/closer_colors.dart';
 import '../theme/closer_icons.dart';
 
-/// The three kinds of Closer group. Stored as the lowercase [name] in the
+/// The three kinds of Keeploom group. Stored as the lowercase [name] in the
 /// database (`couple`, `friends`, `family`).
 enum GroupType {
   couple(label: 'Couple', blurb: 'Only 2 people can join', maxMembers: 2),

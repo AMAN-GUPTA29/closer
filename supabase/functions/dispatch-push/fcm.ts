@@ -116,7 +116,7 @@ export class FcmClient {
               priority: "high",
               notification: {
                 channel_id: "closer_moments",
-                icon: "ic_stat_closer",
+                icon: "ic_stat_keeploom",
                 color: "#E84F6D",
               },
             },

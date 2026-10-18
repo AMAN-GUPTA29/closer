@@ -18,7 +18,7 @@ final unassignedPurchasesProvider =
       (ref) => ref.watch(purchaseServiceProvider).unassignedPurchases(),
     );
 
-/// Groups with Closer Memories (entitlements belong to groups, so this
+/// Groups with Keeploom Memories (entitlements belong to groups, so this
 /// includes groups upgraded by other members) and purchase restoration.
 class PurchasedGroupsScreen extends ConsumerStatefulWidget {
   const PurchasedGroupsScreen({super.key});
@@ -136,7 +136,7 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
             padding: const EdgeInsets.all(CloserSpacing.gutter),
             children: [
               Text(
-                'Closer Memories belongs to a group: everyone in it keeps every '
+                'Keeploom Memories belongs to a group: everyone in it keeps every '
                 'photo, whoever bought it.',
                 style: context.text.bodyMedium,
               ),
@@ -144,7 +144,7 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
               for (final p in unassigned) ...[
                 NoticeCard(
                   icon: CloserIcons.crown,
-                  title: 'Unused Closer Memories purchase',
+                  title: 'Unused Keeploom Memories purchase',
                   message:
                       'Bought ${formatMediumDate(p.purchasedAt.toLocal())}. '
                       'Choose the group it should unlock.',
@@ -160,7 +160,7 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
               if (premium.isEmpty)
                 const EmptyState(
                   icon: CloserIcons.crown,
-                  title: 'No Closer Memories groups yet',
+                  title: 'No Keeploom Memories groups yet',
                   message:
                       'Upgrade a group from its Details tab to keep its whole '
                       'story.',

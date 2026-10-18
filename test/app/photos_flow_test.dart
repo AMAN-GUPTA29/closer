@@ -56,7 +56,7 @@ void main() {
     await openGroup(tester);
     expect(find.text('No memories yet'), findsOneWidget);
 
-    await tester.tap(find.text('Add'));
+    await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
     expect(find.byType(AddMemoryScreen), findsOneWidget);
     expect(find.text('The oldest photo will be removed'), findsNothing);
@@ -77,7 +77,7 @@ void main() {
     final ids = await seedPhotos(repo, groupId, 10);
     await pump(tester);
     await openGroup(tester);
-    await tester.tap(find.text('Add'));
+    await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
     expect(find.text('The oldest photo will be removed'), findsOneWidget);
 
@@ -94,7 +94,7 @@ void main() {
   ) async {
     await pump(tester);
     await openGroup(tester);
-    await tester.tap(find.text('Add'));
+    await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
     await tapButton(tester, 'Choose from gallery');
 
@@ -111,7 +111,7 @@ void main() {
   testWidgets('unsupported files are explained', (tester) async {
     await pump(tester, picked: Uint8List.fromList('%PDF-1.7 ......'.codeUnits));
     await openGroup(tester);
-    await tester.tap(find.text('Add'));
+    await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
     await tapButton(tester, 'Choose from gallery');
     expect(find.textContaining('isn’t supported'), findsOneWidget);
@@ -177,13 +177,13 @@ void main() {
     await openGroup(tester);
     await tester.tap(find.text('Details'));
     await tester.pumpAndSettle();
-    expect(find.text('Closer Memories · keeps every photo'), findsOneWidget);
+    expect(find.text('Keeploom Memories · keeps every photo'), findsOneWidget);
     expect(find.text('Upgrade this group'), findsNothing);
   });
 
   testWidgets('the Add tab lets you pick a group', (tester) async {
     await pump(tester);
-    await tester.tap(find.text('Add'));
+    await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
     expect(find.text('Choose a group'), findsOneWidget);
     await tester.tap(find.text('Crew').last);

@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
+import 'appearance.dart';
+
 import 'closer_colors.dart';
 import 'closer_tokens.dart';
 import 'closer_typography.dart';
@@ -60,6 +62,60 @@ abstract final class CloserTheme {
         scrolledUnderElevation: 0,
         centerTitle: true,
         titleTextStyle: text.titleLarge,
+        systemOverlayStyle: systemBarsFor(brightness, c.background),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? c.accentSoft : c.surface,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected)
+                ? c.accentStrong
+                : c.textPrimary,
+          ),
+          side: WidgetStatePropertyAll(BorderSide(color: c.line)),
+          textStyle: WidgetStatePropertyAll(text.titleSmall),
+          minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (s) =>
+              s.contains(WidgetState.selected) ? Colors.white : c.textTertiary,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected)
+              ? c.accentStrong
+              : c.surfaceMuted,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? Colors.transparent : c.line,
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        iconColor: c.textSecondary,
+        textColor: c.textPrimary,
+      ),
+      cardTheme: CardThemeData(
+        color: c.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: CloserRadii.lgAll,
+          side: BorderSide(color: c.line),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: c.surface,
+        surfaceTintColor: Colors.transparent,
+        textStyle: text.bodyLarge,
+      ),
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: c.surface,
+        surfaceTintColor: Colors.transparent,
+        headerBackgroundColor: c.accentSoft,
+        headerForegroundColor: c.textPrimary,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

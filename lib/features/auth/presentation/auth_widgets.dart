@@ -65,7 +65,7 @@ class AuthHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const CloserLogo(size: 60),
+        const KeeploomLogo(size: 64),
         const SizedBox(height: CloserSpacing.lg),
         Text(
           title,

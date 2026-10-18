@@ -15,6 +15,7 @@ import '../../auth/domain/auth_models.dart';
 import '../../groups/application/group_providers.dart';
 import '../../groups/domain/group_models.dart';
 import '../../journal/application/content_providers.dart';
+import '../../journal/domain/journal_models.dart';
 import '../../photos/presentation/photo_widgets.dart';
 import '../../profile/presentation/profile_widgets.dart';
 
@@ -102,7 +103,7 @@ class HomeScreen extends ConsumerWidget {
                       CloserSpacing.gutter,
                       0,
                       CloserSpacing.gutter,
-                      CloserSpacing.xxl,
+                      CloserSpacing.xl,
                     ),
                     sliver: SliverToBoxAdapter(
                       child: CloserButton.secondary(
@@ -112,6 +113,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  const SliverToBoxAdapter(child: _RecentMoments()),
                 ],
                 AsyncError(:final error) => [
                   SliverFillRemaining(
@@ -265,6 +267,79 @@ class _GroupsError extends ConsumerWidget {
           ? (error as AppFailure).message
           : 'We couldn’t load your groups.',
       onRetry: () => ref.invalidate(myGroupsProvider),
+    );
+  }
+}
+
+/// The newest photos across all groups, as on the Keeploom board. Hidden
+/// until there is something to show; taps open the Journal tab.
+class _RecentMoments extends ConsumerWidget {
+  const _RecentMoments();
+
+  static const _size = 104.0;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final photos = [
+      for (final e in ref.watch(journalProvider(null)).value?.entries ?? [])
+        if (e is PhotoEntry) e.photo,
+    ].take(8).toList();
+    if (photos.isEmpty) return const SizedBox.shrink();
+    void openJournal() => StatefulNavigationShell.of(context).goBranch(1);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: CloserSpacing.xxl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: CloserSpacing.gutter,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      'Recent moments',
+                      style: context.text.titleLarge,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: openJournal,
+                  child: const Text('See all'),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: _size,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                horizontal: CloserSpacing.gutter,
+              ),
+              itemCount: photos.length,
+              separatorBuilder: (_, _) =>
+                  const SizedBox(width: CloserSpacing.sm),
+              itemBuilder: (context, i) => SizedBox.square(
+                dimension: _size,
+                child: ClipRRect(
+                  borderRadius: CloserRadii.mdAll,
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      onTap: openJournal,
+                      child: PhotoImage(photo: photos[i]),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -34,7 +34,7 @@ class CloserWidgetConfigureActivity : Activity() {
             AppWidgetManager.INVALID_APPWIDGET_ID,
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
         // The activity is exported (launchers must start it), so ignore ids that
-        // don't belong to a Closer widget.
+        // don't belong to a Keeploom widget.
         val provider = AppWidgetManager.getInstance(this).getAppWidgetInfo(widgetId)?.provider
         if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID ||
             provider != ComponentName(this, CloserWidgetProvider::class.java)

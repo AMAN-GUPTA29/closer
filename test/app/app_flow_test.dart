@@ -21,12 +21,12 @@ void main() {
   testWidgets('onboarding leads to sign up and sign in', (tester) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
     expect(find.byType(OnboardingScreen), findsOneWidget);
-    expect(find.text('Closer'), findsOneWidget);
+    expect(find.text('Keeploom'), findsOneWidget);
 
     await tester.tap(find.text('Get Started'));
     await tester.pumpAndSettle();
     expect(find.byType(SignUpScreen), findsOneWidget);
-    expect(find.text('Welcome to Closer'), findsOneWidget);
+    expect(find.text('Welcome to Keeploom'), findsOneWidget);
 
     await tester.ensureVisible(find.text('Sign In'));
     await tester.pumpAndSettle();
@@ -40,7 +40,7 @@ void main() {
     expect(find.bySemanticsLabel('Page 1 of 3'), findsOneWidget);
     await tester.drag(find.byType(PageView), const Offset(-300, 0));
     await tester.pumpAndSettle();
-    expect(find.text('Share a moment in seconds.'), findsOneWidget);
+    expect(find.text('Private by design.'), findsOneWidget);
   });
 
   testWidgets('sign-in validates fields before calling the backend', (
@@ -102,7 +102,7 @@ void main() {
     expect(find.byType(NotificationsScreen), findsOneWidget);
 
     // "Add" opens a sheet instead of switching tabs.
-    await tester.tap(find.text('Add'));
+    await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
     expect(find.text('Share a memory'), findsOneWidget);
     // No groups yet: the sheet points to creating one. Dismiss it.

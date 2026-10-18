@@ -16,7 +16,7 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * Closer home-screen widget. Every instance is configured independently with
+ * Keeploom home-screen widget. Every instance is configured independently with
  * one group (see [CloserWidgetConfigureActivity]); several widgets may show
  * different groups, or the same group.
  *

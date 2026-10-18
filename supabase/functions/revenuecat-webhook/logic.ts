@@ -62,7 +62,7 @@ export async function handleWebhook(
   switch (e.type) {
     case "NON_RENEWING_PURCHASE": {
       if (!e.app_user_id || !UUID.test(e.app_user_id)) {
-        // Anonymous RevenueCat ids can't be tied to a Closer account.
+        // Anonymous RevenueCat ids can't be tied to a Keeploom account.
         return { status: 200, result: "ignored_anonymous" };
       }
       await deps.record({

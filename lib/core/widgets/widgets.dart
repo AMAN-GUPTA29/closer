@@ -1,5 +1,5 @@
 export 'closer_button.dart';
-export 'closer_logo.dart';
+export 'keeploom_logo.dart';
 export 'closer_photo.dart';
 export 'closer_text_field.dart';
 export 'confirmation_dialog.dart';

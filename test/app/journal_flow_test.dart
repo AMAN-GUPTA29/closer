@@ -138,7 +138,7 @@ void main() {
   ) async {
     await pump(tester);
     await openGroup(tester, 'Us');
-    await tester.tap(find.text('Add'));
+    await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
     await tapButton(tester, 'Choose from gallery');
     await tester.tap(find.text('Mark as special moment'));

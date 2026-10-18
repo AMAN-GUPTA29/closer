@@ -73,7 +73,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     return AuthScaffold(
       children: [
         const AuthHeader(
-          title: 'Welcome to Closer',
+          title: 'Welcome to Keeploom',
           subtitle: 'Your people. Your moments. Always close.',
         ),
         const BackendNotice(),

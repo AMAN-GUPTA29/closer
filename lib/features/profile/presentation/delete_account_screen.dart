@@ -77,7 +77,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       'Groups where you are the only member are deleted, with their photos.',
       'Photos you shared in groups with other people stay there for them, '
           'without your name.',
-      'Closer Memories purchases stay with their groups.',
+      'Keeploom Memories purchases stay with their groups.',
     ];
     return Scaffold(
       appBar: AppBar(

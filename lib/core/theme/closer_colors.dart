@@ -1,43 +1,52 @@
 import 'package:flutter/material.dart';
 
-/// Raw palette sampled from the Closer concept board
-/// (`docs/design/closer-ui-concept-board.png`). Prefer the semantic
-/// [CloserColors] extension in widgets instead of these constants.
+/// Keeploom brand palette (`docs/design/Keeploom Brand Identity Board.png`,
+/// `docs/design/Keeploom App Design Showcase.png`). Widgets use the semantic
+/// [CloserColors] roles, never these raw values.
 abstract final class CloserPalette {
-  static const ivory = Color(0xFFFFF8F5);
-  static const ivoryDeep = Color(0xFFFBEFEA);
-  static const blush = Color(0xFFFDE8EC);
-  static const blushDeep = Color(0xFFF9D3DB);
-  static const coral = Color(0xFFF36B7F);
-  static const coralLight = Color(0xFFF89A8E);
-  static const rose = Color(0xFFE84F6D);
-  static const roseDark = Color(0xFFC93A58);
-
-  /// Accent text on light surfaces: >= 4.5:1 on ivory and blush (WCAG AA).
-  static const roseDeep = Color(0xFFB8304F);
-
-  /// Start of the button gradient: white text stays >= 3:1 across it.
-  static const coralDeep = Color(0xFFEC5F78);
-  static const plum = Color(0xFF2B1A2E);
-  static const plumSoft = Color(0xFF5B4A5C);
-  static const mauve = Color(0xFF8E7D8C);
-  static const mist = Color(0xFFEFE3E3);
+  // Light
+  static const ivory = Color(0xFFFFF7F1);
+  static const ivoryDeep = Color(0xFFF8EDE7);
+  static const blush = Color(0xFFFCE8EC);
+  static const peach = Color(0xFFFDCABA);
+  static const coral = Color(0xFFF5767A);
+  static const coralEnd = Color(0xFFF04468);
+  static const plum = Color(0xFF6B3F55);
+  static const charcoal = Color(0xFF2E2A2A);
+  static const mauve = Color(0xFF786B79);
+  static const mauveSoft = Color(0xFF8A7D8B);
+  static const border = Color(0xFFF0E2E3);
   static const white = Color(0xFFFFFFFF);
-  static const lavender = Color(0xFFE9DDF5);
+
+  /// Coral text on light surfaces: >= 4.5:1 on ivory and blush (WCAG AA);
+  /// the brand coral itself is only used for fills and large marks.
+  static const coralText = Color(0xFFB8304F);
+
+  /// Button gradient, deepened from coral -> coralEnd so white labels keep
+  /// >= 3:1 contrast across the whole gradient.
+  static const buttonStart = Color(0xFFEE5F70);
+  static const buttonEnd = Color(0xFFE23A5E);
+
+  // Dark
+  static const nightBg = Color(0xFF0E0810);
+  static const nightSurface = Color(0xFF1A1620);
+  static const nightCard = Color(0xFF241D2A);
+  static const nightCoral = Color(0xFFFF687B);
+  static const nightPlum = Color(0xFFB982A6);
+  static const nightText = Color(0xFFFFF7F4);
+  static const nightTextSoft = Color(0xFFC2B5C5);
+  static const nightTextMuted = Color(0xFF9D8FA0);
+  static const nightLine = Color(0xFF3B303F);
+  static const nightBlush = Color(0xFF3A2230);
+
+  // Group-type tints and status colours.
   static const lavenderDeep = Color(0xFF8C6BC8);
   static const sky = Color(0xFF5B8DEF);
   static const gold = Color(0xFFF5B54A);
   static const sage = Color(0xFF4FA37A);
-
-  static const nightBg = Color(0xFF1A1119);
-  static const nightSurface = Color(0xFF261A25);
-  static const nightSurfaceHigh = Color(0xFF33232F);
-  static const nightText = Color(0xFFF7ECEE);
-  static const nightTextSoft = Color(0xFFC9B8C4);
-  static const nightLine = Color(0xFF433340);
 }
 
-/// Semantic colour roles used by Closer components, available through
+/// Semantic colour roles used by every component, available through
 /// `Theme.of(context).extension<CloserColors>()` or `context.closerColors`.
 @immutable
 class CloserColors extends ThemeExtension<CloserColors> {
@@ -59,18 +68,32 @@ class CloserColors extends ThemeExtension<CloserColors> {
     required this.coupleTint,
     required this.familyTint,
     required this.friendsTint,
+    required this.brandPlum,
+    required this.peach,
     required this.accentGradient,
     required this.heroScrim,
   });
 
   final Color background;
+
+  /// Cards, sheets, dialogs, inputs and the navigation dock.
   final Color surface;
+
+  /// Elevated / secondary fills (dark: the "card" tone).
   final Color surfaceMuted;
   final Color textPrimary;
   final Color textSecondary;
+
+  /// Hints and inactive icons (>= 3:1; not for body text).
   final Color textTertiary;
+
+  /// Brand coral for fills, borders, focus rings and large marks.
   final Color accent;
+
+  /// Coral for text and small icons (contrast-safe).
   final Color accentStrong;
+
+  /// Blush highlight behind selected items.
   final Color accentSoft;
   final Color onAccent;
   final Color line;
@@ -81,35 +104,41 @@ class CloserColors extends ThemeExtension<CloserColors> {
   final Color familyTint;
   final Color friendsTint;
 
-  /// The coral → rose gradient used on primary buttons and highlights.
+  /// Second brand colour (logo, decorative accents).
+  final Color brandPlum;
+  final Color peach;
   final LinearGradient accentGradient;
 
   /// Dark gradient laid over photos so white text stays legible.
   final LinearGradient heroScrim;
 
+  static const _button = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [CloserPalette.buttonStart, CloserPalette.buttonEnd],
+  );
+
   static const light = CloserColors(
     background: CloserPalette.ivory,
     surface: CloserPalette.white,
     surfaceMuted: CloserPalette.ivoryDeep,
-    textPrimary: CloserPalette.plum,
-    textSecondary: CloserPalette.plumSoft,
-    textTertiary: CloserPalette.mauve,
+    textPrimary: CloserPalette.charcoal,
+    textSecondary: CloserPalette.mauve,
+    textTertiary: CloserPalette.mauveSoft,
     accent: CloserPalette.coral,
-    accentStrong: CloserPalette.roseDeep,
+    accentStrong: CloserPalette.coralText,
     accentSoft: CloserPalette.blush,
     onAccent: CloserPalette.white,
-    line: CloserPalette.mist,
+    line: CloserPalette.border,
     danger: Color(0xFFC53030),
-    success: CloserPalette.sage,
+    success: Color(0xFF2E8A5E),
     premium: CloserPalette.gold,
     coupleTint: CloserPalette.coral,
     familyTint: CloserPalette.lavenderDeep,
     friendsTint: CloserPalette.sky,
-    accentGradient: LinearGradient(
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-      colors: [CloserPalette.coralDeep, CloserPalette.roseDark],
-    ),
+    brandPlum: CloserPalette.plum,
+    peach: CloserPalette.peach,
+    accentGradient: _button,
     heroScrim: LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
@@ -121,26 +150,24 @@ class CloserColors extends ThemeExtension<CloserColors> {
   static const dark = CloserColors(
     background: CloserPalette.nightBg,
     surface: CloserPalette.nightSurface,
-    surfaceMuted: CloserPalette.nightSurfaceHigh,
+    surfaceMuted: CloserPalette.nightCard,
     textPrimary: CloserPalette.nightText,
     textSecondary: CloserPalette.nightTextSoft,
-    textTertiary: Color(0xFF9C8B98),
-    accent: Color(0xFFF67F91),
-    accentStrong: CloserPalette.coral,
-    accentSoft: Color(0xFF4A2733),
+    textTertiary: CloserPalette.nightTextMuted,
+    accent: CloserPalette.nightCoral,
+    accentStrong: CloserPalette.nightCoral,
+    accentSoft: CloserPalette.nightBlush,
     onAccent: CloserPalette.white,
     line: CloserPalette.nightLine,
-    danger: Color(0xFFF07070),
+    danger: Color(0xFFFF8A80),
     success: Color(0xFF6CC497),
     premium: CloserPalette.gold,
-    coupleTint: Color(0xFFF67F91),
+    coupleTint: CloserPalette.nightCoral,
     familyTint: Color(0xFFB79BE6),
     friendsTint: Color(0xFF86AAF3),
-    accentGradient: LinearGradient(
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-      colors: [CloserPalette.coralLight, CloserPalette.coral],
-    ),
+    brandPlum: CloserPalette.nightPlum,
+    peach: CloserPalette.peach,
+    accentGradient: _button,
     heroScrim: LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
@@ -168,6 +195,8 @@ class CloserColors extends ThemeExtension<CloserColors> {
     Color? coupleTint,
     Color? familyTint,
     Color? friendsTint,
+    Color? brandPlum,
+    Color? peach,
     LinearGradient? accentGradient,
     LinearGradient? heroScrim,
   }) {
@@ -189,6 +218,8 @@ class CloserColors extends ThemeExtension<CloserColors> {
       coupleTint: coupleTint ?? this.coupleTint,
       familyTint: familyTint ?? this.familyTint,
       friendsTint: friendsTint ?? this.friendsTint,
+      brandPlum: brandPlum ?? this.brandPlum,
+      peach: peach ?? this.peach,
       accentGradient: accentGradient ?? this.accentGradient,
       heroScrim: heroScrim ?? this.heroScrim,
     );
@@ -215,6 +246,8 @@ class CloserColors extends ThemeExtension<CloserColors> {
       coupleTint: Color.lerp(coupleTint, other.coupleTint, t)!,
       familyTint: Color.lerp(familyTint, other.familyTint, t)!,
       friendsTint: Color.lerp(friendsTint, other.friendsTint, t)!,
+      brandPlum: Color.lerp(brandPlum, other.brandPlum, t)!,
+      peach: Color.lerp(peach, other.peach, t)!,
       accentGradient: LinearGradient.lerp(
         accentGradient,
         other.accentGradient,
