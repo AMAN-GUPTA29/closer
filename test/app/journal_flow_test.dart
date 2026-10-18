@@ -170,7 +170,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Beach 1'), findsOneWidget);
     expect(find.text('Hike 1'), findsOneWidget);
-    expect(find.text('Crew'), findsOneWidget, reason: 'cards name their group');
+    expect(
+      find.textContaining('· Crew', findRichText: true),
+      findsOneWidget,
+      reason: 'cards name their group',
+    );
   });
 
   testWidgets('notifications: badge, open, mark read, preferences', (

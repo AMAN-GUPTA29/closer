@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../theme/closer_icons.dart';
 import '../theme/closer_theme.dart';
 import 'closer_photo.dart';
-import 'member_avatar.dart';
 
-/// A journal photo memory: large rounded photo, caption, uploader and date.
+/// A journal photo memory, as on the Keeploom showcase: a large rounded
+/// photo, an optional caption, then "Name · time" with a heart for couples.
 class MemoryCard extends StatelessWidget {
   const MemoryCard({
     super.key,
@@ -16,18 +16,22 @@ class MemoryCard extends StatelessWidget {
     this.caption,
     this.location,
     this.isPinned = false,
-    this.uploaderImage,
+    this.showHeart = false,
     this.placeholderVariant = 0,
     this.heroTag,
   });
 
   final ImageProvider? image;
   final String? caption;
+
+  /// Group name, shown after the time in the all-groups journal.
   final String? location;
   final String uploaderName;
-  final ImageProvider? uploaderImage;
   final String dateLabel;
   final bool isPinned;
+
+  /// Decorative heart (couple groups only).
+  final bool showHeart;
   final VoidCallback onTap;
   final int placeholderVariant;
   final Object? heroTag;
@@ -35,32 +39,37 @@ class MemoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
+    final dark = Theme.of(context).brightness == Brightness.dark;
     Widget photo = CloserPhoto(
       image: image,
       placeholderVariant: placeholderVariant,
     );
     if (heroTag != null) photo = Hero(tag: heroTag!, child: photo);
+    final meta = [dateLabel, ?location].join(' · ');
 
     return Semantics(
       button: true,
       label:
           'Photo by $uploaderName, $dateLabel'
+          '${location != null ? ', in $location' : ''}'
           '${caption != null ? ': $caption' : ''}'
           '${isPinned ? ', pinned' : ''}',
       excludeSemantics: true,
       child: Material(
-        color: c.surface,
-        borderRadius: CloserRadii.lgAll,
+        color: dark ? c.surfaceMuted : c.surface,
+        borderRadius: CloserRadii.xlAll,
         clipBehavior: Clip.antiAlias,
-        elevation: 0,
         child: InkWell(
           onTap: onTap,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Stack(
                 children: [
-                  AspectRatio(aspectRatio: 4 / 3, child: photo),
+                  ClipRRect(
+                    borderRadius: CloserRadii.xlAll,
+                    child: AspectRatio(aspectRatio: 6 / 5, child: photo),
+                  ),
                   if (isPinned)
                     Positioned(
                       top: CloserSpacing.sm,
@@ -81,40 +90,43 @@ class MemoryCard extends StatelessWidget {
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.all(CloserSpacing.md),
+                padding: const EdgeInsets.fromLTRB(
+                  CloserSpacing.md,
+                  CloserSpacing.md,
+                  CloserSpacing.md,
+                  CloserSpacing.md,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (caption != null && caption!.isNotEmpty) ...[
-                      Text(caption!, style: context.text.titleSmall),
-                      const SizedBox(height: CloserSpacing.xxs),
-                    ],
-                    if (location != null) ...[
-                      Text(location!, style: context.text.bodySmall),
+                      Text(caption!, style: context.text.bodyLarge),
                       const SizedBox(height: CloserSpacing.xs),
                     ],
                     Row(
                       children: [
-                        MemberAvatar(
-                          name: uploaderName,
-                          image: uploaderImage,
-                          size: 22,
-                        ),
-                        const SizedBox(width: CloserSpacing.xs),
                         Expanded(
-                          child: Text(
-                            uploaderName,
-                            style: context.text.labelSmall,
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: uploaderName,
+                                  style: context.text.titleMedium,
+                                ),
+                                TextSpan(
+                                  text: ' · $meta',
+                                  style: context.text.bodyLarge?.copyWith(
+                                    color: c.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Text(
-                          dateLabel,
-                          style: context.text.labelSmall?.copyWith(
-                            color: c.textTertiary,
-                          ),
-                        ),
+                        if (showHeart)
+                          Icon(CloserIcons.heart, color: c.accent, size: 24),
                       ],
                     ),
                   ],

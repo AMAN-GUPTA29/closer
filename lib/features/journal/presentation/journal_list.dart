@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/models/group_type.dart';
 import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
 import '../../../core/utils/dates.dart';
@@ -79,7 +80,7 @@ class JournalList extends ConsumerWidget {
           final group = groups[e.groupId];
           items.add(
             Padding(
-              padding: const EdgeInsets.only(bottom: CloserSpacing.md),
+              padding: const EdgeInsets.only(bottom: CloserSpacing.sm),
               child: switch (e) {
                 PhotoEntry(:final photo) => _PhotoMemory(
                   photo: photo,
@@ -212,6 +213,7 @@ class _PhotoMemory extends ConsumerWidget {
       uploaderName: photo.uploaderName ?? 'Former member',
       dateLabel: relativeTime(photo.uploadedAt, DateTime.now()),
       isPinned: photo.isPinned,
+      showHeart: group?.type == GroupType.couple,
       placeholderVariant: photo.id.hashCode.abs() % 4,
       heroTag: 'photo-${photo.id}',
       onTap: onTap ?? () {},

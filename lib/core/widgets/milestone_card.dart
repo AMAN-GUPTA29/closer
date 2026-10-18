@@ -100,16 +100,20 @@ class _MilestoneCardState extends State<MilestoneCard>
         child: InkWell(
           onTap: widget.onTap,
           child: Padding(
-            padding: const EdgeInsets.all(CloserSpacing.xl),
+            padding: const EdgeInsets.fromLTRB(
+              CloserSpacing.xl,
+              CloserSpacing.xxl,
+              CloserSpacing.xl,
+              CloserSpacing.xxl,
+            ),
             child: Column(
               children: [
-                Row(
-                  children: [
-                    const Spacer(),
-                    if (widget.isPinned)
-                      Icon(CloserIcons.pinFilled, color: accent, size: 18),
-                  ],
-                ),
+                if (widget.isPinned)
+                  Align(
+                    alignment: Alignment.topRight,
+                    heightFactor: 0,
+                    child: Icon(CloserIcons.pinFilled, color: accent, size: 18),
+                  ),
                 ScaleTransition(
                   scale: Tween(begin: 0.6, end: 1.0).animate(scale),
                   child: Icon(_icon, color: accent, size: 36),
@@ -135,15 +139,21 @@ class _MilestoneCardState extends State<MilestoneCard>
                   Text(
                     widget.title,
                     textAlign: TextAlign.center,
-                    style: context.text.displayMedium?.copyWith(
-                      fontSize: 30,
+                    style: context.text.headlineLarge?.copyWith(
+                      fontSize: 27,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.4,
                       color: c.textPrimary,
                     ),
                   ),
-                const SizedBox(height: CloserSpacing.xxs),
+                const SizedBox(height: CloserSpacing.xs),
                 Text(
                   widget.dateLabel,
-                  style: context.text.labelMedium?.copyWith(color: accent),
+                  textAlign: TextAlign.center,
+                  style: context.text.bodyLarge?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 if (widget.description != null) ...[
                   const SizedBox(height: CloserSpacing.sm),
