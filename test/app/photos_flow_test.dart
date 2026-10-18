@@ -43,6 +43,13 @@ void main() {
     ],
   );
 
+  Future<void> addPhoto(WidgetTester tester) async {
+    await tester.tap(find.text('Add photo'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Choose from gallery'));
+    await tester.pumpAndSettle();
+  }
+
   Future<void> openGroup(WidgetTester tester) async {
     await tester.tap(find.text('Crew'));
     await tester.pumpAndSettle();
@@ -61,9 +68,9 @@ void main() {
     expect(find.byType(AddMemoryScreen), findsOneWidget);
     expect(find.text('The oldest photo will be removed'), findsNothing);
 
-    await tapButton(tester, 'Choose from gallery');
+    await addPhoto(tester);
     await tester.enterText(find.byType(TextFormField), 'First dinner');
-    await tapButton(tester, 'Share Photo');
+    await tapButton(tester, 'Share');
 
     expect(find.text('Shared with Crew'), findsOneWidget);
     expect(find.byType(GroupHomeScreen), findsOneWidget);
@@ -81,8 +88,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('The oldest photo will be removed'), findsOneWidget);
 
-    await tapButton(tester, 'Choose from gallery');
-    await tapButton(tester, 'Share Photo');
+    await addPhoto(tester);
+    await tapButton(tester, 'Share');
     expect(find.textContaining('The oldest photo was removed'), findsOneWidget);
     final photos = (await repo.photos(groupId)).photos;
     expect(photos, hasLength(10));
@@ -96,10 +103,10 @@ void main() {
     await openGroup(tester);
     await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
-    await tapButton(tester, 'Choose from gallery');
+    await addPhoto(tester);
 
     repo.failNextPut = true;
-    await tapButton(tester, 'Share Photo');
+    await tapButton(tester, 'Share');
     expect(find.textContaining('couldn’t be uploaded'), findsOneWidget);
     expect((await repo.photos(groupId)).photos, isEmpty);
 
@@ -113,10 +120,10 @@ void main() {
     await openGroup(tester);
     await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
-    await tapButton(tester, 'Choose from gallery');
+    await addPhoto(tester);
     expect(find.textContaining('isn’t supported'), findsOneWidget);
     final share = tester.widget<CloserButton>(
-      find.widgetWithText(CloserButton, 'Share Photo'),
+      find.widgetWithText(CloserButton, 'Share'),
     );
     expect(share.onPressed, isNull);
   });
@@ -181,13 +188,43 @@ void main() {
     expect(find.text('Upgrade this group'), findsNothing);
   });
 
-  testWidgets('the Add tab lets you pick a group', (tester) async {
+  testWidgets('the + button shares into a chosen group', (tester) async {
     await pump(tester);
     await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
+    expect(find.byType(AddMemoryScreen), findsOneWidget);
     expect(find.text('Choose a group'), findsOneWidget);
+    await addPhoto(tester);
+    expect(
+      find.text('Choose a group.'),
+      findsOneWidget,
+      reason: 'no group yet',
+    );
     await tester.tap(find.text('Crew').last);
     await tester.pumpAndSettle();
-    expect(find.byType(AddMemoryScreen), findsOneWidget);
+    await tapButton(tester, 'Share');
+    expect(find.text('Shared with Crew'), findsOneWidget);
+    expect((await repo.photos(groupId)).photos, hasLength(1));
+  });
+
+  testWidgets('several photos can be shared at once', (tester) async {
+    await pump(tester);
+    await openGroup(tester);
+    await tester.tap(find.byTooltip('Share a memory'));
+    await tester.pumpAndSettle();
+    await addPhoto(tester);
+    await tester.tap(find.text('Add more'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Choose from gallery'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Remove photo'), findsNWidgets(2));
+    await tester.scrollUntilVisible(
+      find.widgetWithText(InkWell, 'Share'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tapButton(tester, 'Share');
+    expect(find.text('Shared 2 with Crew'), findsOneWidget);
+    expect((await repo.photos(groupId)).photos, hasLength(2));
   });
 }

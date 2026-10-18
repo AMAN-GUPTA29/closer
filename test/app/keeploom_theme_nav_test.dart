@@ -159,7 +159,7 @@ void main() {
       expect(find.text('Choose a group'), findsOneWidget);
       expect(find.text('Us'), findsWidgets);
 
-      await tester.tapAt(const Offset(20, 80));
+      await tester.tap(find.byTooltip('Close'));
       await tester.pumpAndSettle();
       expect(find.text('Choose a group'), findsNothing);
       expect(find.byType(HomeScreen), findsOneWidget, reason: 'no new page');

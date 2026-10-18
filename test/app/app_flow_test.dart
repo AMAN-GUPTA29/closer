@@ -108,7 +108,7 @@ void main() {
     expect(find.text('Share a memory'), findsOneWidget);
     // No groups yet: the sheet points to creating one. Dismiss it.
     expect(find.text('Create a group'), findsWidgets);
-    await tester.tapAt(const Offset(20, 20));
+    await tester.tap(find.byTooltip('Close'));
     await tester.pumpAndSettle();
     expect(find.byType(NotificationsScreen), findsOneWidget);
 

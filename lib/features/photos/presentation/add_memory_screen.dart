@@ -14,18 +14,35 @@ import '../../../core/widgets/widgets.dart';
 import '../../auth/presentation/auth_widgets.dart' show FormErrorText;
 import '../../groups/application/group_providers.dart';
 import '../../groups/domain/group_models.dart';
-import '../../groups/presentation/group_widgets.dart';
 import '../application/photo_providers.dart';
 import '../domain/photo_models.dart';
 import 'photo_widgets.dart';
 
-/// Share a memory: pick → preview with caption/date → upload with progress
-/// and retry. A retry reuses the same upload id, so it can never create a
-/// duplicate photo.
-class AddMemoryScreen extends ConsumerStatefulWidget {
-  const AddMemoryScreen({super.key, required this.groupId, this.source});
+/// Most photos shared in one go.
+const maxPhotosPerShare = 10;
 
-  final String groupId;
+/// One picked photo. Its upload id is kept across retries, so a retry can
+/// never create a duplicate.
+class _Pick {
+  _Pick(this.raw) : uploadId = const Uuid().v4();
+
+  final Uint8List raw;
+  final String uploadId;
+  PreparedPhoto? prepared;
+  String? error;
+  String? sharedPhotoId;
+
+  bool get ready => prepared != null;
+}
+
+/// Share a memory, as on the Keeploom showcase: photos with "Add more",
+/// the group, a caption and options, then Share. Opened from the + button
+/// (no group chosen yet) or from a group (pre-selected).
+class AddMemoryScreen extends ConsumerStatefulWidget {
+  const AddMemoryScreen({super.key, this.groupId, this.source});
+
+  /// Pre-selected group (from a group's Camera / Add buttons).
+  final String? groupId;
 
   /// Opens the picker straight away when set.
   final PhotoSource? source;
@@ -36,22 +53,26 @@ class AddMemoryScreen extends ConsumerStatefulWidget {
 
 class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
   final _caption = TextEditingController();
-  Uint8List? _raw;
-  PreparedPhoto? _prepared;
+  final _picks = <_Pick>[];
+  String? _groupId;
   DateTime? _takenAt;
-  bool _preparing = false;
-  bool _special = false;
+  bool _pin = false;
+  bool _moment = false;
+  bool _sharing = false;
   UploadStage? _stage;
+  int _current = 0;
   String? _error;
 
-  /// One id per chosen photo: retries reuse it (duplicate protection).
-  String _uploadId = const Uuid().v4();
-
-  bool get _uploading => _stage != null && _stage != UploadStage.done;
+  bool get _preparing => _picks.any((p) => !p.ready && p.error == null);
+  List<_Pick> get _usable => [
+    for (final p in _picks)
+      if (p.ready) p,
+  ];
 
   @override
   void initState() {
     super.initState();
+    _groupId = widget.groupId;
     final source = widget.source;
     if (source != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _pick(source));
@@ -64,7 +85,45 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
     super.dispose();
   }
 
+  Future<void> _choose() async {
+    final source = await showModalBottomSheet<PhotoSource>(
+      context: context,
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            CloserSpacing.gutter,
+            0,
+            CloserSpacing.gutter,
+            CloserSpacing.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Add a photo', style: sheet.text.headlineSmall),
+              const SizedBox(height: CloserSpacing.sm),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(CloserIcons.gallery),
+                title: const Text('Choose from gallery'),
+                onTap: () => Navigator.pop(sheet, PhotoSource.gallery),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(CloserIcons.camera),
+                title: const Text('Take a photo'),
+                onTap: () => Navigator.pop(sheet, PhotoSource.camera),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (source != null) await _pick(source);
+  }
+
   Future<void> _pick(PhotoSource source) async {
+    if (_picks.length >= maxPhotosPerShare) return;
     setState(() => _error = null);
     Uint8List? raw;
     try {
@@ -80,26 +139,19 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
       return;
     }
     if (raw == null || !mounted) return;
-    setState(() {
-      _raw = raw;
-      _prepared = null;
-      _preparing = true;
-      _stage = null;
-      _uploadId = const Uuid().v4();
-    });
+    final pick = _Pick(raw);
+    setState(() => _picks.add(pick));
     try {
       final prepared = await ref.read(imageProcessorProvider).prepare(raw);
       if (!mounted) return;
       setState(() {
-        _prepared = prepared;
+        pick.prepared = prepared;
         _takenAt ??= prepared.takenAt;
       });
     } on AppFailure catch (f) {
-      if (mounted) setState(() => _error = f.message);
+      if (mounted) setState(() => pick.error = f.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'We couldn’t read that photo.');
-    } finally {
-      if (mounted) setState(() => _preparing = false);
+      if (mounted) setState(() => pick.error = 'We couldn’t read that photo.');
     }
   }
 
@@ -116,137 +168,320 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
   }
 
   Future<void> _share(Group group) async {
-    final prepared = _prepared;
-    if (prepared == null || _uploading) return;
+    final photos = _usable;
+    if (photos.isEmpty || _sharing) return;
     setState(() {
       _error = null;
-      _stage = UploadStage.preparing;
+      _sharing = true;
     });
+    final actions = ref.read(photoActionsProvider);
+    var removed = 0;
     try {
-      final result = await ref
-          .read(photoActionsProvider)
-          .upload(
-            groupId: group.id,
-            clientUploadId: _uploadId,
-            photo: prepared,
-            caption: _caption.text,
-            takenAt: _takenAt,
-            onStage: (s) {
-              if (mounted) setState(() => _stage = s);
-            },
-          );
+      for (var i = 0; i < photos.length; i++) {
+        final p = photos[i];
+        if (p.sharedPhotoId != null) continue; // done before a retry
+        setState(() => _current = i);
+        final result = await actions.upload(
+          groupId: group.id,
+          clientUploadId: p.uploadId,
+          photo: p.prepared!,
+          caption: _caption.text,
+          takenAt: _takenAt,
+          onStage: (s) {
+            if (mounted) setState(() => _stage = s);
+          },
+        );
+        p.sharedPhotoId = result.photoId;
+        removed += result.removedCount;
+      }
+      if (_pin) {
+        for (final p in photos) {
+          await actions.setPinnedById(group.id, p.sharedPhotoId!, true);
+        }
+      }
       if (!mounted) return;
+      final what = photos.length == 1 ? 'Shared' : 'Shared ${photos.length}';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result.removedCount > 0
-                ? 'Shared with ${group.name}. The oldest photo was removed to '
-                      'keep ${Group.basicPhotoLimit}.'
-                : 'Shared with ${group.name}',
+            removed > 0
+                ? '$what with ${group.name}. The oldest '
+                      '${removed == 1 ? 'photo was' : '$removed photos were'} '
+                      'removed to keep ${Group.basicPhotoLimit}.'
+                : '$what with ${group.name}',
           ),
         ),
       );
-      if (_special) {
-        context.go(Routes.group(group.id));
-        context.push(Routes.newMoment(group.id, photoId: result.photoId));
-      } else {
-        context.go(Routes.group(group.id));
+      context.go(Routes.group(group.id));
+      if (_moment) {
+        context.push(
+          Routes.newMoment(group.id, photoId: photos.first.sharedPhotoId),
+        );
       }
     } on AppFailure catch (f) {
-      if (mounted) {
-        setState(() {
-          _stage = null;
-          _error = f.message;
-        });
-      }
+      if (mounted) setState(() => _error = f.message);
     } catch (_) {
       if (mounted) {
+        setState(
+          () => _error = 'The photo couldn’t be shared. Please try again.',
+        );
+      }
+    } finally {
+      if (mounted) {
         setState(() {
+          _sharing = false;
           _stage = null;
-          _error = 'The photo couldn’t be shared. Please try again.';
         });
       }
     }
   }
 
+  void _close() {
+    if (_sharing) return;
+    context.canPop() ? context.pop() : context.go(Routes.home);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final group = ref.watch(groupProvider(widget.groupId));
+    final c = context.closerColors;
+    final groups = ref.watch(myGroupsProvider);
     return PopScope(
-      canPop: !_uploading,
+      canPop: !_sharing,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Share a Memory'),
-          leading: IconButton(
-            tooltip: 'Back',
-            icon: const Icon(CloserIcons.back),
-            onPressed: _uploading
-                ? null
-                : () => context.canPop()
-                      ? context.pop()
-                      : context.go(Routes.group(widget.groupId)),
-          ),
-        ),
-        body: SafeArea(
-          child: AsyncBody(
-            value: group,
-            onRetry: () => ref.invalidate(groupProvider(widget.groupId)),
-            builder: _body,
-          ),
+        body: Stack(
+          children: [
+            // Soft blush circle, top right (decorative, as on the board).
+            Positioned(
+              top: -40,
+              right: -70,
+              child: ExcludeSemantics(
+                child: Container(
+                  width: 210,
+                  height: 210,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: c.accentSoft.withValues(alpha: 0.9),
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: switch (groups) {
+                AsyncData(:final value) => _body(value),
+                AsyncError() => ErrorState(
+                  message: 'Your groups couldn’t be loaded.',
+                  onRetry: () => ref.invalidate(myGroupsProvider),
+                ),
+                _ => const LoadingState(),
+              },
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _body(Group group) {
+  Widget _body(List<Group> groups) {
     final c = context.closerColors;
-    final raw = _raw;
-    if (raw == null) {
-      return ListView(
-        padding: const EdgeInsets.all(CloserSpacing.gutter),
-        children: [
-          Text(
-            'Share a photo with ${group.name}',
-            style: context.text.headlineSmall,
+    final selected = groups.where((g) => g.id == _groupId).firstOrNull;
+    final usable = _usable;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        CloserSpacing.gutter,
+        CloserSpacing.xs,
+        CloserSpacing.gutter,
+        CloserSpacing.xl,
+      ),
+      children: [
+        Center(
+          child: Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: c.textTertiary.withValues(alpha: 0.5),
+              borderRadius: CloserRadii.pillAll,
+            ),
           ),
-          const SizedBox(height: CloserSpacing.xs),
-          Text(
-            'Only members of this group can see it.',
-            style: context.text.bodyMedium,
+        ),
+        const SizedBox(height: CloserSpacing.xs),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            tooltip: 'Close',
+            icon: const Icon(CloserIcons.close),
+            onPressed: _sharing ? null : _close,
           ),
-          const SizedBox(height: CloserSpacing.xl),
-          if (group.nextUploadRemovesOldest) ...[
-            RetentionNotice(group: group),
-            const SizedBox(height: CloserSpacing.lg),
+        ),
+        const SizedBox(height: CloserSpacing.md),
+        Text(
+          'Share a memory',
+          style: context.text.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: CloserSpacing.xxs),
+        Text('Choose a group', style: context.text.bodyLarge),
+        const SizedBox(height: CloserSpacing.lg),
+        _PhotoStrip(
+          picks: _picks,
+          enabled: !_sharing,
+          onAdd: _picks.length >= maxPhotosPerShare ? null : _choose,
+          onRemove: (p) => setState(() => _picks.remove(p)),
+        ),
+        for (final p in _picks)
+          if (p.error != null) ...[
+            const SizedBox(height: CloserSpacing.xs),
+            FormErrorText(p.error),
           ],
-          FormErrorText(_error),
-          CloserButton(
-            label: 'Choose from gallery',
-            icon: const Icon(CloserIcons.gallery),
-            onPressed: () => _pick(PhotoSource.gallery),
+        const SizedBox(height: CloserSpacing.md),
+        if (groups.isEmpty) ...[
+          const NoticeCard(
+            title: 'No groups yet',
+            message:
+                'Photos are shared into a group. Create or join one first.',
           ),
           const SizedBox(height: CloserSpacing.sm),
           CloserButton.secondary(
-            label: 'Take a photo',
-            icon: const Icon(CloserIcons.camera),
-            onPressed: () => _pick(PhotoSource.camera),
+            label: 'Create a group',
+            onPressed: () => context.push(Routes.createGroup),
+          ),
+        ] else
+          for (final g in groups)
+            _GroupOption(
+              group: g,
+              selected: g.id == _groupId,
+              onTap: _sharing
+                  ? null
+                  : () => setState(() {
+                      _groupId = g.id;
+                      if (!g.isPremium) _pin = false;
+                    }),
+            ),
+        if (selected != null && selected.nextUploadRemovesOldest) ...[
+          const SizedBox(height: CloserSpacing.sm),
+          RetentionNotice(group: selected),
+        ],
+        const SizedBox(height: CloserSpacing.md),
+        CloserTextField(
+          controller: _caption,
+          hint: 'Add a caption...',
+          maxLength: 500,
+          enabled: !_sharing,
+          textCapitalization: TextCapitalization.sentences,
+        ),
+        const SizedBox(height: CloserSpacing.sm),
+        _OptionRow(
+          icon: CloserIcons.journal,
+          label: 'Pin to journal',
+          hint: selected == null || selected.isPremium
+              ? null
+              : 'Keeploom Memories',
+          trailing: Switch(
+            value: _pin,
+            onChanged: _sharing || selected == null || !selected.isPremium
+                ? null
+                : (v) => setState(() => _pin = v),
+          ),
+        ),
+        _OptionRow(
+          icon: CloserIcons.calendar,
+          label: 'Add a date',
+          value: _takenAt == null ? null : formatMediumDate(_takenAt!),
+          onTap: _sharing ? null : _pickDate,
+        ),
+        _OptionRow(
+          icon: CloserIcons.starOutline,
+          label: 'Add to a milestone',
+          value: _moment ? 'New special moment' : null,
+          onTap: _sharing ? null : () => setState(() => _moment = !_moment),
+        ),
+        const SizedBox(height: CloserSpacing.lg),
+        FormErrorText(_error),
+        if (_sharing && _stage != null) ...[
+          Semantics(
+            liveRegion: true,
+            label: usable.length > 1
+                ? 'Sharing photo ${_current + 1} of ${usable.length}'
+                : _stage!.label,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ClipRRect(
+                  borderRadius: CloserRadii.pillAll,
+                  child: LinearProgressIndicator(
+                    value: usable.isEmpty
+                        ? null
+                        : (_current + _stage!.progress) / usable.length,
+                    minHeight: 8,
+                  ),
+                ),
+                const SizedBox(height: CloserSpacing.xs),
+                Text(
+                  usable.length > 1
+                      ? 'Photo ${_current + 1} of ${usable.length} · '
+                            '${_stage!.label}'
+                      : _stage!.label,
+                  style: context.text.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: CloserSpacing.md),
+        ],
+        CloserButton(
+          label: _error != null && usable.isNotEmpty ? 'Retry' : 'Share',
+          isLoading: _sharing || _preparing,
+          onPressed: usable.isEmpty || selected == null
+              ? null
+              : () => _share(selected),
+        ),
+        if (usable.isEmpty || selected == null) ...[
+          const SizedBox(height: CloserSpacing.xs),
+          Text(
+            usable.isEmpty ? 'Add a photo to share.' : 'Choose a group.',
+            textAlign: TextAlign.center,
+            style: context.text.bodySmall,
           ),
         ],
-      );
-    }
+      ],
+    );
+  }
+}
 
-    return ListView(
-      padding: const EdgeInsets.all(CloserSpacing.gutter),
-      children: [
-        ClipRRect(
-          borderRadius: CloserRadii.xlAll,
-          child: AspectRatio(
-            aspectRatio: 4 / 3,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.memory(
-                  _prepared?.thumbnail ?? raw,
+/// Picked photos as square tiles (with remove buttons) and an "Add more"
+/// tile, two to a row like the board.
+class _PhotoStrip extends StatelessWidget {
+  const _PhotoStrip({
+    required this.picks,
+    required this.enabled,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  final List<_Pick> picks;
+  final bool enabled;
+  final VoidCallback? onAdd;
+  final ValueChanged<_Pick> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.closerColors;
+    final size =
+        (MediaQuery.sizeOf(context).width -
+            CloserSpacing.gutter * 2 -
+            CloserSpacing.sm) /
+        2;
+    final tiles = <Widget>[
+      for (final p in picks)
+        SizedBox.square(
+          dimension: size,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ClipRRect(
+                borderRadius: CloserRadii.xlAll,
+                child: Image.memory(
+                  p.prepared?.thumbnail ?? p.raw,
                   fit: BoxFit.cover,
                   gaplessPlayback: true,
                   semanticLabel: 'Selected photo',
@@ -255,116 +490,205 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
                     child: Icon(CloserIcons.gallery, color: c.textTertiary),
                   ),
                 ),
-                if (_preparing)
-                  const ColoredBox(
-                    color: Color(0x66000000),
+              ),
+              if (!p.ready && p.error == null)
+                const ClipRRect(
+                  borderRadius: CloserRadii.xlAll,
+                  child: ColoredBox(
+                    color: Color(0x55000000),
                     child: LoadingState(),
                   ),
-                if (!_uploading)
-                  Positioned(
-                    top: CloserSpacing.sm,
-                    right: CloserSpacing.sm,
+                ),
+              if (enabled)
+                Positioned(
+                  top: CloserSpacing.xs,
+                  right: CloserSpacing.xs,
+                  child: Semantics(
+                    button: true,
+                    label: 'Remove photo',
+                    excludeSemantics: true,
                     child: Material(
-                      color: Colors.black45,
-                      shape: const StadiumBorder(),
-                      child: TextButton.icon(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
+                      color: c.accent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () => onRemove(p),
+                        child: const SizedBox.square(
+                          dimension: 36,
+                          child: Icon(
+                            CloserIcons.close,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
-                        onPressed: () => _pick(PhotoSource.gallery),
-                        icon: const Icon(CloserIcons.edit, size: 18),
-                        label: const Text('Change'),
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
-        const SizedBox(height: CloserSpacing.lg),
-        Text('Add a caption (optional)', style: context.text.titleMedium),
-        const SizedBox(height: CloserSpacing.sm),
-        CloserTextField(
-          controller: _caption,
-          hint: 'e.g. Beautiful sunset together',
-          maxLength: 500,
-          enabled: !_uploading,
-          textCapitalization: TextCapitalization.sentences,
-        ),
-        const SizedBox(height: CloserSpacing.md),
-        Text('Date (optional)', style: context.text.titleMedium),
-        const SizedBox(height: CloserSpacing.sm),
-        Material(
-          color: c.surface,
-          borderRadius: CloserRadii.mdAll,
-          child: ListTile(
-            enabled: !_uploading,
-            shape: RoundedRectangleBorder(
-              borderRadius: CloserRadii.mdAll,
-              side: BorderSide(color: c.line),
-            ),
-            leading: Icon(CloserIcons.calendar, color: c.textTertiary),
-            title: Text(
-              _takenAt == null
-                  ? 'When was this taken?'
-                  : formatMediumDate(_takenAt!),
-              style: context.text.bodyLarge,
-            ),
-            trailing: _takenAt == null
-                ? null
-                : IconButton(
-                    tooltip: 'Clear date',
-                    icon: const Icon(CloserIcons.close, size: 20),
-                    onPressed: () => setState(() => _takenAt = null),
+      if (onAdd != null)
+        SizedBox.square(
+          dimension: size,
+          child: Material(
+            color: c.surfaceMuted,
+            borderRadius: CloserRadii.xlAll,
+            child: InkWell(
+              borderRadius: CloserRadii.xlAll,
+              onTap: enabled ? onAdd : null,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CloserIcons.plus, size: 32, color: c.textSecondary),
+                  const SizedBox(height: CloserSpacing.xs),
+                  Text(
+                    picks.isEmpty ? 'Add photo' : 'Add more',
+                    style: context.text.bodyLarge?.copyWith(
+                      color: c.textSecondary,
+                    ),
                   ),
-            onTap: _pickDate,
+                ],
+              ),
+            ),
           ),
         ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          value: _special,
-          onChanged: _uploading ? null : (v) => setState(() => _special = v),
-          title: Text('Mark as special moment', style: context.text.bodyLarge),
-          subtitle: Text(
-            'Anniversary, first trip, birthday… you can add details next.',
-            style: context.text.bodySmall,
-          ),
-        ),
-        const SizedBox(height: CloserSpacing.lg),
-        if (group.nextUploadRemovesOldest) ...[
-          RetentionNotice(group: group),
-          const SizedBox(height: CloserSpacing.lg),
-        ],
-        FormErrorText(_error),
-        if (_stage != null) ...[
-          Semantics(
-            liveRegion: true,
-            label:
-                '${_stage!.label}, ${(_stage!.progress * 100).round()} percent',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ClipRRect(
-                  borderRadius: CloserRadii.pillAll,
-                  child: LinearProgressIndicator(
-                    value: _stage!.progress,
-                    minHeight: 8,
+    ];
+    return Wrap(
+      spacing: CloserSpacing.sm,
+      runSpacing: CloserSpacing.sm,
+      children: tiles,
+    );
+  }
+}
+
+class _GroupOption extends StatelessWidget {
+  const _GroupOption({
+    required this.group,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Group group;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.closerColors;
+    final n = group.memberCount;
+    return Semantics(
+      inMutuallyExclusiveGroup: true,
+      selected: selected,
+      button: true,
+      label: '${group.name}, $n ${n == 1 ? 'member' : 'members'}',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: CloserRadii.lgAll,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: CloserSpacing.xs),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: CloserRadii.mdAll,
+                child: SizedBox.square(
+                  dimension: 64,
+                  child: GroupCover(group: group),
+                ),
+              ),
+              const SizedBox(width: CloserSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      group.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.titleMedium,
+                    ),
+                    Text(
+                      '$n ${n == 1 ? 'member' : 'members'}',
+                      style: context.text.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              AnimatedContainer(
+                duration: CloserMotion.of(context, CloserMotion.fast),
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: selected ? c.accent : Colors.transparent,
+                  border: Border.all(
+                    color: selected ? c.accent : c.textTertiary,
+                    width: 1.5,
                   ),
                 ),
-                const SizedBox(height: CloserSpacing.xs),
-                Text(_stage!.label, style: context.text.bodySmall),
-              ],
-            ),
+                child: selected
+                    ? const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: CloserSpacing.xs),
+            ],
           ),
-          const SizedBox(height: CloserSpacing.md),
-        ],
-        CloserButton(
-          label: _error != null && _prepared != null ? 'Retry' : 'Share Photo',
-          icon: Icon(_error != null ? CloserIcons.retry : CloserIcons.share),
-          isLoading: _uploading || _preparing,
-          onPressed: _prepared == null ? null : () => _share(group),
         ),
-      ],
+      ),
+    );
+  }
+}
+
+class _OptionRow extends StatelessWidget {
+  const _OptionRow({
+    required this.icon,
+    required this.label,
+    this.value,
+    this.hint,
+    this.trailing,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? value;
+  final String? hint;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.closerColors;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      minTileHeight: 52,
+      onTap: onTap,
+      leading: Icon(icon, color: c.textPrimary, size: 22),
+      title: Text(label, style: context.text.bodyLarge),
+      subtitle: hint == null
+          ? null
+          : Text(hint!, style: context.text.bodySmall),
+      trailing:
+          trailing ??
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (value != null)
+                Text(
+                  value!,
+                  style: context.text.bodyLarge?.copyWith(
+                    color: c.textSecondary,
+                  ),
+                ),
+              const SizedBox(width: CloserSpacing.xxs),
+              Icon(CloserIcons.chevronRight, color: c.textTertiary, size: 20),
+            ],
+          ),
     );
   }
 }

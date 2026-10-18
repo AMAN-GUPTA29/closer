@@ -64,6 +64,7 @@ abstract final class CloserIcons {
   static const IconData trip = LucideIcons.plane;
   static const IconData graduation = LucideIcons.graduationCap;
   static const IconData star = Icons.star_rounded;
+  static const IconData starOutline = LucideIcons.star;
   static const IconData widgets = LucideIcons.layoutGrid;
   static const IconData phone = LucideIcons.smartphone;
   static const IconData appearance = LucideIcons.palette;

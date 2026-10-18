@@ -4,9 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/network/connectivity.dart';
 import '../../core/routing/routes.dart';
-import '../groups/application/group_providers.dart';
 import '../journal/application/content_providers.dart';
-import '../photos/presentation/photo_widgets.dart';
 import 'keeploom_bottom_nav.dart';
 
 import '../../core/theme/closer_icons.dart';
@@ -66,101 +64,7 @@ class AppShell extends ConsumerWidget {
   }
 }
 
-/// Entry point for sharing a memory: choose which group it goes to.
-Future<void> showAddMemorySheet(BuildContext context) {
-  return showModalBottomSheet<void>(
-    context: context,
-    useRootNavigator: true,
-    isScrollControlled: true,
-    builder: (context) => const _AddMemorySheet(),
-  );
-}
-
-class _AddMemorySheet extends ConsumerWidget {
-  const _AddMemorySheet();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final groups = ref.watch(myGroupsProvider);
-    void go(String route) {
-      Navigator.of(context).pop();
-      GoRouter.of(context).push(route);
-    }
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          CloserSpacing.gutter,
-          0,
-          CloserSpacing.gutter,
-          CloserSpacing.xl,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Share a memory', style: context.text.headlineSmall),
-            const SizedBox(height: CloserSpacing.xs),
-            switch (groups) {
-              AsyncData(:final value) when value.isEmpty => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Photos are shared into a group. Create or join one '
-                    'first.',
-                    style: context.text.bodyMedium,
-                  ),
-                  const SizedBox(height: CloserSpacing.lg),
-                  CloserButton(
-                    label: 'Create a group',
-                    onPressed: () => go(Routes.createGroup),
-                  ),
-                ],
-              ),
-              AsyncData(:final value) => ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.sizeOf(context).height * 0.5,
-                ),
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    Text('Choose a group', style: context.text.bodyMedium),
-                    const SizedBox(height: CloserSpacing.sm),
-                    for (final g in value)
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        minTileHeight: 64,
-                        leading: ClipRRect(
-                          borderRadius: CloserRadii.smAll,
-                          child: SizedBox.square(
-                            dimension: 48,
-                            child: GroupCover(group: g),
-                          ),
-                        ),
-                        title: Text(g.name, style: context.text.titleSmall),
-                        subtitle: Text(
-                          '${g.type.label} · ${g.memberCount} '
-                          '${g.memberCount == 1 ? 'member' : 'members'}',
-                          style: context.text.bodySmall,
-                        ),
-                        trailing: const Icon(CloserIcons.chevronRight),
-                        onTap: () => go(Routes.addMemory(g.id)),
-                      ),
-                  ],
-                ),
-              ),
-              AsyncError() => Text(
-                'Your groups couldn’t be loaded. Try again from Home.',
-                style: context.text.bodyMedium,
-              ),
-              _ => const Padding(
-                padding: EdgeInsets.all(CloserSpacing.xl),
-                child: LoadingState(),
-              ),
-            },
-          ],
-        ),
-      ),
-    );
-  }
-}
+/// Entry point for sharing a memory: the share screen, where the group is
+/// chosen along with the photos.
+Future<void> showAddMemorySheet(BuildContext context) =>
+    GoRouter.of(context).push<void>(Routes.share);

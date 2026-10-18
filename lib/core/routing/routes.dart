@@ -38,6 +38,7 @@ abstract final class Routes {
   static const deleteAccount = '/profile/delete';
   static const widgetSetup = '/profile/widgets';
   static const chooseUsername = '/username';
+  static const share = '/share';
   static String addMemory(String id, {String? source}) =>
       '/home/groups/$id/add${source == null ? '' : '?source=$source'}';
 

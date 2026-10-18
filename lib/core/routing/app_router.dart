@@ -92,6 +92,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             VerifyEmailScreen(email: state.uri.queryParameters['email']),
       ),
       GoRoute(
+        path: Routes.share,
+        pageBuilder: (context, state) => MaterialPage(
+          fullscreenDialog: true,
+          child: AddMemoryScreen(
+            source: switch (state.uri.queryParameters['source']) {
+              'camera' => PhotoSource.camera,
+              'gallery' => PhotoSource.gallery,
+              _ => null,
+            },
+          ),
+        ),
+      ),
+      GoRoute(
         path: Routes.chooseUsername,
         builder: (context, state) => const ChooseUsernameScreen(),
       ),

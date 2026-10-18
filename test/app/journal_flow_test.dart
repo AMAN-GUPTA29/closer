@@ -140,10 +140,15 @@ void main() {
     await openGroup(tester, 'Us');
     await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
-    await tapButton(tester, 'Choose from gallery');
-    await tester.tap(find.text('Mark as special moment'));
+    await tester.tap(find.text('Add photo'));
     await tester.pumpAndSettle();
-    await tapButton(tester, 'Share Photo');
+    await tester.tap(find.text('Choose from gallery'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Add to a milestone'));
+    await tester.tap(find.text('Add to a milestone'));
+    await tester.pumpAndSettle();
+    expect(find.text('New special moment'), findsOneWidget);
+    await tapButton(tester, 'Share');
 
     expect(find.byType(SpecialMomentScreen), findsOneWidget);
     await tester.enterText(
