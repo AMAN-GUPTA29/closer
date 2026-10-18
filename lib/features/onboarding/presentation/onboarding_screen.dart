@@ -96,8 +96,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       SizedBox(
                         // Grows with the user's text size; the page scrolls.
-                        height: (430 * scale).clamp(430, 760),
+                        height: (520 * scale).clamp(520, 820),
                         child: PageView.builder(
+                          // Let the cards' soft shadows breathe; neighbouring
+                          // pages sit fully off screen.
+                          clipBehavior: Clip.none,
                           controller: _controller,
                           itemCount: _pages.length,
                           onPageChanged: (i) => setState(() => _page = i),

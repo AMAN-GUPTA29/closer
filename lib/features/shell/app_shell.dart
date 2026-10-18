@@ -6,6 +6,7 @@ import '../../core/network/connectivity.dart';
 import '../../core/routing/routes.dart';
 import '../groups/application/group_providers.dart';
 import '../journal/application/content_providers.dart';
+import '../photos/presentation/photo_widgets.dart';
 import 'keeploom_bottom_nav.dart';
 
 import '../../core/theme/closer_icons.dart';
@@ -128,11 +129,20 @@ class _AddMemorySheet extends ConsumerWidget {
                     for (final g in value)
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: Icon(
-                          g.type.icon,
-                          color: g.type.tint(context.closerColors),
+                        minTileHeight: 64,
+                        leading: ClipRRect(
+                          borderRadius: CloserRadii.smAll,
+                          child: SizedBox.square(
+                            dimension: 48,
+                            child: GroupCover(group: g),
+                          ),
                         ),
                         title: Text(g.name, style: context.text.titleSmall),
+                        subtitle: Text(
+                          '${g.type.label} · ${g.memberCount} '
+                          '${g.memberCount == 1 ? 'member' : 'members'}',
+                          style: context.text.bodySmall,
+                        ),
                         trailing: const Icon(CloserIcons.chevronRight),
                         onTap: () => go(Routes.addMemory(g.id)),
                       ),

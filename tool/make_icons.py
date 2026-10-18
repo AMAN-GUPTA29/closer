@@ -86,8 +86,8 @@ def main():
     full.alpha_composite(m)
     full.convert("RGB").save(ICON / "icon.png")
 
-    mark(1024, 0.56).save(ICON / "foreground.png")
-    silhouette(1024, 0.56).save(ICON / "monochrome.png")
+    mark(1024, 0.66).save(ICON / "foreground.png")
+    silhouette(1024, 0.66).save(ICON / "monochrome.png")
 
     mark(768, 1.0).save(ICON / "splash.png")
     a12 = Image.new("RGBA", (1152, 1152), (0, 0, 0, 0))

@@ -89,9 +89,6 @@ flutter:
     - family: PlusJakartaSans
       fonts:
         - asset: assets/fonts/PlusJakartaSans-Variable.ttf
-    - family: Fraunces
-      fonts:
-        - asset: assets/fonts/Fraunces-Variable.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -19,4 +19,11 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+    <!-- Widget group picker: Keeploom colours, light or dark with the system. -->
+    <style name="WidgetConfigureTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/kl_background</item>
+        <item name="android:statusBarColor">@color/kl_background</item>
+        <item name="android:navigationBarColor">@color/kl_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
 </resources>

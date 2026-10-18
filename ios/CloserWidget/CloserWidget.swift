@@ -125,7 +125,7 @@ struct Provider: AppIntentTimelineProvider {
 struct CloserWidgetView: View {
     let entry: CloserEntry
 
-    private let coral = Color(red: 0.95, green: 0.42, blue: 0.50)
+    private let coral = Color(red: 0.96, green: 0.46, blue: 0.48) // Keeploom coral #F5767A
 
     var body: some View {
         switch entry.state {

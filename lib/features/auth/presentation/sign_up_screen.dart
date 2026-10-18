@@ -74,7 +74,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       children: [
         const AuthHeader(
           title: 'Welcome to Keeploom',
-          subtitle: 'Your people. Your moments. Always close.',
+          subtitle: KeeploomLogo.tagline,
         ),
         const BackendNotice(),
         SocialSignInButtons(onError: (f) => setState(() => _error = f.message)),

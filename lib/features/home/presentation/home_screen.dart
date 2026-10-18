@@ -60,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
                         child: Semantics(
                           header: true,
                           child: Text(
-                            'Your Groups',
+                            'Your groups',
                             style: context.text.titleLarge,
                           ),
                         ),

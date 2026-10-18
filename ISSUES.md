@@ -74,6 +74,7 @@ _Last updated: 2026-10-15 (backend live). Release order: docs/release-readiness.
 | D7 | Google/Apple button branding | Monochrome marks used; check provider brand rules before enabling | 🟡 |
 | D8 | Apple review risk: a consumable that unlocks a permanent per-group feature (guideline 3.1.1) | Explain in the App Review notes; fallback options are in docs/release-readiness.md §2 | 🟡 |
 | D9 | Store listing content: screenshots, description, Data safety / privacy labels, content rating, demo account for review | Owner fills these in the consoles (checklist in release-readiness.md) | 🟡 |
+| D10 | Keeploom name check: trademark / app-store name availability, and whether to move to a `keeploom` bundle id + domain before the first store listing (changing it later is hard; see D4) | Owner decision 👤 | 🟡 |
 
 ## E. Technical follow-ups (🤖, scheduled)
 

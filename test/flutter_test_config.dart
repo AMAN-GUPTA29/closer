@@ -14,6 +14,5 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   }
 
   await load('PlusJakartaSans', 'assets/fonts/PlusJakartaSans-Variable.ttf');
-  await load('Fraunces', 'assets/fonts/Fraunces-Variable.ttf');
   await testMain();
 }

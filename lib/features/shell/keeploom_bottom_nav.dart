@@ -167,9 +167,8 @@ class _DockButton extends StatelessWidget {
               item.label,
               maxLines: 1,
               // Never fade (a faded end lowers contrast); shrink instead.
-              textScaler: MediaQuery.textScalerOf(context).clamp(
-                maxScaleFactor: 1.3,
-              ),
+              textScaler: MediaQuery.textScalerOf(context)
+                  .clamp(maxScaleFactor: 1.3),
               style: context.text.labelMedium?.copyWith(
                 color: color,
                 // Heavier strokes keep thin 12 px glyphs crisp and legible.
