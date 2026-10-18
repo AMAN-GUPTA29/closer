@@ -69,7 +69,7 @@ class HomeScreen extends ConsumerWidget {
                         icon: CloserIcons.plus,
                         semanticLabel: 'Create a group',
                         filled: true,
-                        size: 36,
+                        size: 48,
                         onPressed: () => context.push(Routes.createGroup),
                       ),
                     ],
@@ -174,6 +174,7 @@ class _Header extends ConsumerWidget {
               ? 'Notifications, $unread unread'
               : 'Notifications',
           showBadge: unread > 0,
+          tonal: true,
           onPressed: () => context.go(Routes.notifications),
         ),
         const SizedBox(width: CloserSpacing.xs),
@@ -184,7 +185,7 @@ class _Header extends ConsumerWidget {
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: () => context.go(Routes.profile),
-            child: MyAvatar(fallbackName: name, size: 44),
+            child: MyAvatar(fallbackName: name, size: 48),
           ),
         ),
       ],
@@ -192,7 +193,7 @@ class _Header extends ConsumerWidget {
   }
 }
 
-class _GroupTile extends StatelessWidget {
+class _GroupTile extends ConsumerWidget {
   const _GroupTile(this.group);
 
   final Group group;
@@ -206,8 +207,10 @@ class _GroupTile extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final members = ref.watch(groupMembersProvider(group.id)).value ?? const [];
     return GroupCard(
+      members: members.isEmpty ? null : _MemberFaces(members),
       name: group.name,
       type: group.type,
       memberCount: group.memberCount,
@@ -216,6 +219,30 @@ class _GroupTile extends StatelessWidget {
       isPremium: group.isPremium,
       coverWidget: GroupCover(group: group),
       onTap: () => context.push(Routes.group(group.id)),
+    );
+  }
+}
+
+/// Up to six overlapping member photos (initials when there is none).
+class _MemberFaces extends ConsumerWidget {
+  const _MemberFaces(this.members);
+
+  final List<GroupMember> members;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final images = <String, ImageProvider>{};
+    for (final m in members.take(6)) {
+      final path = m.avatarPath;
+      if (path == null) continue;
+      final image = ref.watch(avatarImageProvider(path)).value;
+      if (image != null) images[m.displayName] = image;
+    }
+    return AvatarStack(
+      names: [for (final m in members) m.displayName],
+      images: images,
+      size: 26,
+      showOverflow: false,
     );
   }
 }
@@ -276,8 +303,6 @@ class _GroupsError extends ConsumerWidget {
 class _RecentMoments extends ConsumerWidget {
   const _RecentMoments();
 
-  static const _size = 104.0;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final photos = [
@@ -286,6 +311,9 @@ class _RecentMoments extends ConsumerWidget {
     ].take(8).toList();
     if (photos.isEmpty) return const SizedBox.shrink();
     void openJournal() => StatefulNavigationShell.of(context).goBranch(1);
+    // Three tiles across, the next one peeking in.
+    final tile =
+        (MediaQuery.sizeOf(context).width - CloserSpacing.gutter * 2 - 24) / 3;
     return Padding(
       padding: const EdgeInsets.only(bottom: CloserSpacing.xxl),
       child: Column(
@@ -314,7 +342,7 @@ class _RecentMoments extends ConsumerWidget {
             ),
           ),
           SizedBox(
-            height: _size,
+            height: tile * 1.12,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(
@@ -323,10 +351,10 @@ class _RecentMoments extends ConsumerWidget {
               itemCount: photos.length,
               separatorBuilder: (_, _) =>
                   const SizedBox(width: CloserSpacing.sm),
-              itemBuilder: (context, i) => SizedBox.square(
-                dimension: _size,
+              itemBuilder: (context, i) => SizedBox(
+                width: tile,
                 child: ClipRRect(
-                  borderRadius: CloserRadii.mdAll,
+                  borderRadius: CloserRadii.lgAll,
                   child: Material(
                     type: MaterialType.transparency,
                     child: InkWell(

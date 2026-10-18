@@ -11,6 +11,7 @@ import '../../journal/presentation/journal_list.dart';
 import '../../journal/presentation/milestone_views.dart';
 import '../../photos/presentation/photo_widgets.dart';
 import '../application/group_providers.dart';
+import '../../journal/application/content_providers.dart';
 import '../domain/group_models.dart';
 import 'group_widgets.dart';
 
@@ -62,6 +63,13 @@ class _GroupHome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final members = ref.watch(groupMembersProvider(group.id));
     final names = members.value?.map((m) => m.displayName).toList() ?? [];
+    final images = <String, ImageProvider>{};
+    for (final m in members.value?.take(6) ?? const <GroupMember>[]) {
+      final path = m.avatarPath;
+      if (path == null) continue;
+      final image = ref.watch(avatarImageProvider(path)).value;
+      if (image != null) images[m.displayName] = image;
+    }
     final c = context.closerColors;
 
     return DefaultTabController(
@@ -89,7 +97,11 @@ class _GroupHome extends ConsumerWidget {
             ],
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.parallax,
-              background: _Hero(group: group, memberNames: names),
+              background: _Hero(
+                group: group,
+                memberNames: names,
+                memberImages: images,
+              ),
             ),
           ),
           SliverToBoxAdapter(child: _ActionRow(group: group)),
@@ -184,10 +196,15 @@ class _GroupHome extends ConsumerWidget {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({required this.group, required this.memberNames});
+  const _Hero({
+    required this.group,
+    required this.memberNames,
+    this.memberImages = const {},
+  });
 
   final Group group;
   final List<String> memberNames;
+  final Map<String, ImageProvider> memberImages;
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +274,7 @@ class _Hero extends StatelessWidget {
               ],
               if (memberNames.isNotEmpty) ...[
                 const SizedBox(height: CloserSpacing.md),
-                AvatarStack(names: memberNames, size: 34),
+                AvatarStack(names: memberNames, images: memberImages, size: 34),
               ],
             ],
           ),

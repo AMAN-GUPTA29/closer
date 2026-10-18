@@ -5,8 +5,9 @@ import '../theme/closer_icons.dart';
 import '../theme/closer_theme.dart';
 import 'closer_photo.dart';
 
-/// A row card for the Home group list: cover photo, name, type and member
-/// count, and a latest-activity line.
+/// A row card for the Home group list, as on the Keeploom board: a large
+/// rounded cover, the group name with a chevron, member faces with a count,
+/// and a latest-activity line.
 class GroupCard extends StatelessWidget {
   const GroupCard({
     super.key,
@@ -16,6 +17,7 @@ class GroupCard extends StatelessWidget {
     required this.onTap,
     this.cover,
     this.coverWidget,
+    this.members,
     this.activity,
     this.isPremium = false,
     this.placeholderVariant = 0,
@@ -30,49 +32,60 @@ class GroupCard extends StatelessWidget {
   /// Custom cover (e.g. a lazily resolved private photo); wins over [cover].
   final Widget? coverWidget;
 
-  /// e.g. "182 days together", "3 new memories", "New photo 2h ago".
+  /// Overlapping member faces (an [AvatarStack]), shown before the count.
+  final Widget? members;
+
+  /// e.g. "182 days together", "Active 2h ago".
   final String? activity;
   final bool isPremium;
   final int placeholderVariant;
 
+  static const double coverSize = 120;
+
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final tint = type.tint(c);
-    final members = '$memberCount ${memberCount == 1 ? 'member' : 'members'}';
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final membersLabel =
+        '$memberCount ${memberCount == 1 ? 'member' : 'members'}';
+    final activityColor = type == GroupType.couple ? c.accent : type.tint(c);
+    final activityIcon = type == GroupType.couple
+        ? CloserIcons.heart
+        : type.icon;
 
     return Semantics(
       button: true,
       label:
-          '$name, ${type.label} group, $members'
+          '$name, ${type.label} group, $membersLabel'
           '${activity != null ? ', $activity' : ''}'
           '${isPremium ? ', Keeploom Memories' : ''}',
       excludeSemantics: true,
       // The shadow sits behind the opaque Material; a shadow on a transparent
       // box inside it would tint the whole card grey.
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          borderRadius: CloserRadii.lgAll,
-          boxShadow: CloserElevation.low,
+        decoration: BoxDecoration(
+          borderRadius: CloserRadii.xlAll,
+          boxShadow: dark ? CloserElevation.none : CloserElevation.low,
         ),
         child: Material(
-          color: c.surface,
-          borderRadius: CloserRadii.lgAll,
+          // Dark: the lifted card tone, no outline (as on the board).
+          color: dark ? c.surfaceMuted : c.surface,
+          shape: const RoundedRectangleBorder(borderRadius: CloserRadii.xlAll),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onTap,
             child: Padding(
               padding: const EdgeInsets.all(CloserSpacing.xs),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    width: 96,
-                    height: 80,
+                  SizedBox.square(
+                    dimension: coverSize,
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
                         ClipRRect(
-                          borderRadius: CloserRadii.mdAll,
+                          borderRadius: CloserRadii.lgAll,
                           child:
                               coverWidget ??
                               CloserPhoto(
@@ -82,19 +95,15 @@ class GroupCard extends StatelessWidget {
                         ),
                         if (type == GroupType.couple)
                           Positioned(
-                            right: 6,
-                            bottom: 6,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: c.surface,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                CloserIcons.heart,
-                                size: 14,
-                                color: c.accent,
-                              ),
+                            left: 8,
+                            bottom: 8,
+                            child: Icon(
+                              CloserIcons.heart,
+                              size: 16,
+                              color: Colors.white,
+                              shadows: const [
+                                Shadow(color: Color(0x66000000), blurRadius: 6),
+                              ],
                             ),
                           ),
                       ],
@@ -102,62 +111,86 @@ class GroupCard extends StatelessWidget {
                   ),
                   const SizedBox(width: CloserSpacing.md),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.text.titleMedium,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: CloserSpacing.xs,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: context.text.titleLarge,
+                                      ),
+                                    ),
+                                    if (isPremium) ...[
+                                      const SizedBox(width: CloserSpacing.xxs),
+                                      Icon(
+                                        CloserIcons.crown,
+                                        size: 16,
+                                        color: c.premium,
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            if (isPremium) ...[
-                              const SizedBox(width: CloserSpacing.xxs),
                               Icon(
-                                CloserIcons.crown,
-                                size: 16,
-                                color: c.premium,
+                                CloserIcons.chevronRight,
+                                color: c.textTertiary,
+                                size: 20,
                               ),
                             ],
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${type.label} · $members',
-                          style: context.text.bodySmall,
-                        ),
-                        if (activity != null) ...[
+                          ),
                           const SizedBox(height: CloserSpacing.xs),
                           Row(
                             children: [
-                              Icon(type.icon, size: 14, color: tint),
-                              const SizedBox(width: CloserSpacing.xxs),
+                              if (members != null) ...[
+                                members!,
+                                const SizedBox(width: CloserSpacing.xs),
+                              ],
                               Flexible(
                                 child: Text(
-                                  activity!,
+                                  membersLabel,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: context.text.labelSmall?.copyWith(
-                                    color: c.textSecondary,
-                                  ),
+                                  style: context.text.bodyMedium,
                                 ),
                               ),
                             ],
                           ),
+                          if (activity != null) ...[
+                            const SizedBox(height: CloserSpacing.xs),
+                            Row(
+                              children: [
+                                Icon(
+                                  activityIcon,
+                                  size: 16,
+                                  color: activityColor,
+                                ),
+                                const SizedBox(width: CloserSpacing.xs),
+                                Flexible(
+                                  child: Text(
+                                    activity!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: context.text.bodyMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                  Icon(
-                    CloserIcons.chevronRight,
-                    color: c.textTertiary,
-                    size: 18,
-                  ),
-                  const SizedBox(width: CloserSpacing.xs),
                 ],
               ),
             ),

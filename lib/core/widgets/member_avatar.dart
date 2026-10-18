@@ -83,7 +83,8 @@ class AvatarStack extends StatelessWidget {
     required this.names,
     this.images = const {},
     this.size = 36,
-    this.max = 4,
+    this.max = 6,
+    this.showOverflow = true,
   });
 
   final List<String> names;
@@ -91,12 +92,16 @@ class AvatarStack extends StatelessWidget {
   final double size;
   final int max;
 
+  /// Shows a "+N" bubble after [max] faces; off where a count sits next
+  /// to the stack anyway.
+  final bool showOverflow;
+
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
     final shown = names.take(max).toList();
-    final extra = names.length - shown.length;
-    final step = size * 0.68;
+    final extra = showOverflow ? names.length - shown.length : 0;
+    final step = size * (shown.length > 3 ? 0.58 : 0.68);
     final count = shown.length + (extra > 0 ? 1 : 0);
     return Semantics(
       label: '${names.length} members',

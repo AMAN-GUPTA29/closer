@@ -195,6 +195,9 @@ void main() {
     await tester.tap(find.text('Preview the app (debug only)'));
     await tester.pumpAndSettle();
     expect(find.byType(HomeScreen), findsOneWidget);
+    // Let the preview data's simulated latency (member faces) finish.
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('legal summary opens from the auth footer', (tester) async {

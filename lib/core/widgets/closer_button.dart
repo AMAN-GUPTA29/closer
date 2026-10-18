@@ -161,6 +161,7 @@ class CloserIconButton extends StatelessWidget {
     required this.semanticLabel,
     required this.onPressed,
     this.filled = false,
+    this.tonal = false,
     this.showBadge = false,
     this.size = 44,
   });
@@ -171,6 +172,9 @@ class CloserIconButton extends StatelessWidget {
 
   /// Filled buttons use the accent gradient (e.g. the "+" create button).
   final bool filled;
+
+  /// Blush background, no shadow (e.g. the Home bell).
+  final bool tonal;
   final bool showBadge;
   final double size;
 
@@ -197,9 +201,15 @@ class CloserIconButton extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: filled ? c.accentGradient : null,
-                      color: filled ? null : c.surface,
+                      color: filled
+                          ? null
+                          : tonal
+                          ? c.accentSoft
+                          : c.surface,
                       boxShadow: filled
                           ? CloserElevation.accentGlow
+                          : tonal
+                          ? CloserElevation.none
                           : CloserElevation.low,
                     ),
                     child: Material(
