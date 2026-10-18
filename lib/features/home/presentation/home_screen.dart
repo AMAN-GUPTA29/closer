@@ -20,7 +20,7 @@ import '../../shell/app_shell.dart' show showAddMemorySheet;
 import 'group_list_tile.dart';
 
 /// Groups shown on Home before "See all".
-const homeGroupLimit = 3;
+const homeGroupLimit = 2;
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
