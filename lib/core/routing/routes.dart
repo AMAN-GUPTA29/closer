@@ -19,6 +19,7 @@ abstract final class Routes {
 
   // Group screens sit above the shell (no bottom bar) but keep Home below.
   static const createGroup = '/home/create';
+  static const allGroups = '/home/groups';
   static const joinGroup = '/home/join';
   static String group(String id) => '/home/groups/$id';
   static String invite(String id) => '/home/groups/$id/invite';

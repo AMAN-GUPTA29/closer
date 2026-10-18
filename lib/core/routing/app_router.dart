@@ -29,6 +29,7 @@ import '../../features/widgets/widget_setup_screen.dart';
 import '../../features/photos/application/photo_providers.dart';
 import '../../features/photos/presentation/add_memory_screen.dart';
 import '../../features/purchases/upgrade_screen.dart';
+import '../../features/home/presentation/all_groups_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/legal/legal_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
@@ -130,6 +131,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                           state.uri.queryParameters['t'] ??
                           state.uri.queryParameters['code'],
                     ),
+                  ),
+                  GoRoute(
+                    path: 'groups',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => const AllGroupsScreen(),
                   ),
                   GoRoute(
                     path: 'groups/:groupId',

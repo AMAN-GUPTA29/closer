@@ -7,17 +7,20 @@ import '../../../core/models/group_type.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
-import '../../../core/utils/dates.dart';
 import '../../../core/utils/greeting.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/auth_models.dart';
 import '../../groups/application/group_providers.dart';
-import '../../groups/domain/group_models.dart';
 import '../../journal/application/content_providers.dart';
 import '../../journal/domain/journal_models.dart';
 import '../../photos/presentation/photo_widgets.dart';
 import '../../profile/presentation/profile_widgets.dart';
+import '../../shell/app_shell.dart' show showAddMemorySheet;
+import 'group_list_tile.dart';
+
+/// Groups shown on Home before "See all".
+const homeGroupLimit = 3;
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -65,6 +68,15 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
+                      if (groups.value?.isNotEmpty ?? false)
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: context.closerColors.textSecondary,
+                          ),
+                          onPressed: () => context.push(Routes.allGroups),
+                          child: const Text('See all'),
+                        ),
+                      const SizedBox(width: CloserSpacing.xxs),
                       CloserIconButton(
                         icon: CloserIcons.plus,
                         semanticLabel: 'Create a group',
@@ -92,10 +104,10 @@ class HomeScreen extends ConsumerWidget {
                       CloserSpacing.md,
                     ),
                     sliver: SliverList.separated(
-                      itemCount: value.length,
+                      itemCount: value.length.clamp(0, homeGroupLimit),
                       separatorBuilder: (_, _) =>
                           const SizedBox(height: CloserSpacing.sm),
-                      itemBuilder: (context, i) => _GroupTile(value[i]),
+                      itemBuilder: (context, i) => GroupListTile(value[i]),
                     ),
                   ),
                   SliverPadding(
@@ -193,60 +205,6 @@ class _Header extends ConsumerWidget {
   }
 }
 
-class _GroupTile extends ConsumerWidget {
-  const _GroupTile(this.group);
-
-  final Group group;
-
-  String get _activity {
-    final now = DateTime.now();
-    if (group.hasCounter) {
-      return daysTogetherLabel(daysTogether(group.relationshipStartDate!, now));
-    }
-    return 'Active ${relativeTime(group.lastActivityAt, now)}';
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final members = ref.watch(groupMembersProvider(group.id)).value ?? const [];
-    return GroupCard(
-      members: members.isEmpty ? null : _MemberFaces(members),
-      name: group.name,
-      type: group.type,
-      memberCount: group.memberCount,
-      activity: _activity,
-      placeholderVariant: group.placeholderVariant,
-      isPremium: group.isPremium,
-      coverWidget: GroupCover(group: group),
-      onTap: () => context.push(Routes.group(group.id)),
-    );
-  }
-}
-
-/// Up to six overlapping member photos (initials when there is none).
-class _MemberFaces extends ConsumerWidget {
-  const _MemberFaces(this.members);
-
-  final List<GroupMember> members;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final images = <String, ImageProvider>{};
-    for (final m in members.take(6)) {
-      final path = m.avatarPath;
-      if (path == null) continue;
-      final image = ref.watch(avatarImageProvider(path)).value;
-      if (image != null) images[m.displayName] = image;
-    }
-    return AvatarStack(
-      names: [for (final m in members) m.displayName],
-      images: images,
-      size: 26,
-      showOverflow: false,
-    );
-  }
-}
-
 class _EmptyGroups extends StatelessWidget {
   const _EmptyGroups();
 
@@ -298,22 +256,82 @@ class _GroupsError extends ConsumerWidget {
   }
 }
 
-/// The newest photos across all groups, as on the Keeploom board. Hidden
-/// until there is something to show; taps open the Journal tab.
+/// The newest photos across all groups, as on the Keeploom board. Before
+/// the first photo it shows a "share a moment" tile instead of an empty gap.
 class _RecentMoments extends ConsumerWidget {
   const _RecentMoments();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.closerColors;
     final photos = [
       for (final e in ref.watch(journalProvider(null)).value?.entries ?? [])
         if (e is PhotoEntry) e.photo,
     ].take(8).toList();
-    if (photos.isEmpty) return const SizedBox.shrink();
     void openJournal() => StatefulNavigationShell.of(context).goBranch(1);
     // Three tiles across, the next one peeking in.
     final tile =
         (MediaQuery.sizeOf(context).width - CloserSpacing.gutter * 2 - 24) / 3;
+    Widget frame(Widget child, VoidCallback onTap, {String? label}) => SizedBox(
+      width: tile,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: ClipRRect(
+          borderRadius: CloserRadii.lgAll,
+          child: Material(
+            color: c.accentSoft,
+            child: InkWell(onTap: onTap, child: child),
+          ),
+        ),
+      ),
+    );
+    final tiles = photos.isNotEmpty
+        ? [for (final p in photos) frame(PhotoImage(photo: p), openJournal)]
+        : [
+            frame(
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: c.accentGradient,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(CloserIcons.plus, color: c.onAccent),
+                  ),
+                  const SizedBox(height: CloserSpacing.xs),
+                  Text(
+                    'Share a\nmoment',
+                    textAlign: TextAlign.center,
+                    style: context.text.labelMedium?.copyWith(
+                      color: c.accentStrong,
+                    ),
+                  ),
+                ],
+              ),
+              () => showAddMemorySheet(context),
+              label: 'Share a moment',
+            ),
+            for (var i = 0; i < 2; i++)
+              ExcludeSemantics(
+                child: SizedBox(
+                  width: tile,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: CloserRadii.lgAll,
+                      border: Border.all(color: c.line, width: 1.5),
+                    ),
+                    child: Icon(
+                      CloserIcons.gallery,
+                      color: c.textTertiary.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+              ),
+          ];
     return Padding(
       padding: const EdgeInsets.only(bottom: CloserSpacing.xxl),
       child: Column(
@@ -341,6 +359,19 @@ class _RecentMoments extends ConsumerWidget {
               ],
             ),
           ),
+          if (photos.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                CloserSpacing.gutter,
+                0,
+                CloserSpacing.gutter,
+                CloserSpacing.sm,
+              ),
+              child: Text(
+                'New photos from all your groups will show up here.',
+                style: context.text.bodySmall,
+              ),
+            ),
           SizedBox(
             height: tile * 1.12,
             child: ListView.separated(
@@ -348,22 +379,10 @@ class _RecentMoments extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(
                 horizontal: CloserSpacing.gutter,
               ),
-              itemCount: photos.length,
+              itemCount: tiles.length,
               separatorBuilder: (_, _) =>
                   const SizedBox(width: CloserSpacing.sm),
-              itemBuilder: (context, i) => SizedBox(
-                width: tile,
-                child: ClipRRect(
-                  borderRadius: CloserRadii.lgAll,
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: InkWell(
-                      onTap: openJournal,
-                      child: PhotoImage(photo: photos[i]),
-                    ),
-                  ),
-                ),
-              ),
+              itemBuilder: (context, i) => tiles[i],
             ),
           ),
         ],
