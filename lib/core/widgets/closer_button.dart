@@ -102,7 +102,9 @@ class CloserButton extends StatelessWidget {
       gradient: isPrimary ? c.accentGradient : null,
       color: switch (variant) {
         CloserButtonVariant.primary => null,
-        CloserButtonVariant.danger => c.danger,
+        // Dark mode's danger red is light (for text); white labels need a
+        // deep red fill in both themes (5.4:1).
+        CloserButtonVariant.danger => const Color(0xFFC53030),
         CloserButtonVariant.secondary => c.surface,
         CloserButtonVariant.ghost => Colors.transparent,
       },
