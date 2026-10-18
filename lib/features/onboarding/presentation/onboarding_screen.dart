@@ -7,35 +7,61 @@ import '../../../core/routing/routes.dart';
 import '../../../core/theme/closer_theme.dart';
 import '../../../core/widgets/widgets.dart';
 
+/// Sample photos for the onboarding collage (the original images behind the
+/// Keeploom design showcase, split from `docs/design/*.png`). Marketing art
+/// only; user content never appears here.
+abstract final class _Photos {
+  static const sunset = 'assets/onboarding/sunset_golden.jpg';
+  static const mountain = 'assets/onboarding/mountain.jpg';
+  static const cat = 'assets/onboarding/cat.jpg';
+  static const couple = 'assets/onboarding/couple.jpg';
+  static const alley = 'assets/onboarding/mediterranean.jpg';
+  static const catBed = 'assets/onboarding/cat_bed.jpg';
+  static const cove = 'assets/onboarding/sunset_cove.jpg';
+  static const sunsetTall = 'assets/onboarding/sunset_portrait.jpg';
+}
+
 class _OnboardingPage {
-  const _OnboardingPage(this.title, this.body, this.art);
+  const _OnboardingPage(
+    this.title,
+    this.body,
+    this.hero,
+    this.left,
+    this.right,
+  );
   final String title;
   final String body;
-
-  /// Three [SunsetArt] variants for the photo collage.
-  final List<int> art;
+  final String hero;
+  final String left;
+  final String right;
 }
 
 const _pages = [
   _OnboardingPage(
-    'Share little moments.\nStay close.',
-    'Photos, memories and milestones with the people who matter.',
-    [0, 2, 3],
+    'Share little\nmoments.\nStay close.',
+    'Photos, memories and milestones\nwith the people who matter.',
+    _Photos.sunset,
+    _Photos.mountain,
+    _Photos.cat,
   ),
   _OnboardingPage(
-    'Private by design.',
-    'Couples, friends and families. Every group is invite-only, and '
-        'only its members ever see what’s inside.',
-    [1, 4, 0],
+    'Private by\ndesign.',
+    'Every group is invite-only. Only the\npeople in it ever see what’s inside.',
+    _Photos.couple,
+    _Photos.alley,
+    _Photos.catBed,
   ),
   _OnboardingPage(
-    'Keep the story together.',
-    'A shared journal with milestones like 100 days together, first trips '
-        'and family reunions, right on your home screen.',
-    [3, 1, 2],
+    'Keep the story\ntogether.',
+    'Milestones, a shared journal and your\npeople right on your home screen.',
+    _Photos.cove,
+    _Photos.sunsetTall,
+    _Photos.cat,
   ),
 ];
 
+/// Onboarding, as on the Keeploom showcase: headline, a three-photo
+/// collage, page dots, "Get started" and a plain "Sign in" link.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -46,6 +72,16 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _page = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    for (final p in _pages) {
+      for (final a in [p.hero, p.left, p.right]) {
+        precacheImage(AssetImage(a), context);
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -60,13 +96,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       backgroundColor: c.background,
       body: DecoratedBox(
-        // A soft peach glow at the bottom, as on the brand board.
+        // Soft blush glow towards the bottom, as on the showcase.
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [c.background, c.background, c.accentSoft],
-            stops: const [0, 0.55, 1],
+            stops: const [0, 0.6, 1],
           ),
         ),
         child: SafeArea(
@@ -74,64 +110,52 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             slivers: [
               SliverFillRemaining(
                 hasScrollBody: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: CloserSpacing.gutter,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: CloserSpacing.lg),
-                      Row(
-                        children: [
-                          const KeeploomLogo(size: 36),
-                          const SizedBox(width: CloserSpacing.xs),
-                          Text(
-                            KeeploomLogo.name,
-                            style: context.text.titleLarge?.copyWith(
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                        ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      // Fills the screen above the dots; grows with the
+                      // user's text size (the page then scrolls).
+                      height: math.max(
+                        620 * scale,
+                        MediaQuery.sizeOf(context).height -
+                            MediaQuery.paddingOf(context).vertical -
+                            200,
                       ),
-                      SizedBox(
-                        // Grows with the user's text size; the page scrolls.
-                        height: (520 * scale).clamp(520, 820),
-                        child: PageView.builder(
-                          // Let the cards' soft shadows breathe; neighbouring
-                          // pages sit fully off screen.
-                          clipBehavior: Clip.none,
-                          controller: _controller,
-                          itemCount: _pages.length,
-                          onPageChanged: (i) => setState(() => _page = i),
-                          itemBuilder: (context, i) => _PageContent(_pages[i]),
-                        ),
+                      child: PageView.builder(
+                        clipBehavior: Clip.none,
+                        controller: _controller,
+                        itemCount: _pages.length,
+                        onPageChanged: (i) => setState(() => _page = i),
+                        itemBuilder: (context, i) => _PageContent(_pages[i]),
                       ),
-                      const Spacer(),
-                      _Dots(count: _pages.length, index: _page),
-                      const SizedBox(height: CloserSpacing.lg),
-                      CloserButton(
-                        label: 'Get Started',
+                    ),
+                    const Spacer(),
+                    const SizedBox(height: CloserSpacing.md),
+                    _Dots(count: _pages.length, index: _page),
+                    const SizedBox(height: CloserSpacing.xl),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: CloserSpacing.xl,
+                      ),
+                      child: CloserButton(
+                        label: 'Get started',
                         onPressed: () => context.push(Routes.signUp),
                       ),
-                      const SizedBox(height: CloserSpacing.xs),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            'Already have an account?',
-                            style: context.text.bodyMedium,
-                          ),
-                          TextButton(
-                            onPressed: () => context.push(Routes.signIn),
-                            child: const Text('Sign In'),
-                          ),
-                        ],
+                    ),
+                    const SizedBox(height: CloserSpacing.xs),
+                    Center(
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: c.textPrimary,
+                          minimumSize: const Size(120, 48),
+                        ),
+                        onPressed: () => context.push(Routes.signIn),
+                        child: const Text('Sign in'),
                       ),
-                      const SizedBox(height: CloserSpacing.xs),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: CloserSpacing.sm),
+                  ],
                 ),
               ),
             ],
@@ -149,85 +173,137 @@ class _PageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.closerColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: CloserSpacing.xl),
-        Text(
-          page.title,
-          style: context.text.displaySmall?.copyWith(height: 1.12),
-        ),
-        const SizedBox(height: CloserSpacing.sm),
-        Text(
-          page.body,
-          style: context.text.bodyLarge?.copyWith(
-            color: context.closerColors.textSecondary,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            CloserSpacing.xxl,
+            CloserSpacing.xxxl,
+            CloserSpacing.xl,
+            0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Semantics(
+                header: true,
+                child: Text(
+                  page.title,
+                  style: context.text.displaySmall?.copyWith(
+                    fontSize: 36,
+                    height: 1.12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.6,
+                  ),
+                ),
+              ),
+              const SizedBox(height: CloserSpacing.md),
+              Text(
+                page.body,
+                style: context.text.bodyLarge?.copyWith(
+                  color: c.textSecondary,
+                  height: 1.45,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: CloserSpacing.lg),
-        Expanded(child: _Collage(art: page.art)),
+        const SizedBox(height: CloserSpacing.xl),
+        Expanded(child: _Collage(page: page)),
       ],
     );
   }
 }
 
-/// Three tilted photo cards, like prints on a table. Painted art only: real
-/// photos belong to users, never to marketing screens.
+/// A landscape photo tilted at the top with two smaller prints overlapping
+/// its lower corners. Proportions follow the showcase (fractions of width),
+/// scaled down when the available height is short.
 class _Collage extends StatelessWidget {
-  const _Collage({required this.art});
+  const _Collage({required this.page});
 
-  final List<int> art;
+  final _OnboardingPage page;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, box) {
-        final h = box.maxHeight;
-        final w = box.maxWidth;
-        final big = math.min(h * 0.86, w * 0.6);
-        Widget card(int variant, double size, double angle) => Transform.rotate(
-          angle: angle,
-          child: Container(
-            width: size,
-            height: size * 1.12,
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: CloserRadii.lgAll,
-              boxShadow: CloserElevation.medium,
-            ),
-            child: ClipRRect(
-              borderRadius: CloserRadii.mdAll,
-              child: SunsetArt(
-                variant: variant,
-                showFigures: variant == art[0],
-              ),
-            ),
-          ),
-        );
-        return ExcludeSemantics(
-          child: Stack(
+    return ExcludeSemantics(
+      child: LayoutBuilder(
+        builder: (context, box) {
+          // Design box is 1.0w wide and 0.98w tall.
+          final k = math.min(box.maxWidth, box.maxHeight / 0.98);
+          final dx = (box.maxWidth - k) / 2;
+          Widget at(
+            double l,
+            double t,
+            double w,
+            double h,
+            String a,
+            double r,
+          ) => Positioned(
+            left: dx + l * k,
+            top: t * k,
+            child: _Print(asset: a, width: w * k, height: h * k, angle: r),
+          );
+          return Stack(
             clipBehavior: Clip.none,
             children: [
-              Positioned(
-                left: w * 0.02,
-                top: h * 0.32,
-                child: card(art[1], big * 0.52, -0.12),
-              ),
-              Positioned(
-                right: w * 0.02,
-                top: h * 0.44,
-                child: card(art[2], big * 0.5, 0.14),
-              ),
-              Positioned(
-                left: (w - big) / 2,
-                top: 0,
-                child: card(art[0], big * 0.82, 0.05),
-              ),
+              at(0.14, 0.02, 0.74, 0.62, page.hero, 0.06),
+              at(0.03, 0.36, 0.34, 0.50, page.left, -0.07),
+              at(0.48, 0.55, 0.40, 0.40, page.right, 0.07),
             ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Print extends StatelessWidget {
+  const _Print({
+    required this.asset,
+    required this.width,
+    required this.height,
+    required this.angle,
+  });
+
+  final String asset;
+  final double width;
+  final double height;
+  final double angle;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.closerColors;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Transform.rotate(
+      angle: angle,
+      child: Container(
+        width: width,
+        height: height,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: CloserRadii.lgAll,
+          boxShadow: [
+            BoxShadow(
+              color: dark
+                  ? Colors.black.withValues(alpha: 0.45)
+                  : c.accent.withValues(alpha: 0.22),
+              blurRadius: 28,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: CloserRadii.mdAll,
+          child: Image.asset(
+            asset,
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.medium,
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
@@ -250,14 +326,12 @@ class _Dots extends StatelessWidget {
           for (var i = 0; i < count; i++)
             AnimatedContainer(
               duration: CloserMotion.of(context, CloserMotion.medium),
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: i == index ? 18 : 6,
-              height: 6,
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              width: 8,
+              height: 8,
               decoration: BoxDecoration(
-                color: i == index
-                    ? c.accentStrong
-                    : c.accent.withValues(alpha: 0.3),
-                borderRadius: CloserRadii.pillAll,
+                color: i == index ? c.accent : c.line,
+                shape: BoxShape.circle,
               ),
             ),
         ],

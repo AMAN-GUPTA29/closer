@@ -10,8 +10,10 @@ Keeploom (formerly Closer) is a private photo-sharing and shared-journal app.
   Journal, share flow, notifications and profile in light **and** dark.
 - `Closer App UI Concept Board.png` (repo root): the original board, kept for history.
 
-The boards are references, not assets: nothing is cropped from them, and every screen
-uses real components and real user content.
+The boards are references, not assets: every screen uses real components and real user content.
+The only exception is the onboarding collage, which shows the owner's original sample photos
+(`docs/design/*Sunset*`, `*Romantic*`, `*Blooms*`; the multi-photo images are split into
+`assets/onboarding/*.jpg`, max 1200 px).
 
 ## Brand
 

@@ -21,13 +21,14 @@ void main() {
   testWidgets('onboarding leads to sign up and sign in', (tester) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
     expect(find.byType(OnboardingScreen), findsOneWidget);
-    expect(find.text('Keeploom'), findsOneWidget);
+    expect(find.text('Share little\nmoments.\nStay close.'), findsOneWidget);
 
-    await tester.tap(find.text('Get Started'));
+    await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
     expect(find.byType(SignUpScreen), findsOneWidget);
     expect(find.text('Welcome to Keeploom'), findsOneWidget);
 
+    // The sign-up screen's own "Sign In" link.
     await tester.ensureVisible(find.text('Sign In'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sign In'));
@@ -40,14 +41,14 @@ void main() {
     expect(find.bySemanticsLabel('Page 1 of 3'), findsOneWidget);
     await tester.drag(find.byType(PageView), const Offset(-300, 0));
     await tester.pumpAndSettle();
-    expect(find.text('Private by design.'), findsOneWidget);
+    expect(find.text('Private by\ndesign.'), findsOneWidget);
   });
 
   testWidgets('sign-in validates fields before calling the backend', (
     tester,
   ) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Sign In'));
+    await tester.tap(find.text('Sign in'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(InkWell, 'Sign In').last);
@@ -59,7 +60,7 @@ void main() {
 
   testWidgets('wrong credentials show a friendly error', (tester) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Sign In'));
+    await tester.tap(find.text('Sign in'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -77,7 +78,7 @@ void main() {
     tester,
   ) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Sign In'));
+    await tester.tap(find.text('Sign in'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -135,7 +136,7 @@ void main() {
     tester,
   ) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Get Started'));
+    await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).at(0), 'Sam Lee');
@@ -162,7 +163,7 @@ void main() {
   testWidgets('network failures are shown, not swallowed', (tester) async {
     repo.nextFailure = const NetworkFailure();
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Sign In'));
+    await tester.tap(find.text('Sign in'));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byType(TextFormField).at(0),
@@ -178,7 +179,7 @@ void main() {
     tester,
   ) async {
     await pumpCloserApp(tester, config: unconfiguredConfig);
-    await tester.tap(find.text('Get Started'));
+    await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
 
     expect(find.text('Backend not connected'), findsOneWidget);
@@ -198,7 +199,7 @@ void main() {
 
   testWidgets('legal summary opens from the auth footer', (tester) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Get Started'));
+    await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Privacy Policy'));
     await tester.tap(find.text('Privacy Policy'));
