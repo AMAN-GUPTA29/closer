@@ -105,7 +105,9 @@ class AvatarStack extends StatelessWidget {
     final c = context.closerColors;
     final shown = names.take(max).toList();
     final extra = showOverflow ? names.length - shown.length : 0;
-    final step = size * (shown.length > 3 ? 0.58 : 0.68);
+    // Photos can overlap tightly; initials need room to stay readable.
+    final allPhotos = shown.every((n) => images[n] != null);
+    final step = size * (!allPhotos ? 0.8 : (shown.length > 3 ? 0.58 : 0.68));
     final count = shown.length + (extra > 0 ? 1 : 0);
     return Semantics(
       label: '${names.length} members',

@@ -85,13 +85,18 @@ class MembersScreen extends ConsumerWidget {
                   style: context.text.bodyMedium,
                 ),
                 const SizedBox(height: CloserSpacing.sm),
-                for (final m in list)
-                  _MemberTile(
-                    member: m,
-                    isMe: m.userId == myId,
-                    canManage: g.isOwner && m.userId != myId,
-                    onAction: (a) => _act(context, ref, g, m, a),
-                  ),
+                SectionCard(
+                  dividerIndent: 72,
+                  children: [
+                    for (final m in list)
+                      _MemberTile(
+                        member: m,
+                        isMe: m.userId == myId,
+                        canManage: g.isOwner && m.userId != myId,
+                        onAction: (a) => _act(context, ref, g, m, a),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: CloserSpacing.xl),
                 if (!g.isFull)
                   CloserButton(
@@ -125,7 +130,11 @@ class _MemberTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.closerColors;
     return ListTile(
-      contentPadding: EdgeInsets.zero,
+      contentPadding: EdgeInsets.only(
+        left: CloserSpacing.md,
+        right: canManage ? CloserSpacing.xxs : CloserSpacing.md,
+      ),
+      minTileHeight: 68,
       leading: MemberAvatar(name: member.displayName, size: 44),
       title: Text(
         isMe ? '${member.displayName} (you)' : member.displayName,
@@ -141,8 +150,8 @@ class _MemberTile extends StatelessWidget {
           if (member.isOwner)
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: CloserSpacing.xs,
-                vertical: 2,
+                horizontal: CloserSpacing.sm,
+                vertical: CloserSpacing.xxs,
               ),
               decoration: BoxDecoration(
                 color: c.accentSoft,
@@ -150,7 +159,9 @@ class _MemberTile extends StatelessWidget {
               ),
               child: Text(
                 'Owner',
-                style: context.text.labelSmall?.copyWith(color: c.accentStrong),
+                style: context.text.labelMedium?.copyWith(
+                  color: c.accentStrong,
+                ),
               ),
             ),
           if (canManage)

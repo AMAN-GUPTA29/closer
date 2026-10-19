@@ -413,20 +413,36 @@ class _DetailsTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(CloserSpacing.gutter),
       children: [
-        for (final (label, value) in rows)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: CloserSpacing.xs),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 130,
-                  child: Text(label, style: context.text.bodyMedium),
+        SectionCard(
+          dividerIndent: CloserSpacing.md,
+          children: [
+            for (final (label, value) in rows)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: CloserSpacing.md,
+                  vertical: CloserSpacing.sm,
                 ),
-                Expanded(child: Text(value, style: context.text.bodyLarge)),
-              ],
-            ),
-          ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: Text(label, style: context.text.bodyMedium),
+                    ),
+                    Expanded(
+                      child: Text(
+                        value,
+                        textAlign: TextAlign.end,
+                        style: context.text.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
         const SizedBox(height: CloserSpacing.lg),
         CloserButton.secondary(
           label: 'Group settings',

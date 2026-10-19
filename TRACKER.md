@@ -251,3 +251,4 @@ _Last updated: 2026-10-14_
 - 2026-10-15 — Launch: Supabase project live (5 migrations, 5 Edge Functions, cleanup + reminder schedules, realtime); cron auth via Vault secret (migration 5, pgTAP 008).
 - 2026-10-18 — Keeploom redesign: brand tokens (light + dark), Appearance setting, vector logo + icons/splash/notification icon, floating dock, onboarding/Home/share-sheet polish, all visible text and native labels renamed; 192 Flutter tests.
 - 2026-10-20 — Keeploom redesign: Home, Journal, Share a memory (single screen, several photos and groups at once), Notifications and Profile now match the showcase in light and dark. Appearance, Sign out and Delete account moved to Profile → ⚙ Settings. 197 Flutter tests.
+- 2026-10-20 — Remaining screens checked in light + dark against the redesigned ones: shared SectionCard (Notification preferences, Members, group Details, Profile), readable initials in avatar stacks, brand avatar on Edit profile. 197 Flutter tests.

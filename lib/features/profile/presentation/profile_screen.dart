@@ -107,7 +107,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: CloserSpacing.xl),
-          _Section(
+          SectionCard(
             children: [
               _Tile(
                 icon: CloserIcons.edit,
@@ -132,7 +132,7 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: CloserSpacing.md),
-          _Section(
+          SectionCard(
             children: [
               _Tile(
                 icon: CloserIcons.help,
@@ -181,9 +181,9 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(CloserSpacing.gutter),
         children: [
-          const _Section(children: [ThemeSettingsTile()]),
+          const SectionCard(children: [ThemeSettingsTile()]),
           const SizedBox(height: CloserSpacing.md),
-          _Section(
+          SectionCard(
             children: [
               _Tile(
                 icon: CloserIcons.signOut,
@@ -202,7 +202,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           if (kDebugMode) ...[
             const SizedBox(height: CloserSpacing.md),
-            _Section(
+            SectionCard(
               children: [
                 _Tile(
                   icon: CloserIcons.widgets,
@@ -213,37 +213,6 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _Section extends StatelessWidget {
-  const _Section({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.closerColors;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: CloserRadii.xlAll,
-        boxShadow: dark ? CloserElevation.none : CloserElevation.low,
-      ),
-      child: Material(
-        color: dark ? c.surfaceMuted : c.surface,
-        shape: const RoundedRectangleBorder(borderRadius: CloserRadii.xlAll),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          children: [
-            for (var i = 0; i < children.length; i++) ...[
-              if (i > 0) const Divider(indent: 56),
-              children[i],
-            ],
-          ],
-        ),
       ),
     );
   }

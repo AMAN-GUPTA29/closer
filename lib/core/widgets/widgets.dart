@@ -9,6 +9,7 @@ export 'member_avatar.dart';
 export 'memory_card.dart';
 export 'milestone_card.dart';
 export 'photo_viewer.dart';
+export 'section_card.dart';
 export 'state_views.dart';
 export 'sunset_art.dart';
 export 'upgrade_card.dart';

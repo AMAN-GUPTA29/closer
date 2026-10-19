@@ -135,7 +135,11 @@ class _EditFormState extends ConsumerState<_EditForm> {
           Center(
             child: Stack(
               children: [
-                MyAvatar(fallbackName: widget.profile.displayName, size: 104),
+                MyAvatar(
+                  fallbackName: widget.profile.displayName,
+                  size: 104,
+                  brand: true,
+                ),
                 if (_photoBusy) const Positioned.fill(child: LoadingState()),
               ],
             ),
