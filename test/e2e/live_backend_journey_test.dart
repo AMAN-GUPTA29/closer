@@ -326,7 +326,9 @@ void main() {
       reason: 'pinning is a Keeploom Memories feature',
     );
     await asha.groups.setCover(couple, first.photoId);
-    expect((await ben.groups.group(couple)).coverPath, isNotNull);
+    final withCover = await ben.groups.group(couple);
+    expect(withCover.coverPhotoId, first.photoId);
+    expect(withCover.latestThumbPath, isNotNull);
 
     friends = await cara.groups.createGroup(
       name: 'Crew',
