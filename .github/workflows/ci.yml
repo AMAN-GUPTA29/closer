@@ -71,6 +71,39 @@ jobs:
       - name: Lint database (security advisories)
         run: supabase db lint --level warning --fail-on error
 
+  e2e:
+    name: End-to-end journey (app data layer + local Supabase)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.120.0
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Start a throwaway Supabase stack (auth, storage, functions, mail)
+        run: supabase start -x studio,imgproxy,vector,logflare,supavisor
+
+      - name: Run the journey against it
+        run: |
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          export E2E_SUPABASE_URL="$API_URL" E2E_ANON_KEY="$ANON_KEY" \
+            E2E_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+            E2E_MAILPIT_URL="${MAILPIT_URL:-${INBUCKET_URL:-http://127.0.0.1:54324}}"
+          flutter pub get
+          flutter test test/e2e --reporter expanded
+
+      - name: Backend logs on failure
+        if: failure()
+        run: docker ps --format '{{.Names}}' | grep supabase | xargs -I{} sh -c 'echo "== {}"; docker logs --tail 60 {}'
+
   edge-functions:
     name: Edge Function tests (Deno)
     runs-on: ubuntu-latest
