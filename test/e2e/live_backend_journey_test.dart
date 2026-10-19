@@ -30,6 +30,9 @@ final _env = Platform.environment;
 final _url = _env['E2E_SUPABASE_URL'] ?? '';
 final _anon = _env['E2E_ANON_KEY'] ?? '';
 final _service = _env['E2E_SERVICE_ROLE_KEY'] ?? '';
+
+/// Throwaway password for the local stack's test accounts.
+final _pw = 'Pw${DateTime.now().microsecondsSinceEpoch}x';
 final _mailpit = _env['E2E_MAILPIT_URL'] ?? 'http://127.0.0.1:54324';
 
 /// One signed-in person using the app's real data layer.
@@ -139,13 +142,13 @@ Future<Person> _confirmedPerson(String email, String name) async {
   await admin.auth.admin.createUser(
     sb.AdminUserAttributes(
       email: email,
-      password: 'journey-pass-1',
+      password: _pw,
       emailConfirm: true,
       userMetadata: {'display_name': name},
     ),
   );
   final c = _client();
-  await c.auth.signInWithPassword(email: email, password: 'journey-pass-1');
+  await c.auth.signInWithPassword(email: email, password: _pw);
   return Person(c);
 }
 
@@ -173,20 +176,20 @@ void main() {
     final auth = SupabaseAuthRepository(authClient.auth, _config);
     final result = await auth.signUp(
       email: mail('asha'),
-      password: 'journey-pass-1',
+      password: _pw,
       displayName: 'Asha',
       username: 'asha_$stamp'.substring(0, 16),
     );
     expect(result.needsEmailConfirmation, isTrue);
     await expectLater(
-      auth.signIn(email: mail('asha'), password: 'journey-pass-1'),
+      auth.signIn(email: mail('asha'), password: _pw),
       _fails(),
       reason: 'unconfirmed accounts cannot sign in',
     );
 
     final link = await _emailLink(mail('asha'), '/verify');
     expect(await _visit(link), anyOf(302, 303));
-    await auth.signIn(email: mail('asha'), password: 'journey-pass-1');
+    await auth.signIn(email: mail('asha'), password: _pw);
     expect(auth.currentUser?.emailConfirmed, isTrue);
     asha = Person(authClient);
 
@@ -195,7 +198,11 @@ void main() {
     expect(profile.username, 'asha_$stamp'.substring(0, 16));
     await asha.content.updateDisplayName('Asha Rao');
     expect((await asha.content.myProfile()).displayName, 'Asha Rao');
-    expect(await asha.content.usernameAvailable(profile.username!), isFalse);
+    expect(
+      await asha.content.usernameAvailable(profile.username!),
+      isTrue,
+      reason: 'your own username counts as available to you',
+    );
 
     await asha.content.setAvatar(Uint8List.fromList(jpeg));
     expect((await asha.content.myProfile()).avatarPath, isNotNull);
@@ -204,6 +211,7 @@ void main() {
 
     ben = await _confirmedPerson(mail('ben'), 'Ben');
     cara = await _confirmedPerson(mail('cara'), 'Cara');
+    expect(await ben.content.usernameAvailable(profile.username!), isFalse);
     expect(
       await ben.content.setUsername('ben_$stamp'.substring(0, 14)),
       isNotEmpty,
