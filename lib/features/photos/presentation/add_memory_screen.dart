@@ -21,18 +21,22 @@ import 'photo_widgets.dart';
 /// Most photos shared in one go.
 const maxPhotosPerShare = 10;
 
-/// One picked photo. Its upload id is kept across retries, so a retry can
-/// never create a duplicate.
+/// One picked photo. Each group it goes to gets its own upload id, kept
+/// across retries, so a retry can never create a duplicate.
 class _Pick {
-  _Pick(this.raw) : uploadId = const Uuid().v4();
+  _Pick(this.raw);
 
   final Uint8List raw;
-  final String uploadId;
+  final _uploadIds = <String, String>{};
+
+  /// Group id -> photo id once shared there.
+  final shared = <String, String>{};
   PreparedPhoto? prepared;
   String? error;
-  String? sharedPhotoId;
 
   bool get ready => prepared != null;
+  String uploadIdFor(String groupId) =>
+      _uploadIds.putIfAbsent(groupId, () => const Uuid().v4());
 }
 
 /// Share a memory, as on the Keeploom showcase: photos with "Add more",
@@ -54,7 +58,9 @@ class AddMemoryScreen extends ConsumerStatefulWidget {
 class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
   final _caption = TextEditingController();
   final _picks = <_Pick>[];
-  String? _groupId;
+
+  /// Chosen groups, in the order they were ticked.
+  final _groupIds = <String>[];
   DateTime? _takenAt;
   bool _pin = false;
   bool _moment = false;
@@ -72,7 +78,8 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
   @override
   void initState() {
     super.initState();
-    _groupId = widget.groupId;
+    final pre = widget.groupId;
+    if (pre != null) _groupIds.add(pre);
     final source = widget.source;
     if (source != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _pick(source));
@@ -167,57 +174,67 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
     if (picked != null) setState(() => _takenAt = picked);
   }
 
-  Future<void> _share(Group group) async {
+  Future<void> _share(List<Group> targets) async {
     final photos = _usable;
-    if (photos.isEmpty || _sharing) return;
+    if (photos.isEmpty || targets.isEmpty || _sharing) return;
     setState(() {
       _error = null;
       _sharing = true;
     });
     final actions = ref.read(photoActionsProvider);
+    final total = photos.length * targets.length;
     var removed = 0;
     try {
-      for (var i = 0; i < photos.length; i++) {
-        final p = photos[i];
-        if (p.sharedPhotoId != null) continue; // done before a retry
-        setState(() => _current = i);
-        final result = await actions.upload(
-          groupId: group.id,
-          clientUploadId: p.uploadId,
-          photo: p.prepared!,
-          caption: _caption.text,
-          takenAt: _takenAt,
-          onStage: (s) {
-            if (mounted) setState(() => _stage = s);
-          },
-        );
-        p.sharedPhotoId = result.photoId;
-        removed += result.removedCount;
-      }
-      if (_pin) {
+      var step = 0;
+      for (final group in targets) {
         for (final p in photos) {
-          await actions.setPinnedById(group.id, p.sharedPhotoId!, true);
+          setState(() => _current = step++);
+          if (p.shared.containsKey(group.id)) continue; // done before a retry
+          final result = await actions.upload(
+            groupId: group.id,
+            clientUploadId: p.uploadIdFor(group.id),
+            photo: p.prepared!,
+            caption: _caption.text,
+            takenAt: _takenAt,
+            onStage: (s) {
+              if (mounted) setState(() => _stage = s);
+            },
+          );
+          p.shared[group.id] = result.photoId;
+          removed += result.removedCount;
+        }
+        if (_pin && group.isPremium) {
+          for (final p in photos) {
+            await actions.setPinnedById(group.id, p.shared[group.id]!, true);
+          }
         }
       }
       if (!mounted) return;
+      final names = targets.length == 1
+          ? targets.single.name
+          : targets.length == 2
+          ? '${targets[0].name} and ${targets[1].name}'
+          : '${targets.length} groups';
       final what = photos.length == 1 ? 'Shared' : 'Shared ${photos.length}';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             removed > 0
-                ? '$what with ${group.name}. The oldest '
-                      '${removed == 1 ? 'photo was' : '$removed photos were'} '
-                      'removed to keep ${Group.basicPhotoLimit}.'
-                : '$what with ${group.name}',
+                ? '$what with $names. To keep ${Group.basicPhotoLimit}, the '
+                      'oldest ${removed == 1 ? 'photo was' : 'photos were'} '
+                      'removed from Basic groups.'
+                : '$what with $names',
           ),
         ),
       );
-      context.go(Routes.group(group.id));
+      final first = targets.first;
+      context.go(targets.length == 1 ? Routes.group(first.id) : Routes.home);
       if (_moment) {
         context.push(
-          Routes.newMoment(group.id, photoId: photos.first.sharedPhotoId),
+          Routes.newMoment(first.id, photoId: photos.first.shared[first.id]),
         );
       }
+      assert(step == total);
     } on AppFailure catch (f) {
       if (mounted) setState(() => _error = f.message);
     } catch (_) {
@@ -283,8 +300,14 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
 
   Widget _body(List<Group> groups) {
     final c = context.closerColors;
-    final selected = groups.where((g) => g.id == _groupId).firstOrNull;
+    final byId = {for (final g in groups) g.id: g};
+    final selected = [
+      for (final id in _groupIds)
+        if (byId[id] != null) byId[id]!,
+    ];
+    final anyPremium = selected.any((g) => g.isPremium);
     final usable = _usable;
+    final total = usable.length * (selected.isEmpty ? 1 : selected.length);
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         CloserSpacing.gutter,
@@ -321,6 +344,10 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
         ),
         const SizedBox(height: CloserSpacing.xxs),
         Text('Choose a group', style: context.text.bodyLarge),
+        Text(
+          'Tick more than one to share with several groups.',
+          style: context.text.bodySmall,
+        ),
         const SizedBox(height: CloserSpacing.lg),
         _PhotoStrip(
           picks: _picks,
@@ -349,18 +376,25 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
           for (final g in groups)
             _GroupOption(
               group: g,
-              selected: g.id == _groupId,
+              selected: _groupIds.contains(g.id),
               onTap: _sharing
                   ? null
                   : () => setState(() {
-                      _groupId = g.id;
-                      if (!g.isPremium) _pin = false;
+                      _groupIds.contains(g.id)
+                          ? _groupIds.remove(g.id)
+                          : _groupIds.add(g.id);
+                      if (!_groupIds.any(
+                        (id) => byId[id]?.isPremium ?? false,
+                      )) {
+                        _pin = false;
+                      }
                     }),
             ),
-        if (selected != null && selected.nextUploadRemovesOldest) ...[
-          const SizedBox(height: CloserSpacing.sm),
-          RetentionNotice(group: selected),
-        ],
+        for (final g in selected)
+          if (g.nextUploadRemovesOldest) ...[
+            const SizedBox(height: CloserSpacing.sm),
+            RetentionNotice(group: g),
+          ],
         const SizedBox(height: CloserSpacing.md),
         CloserTextField(
           controller: _caption,
@@ -373,12 +407,14 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
         _OptionRow(
           icon: CloserIcons.journal,
           label: 'Pin to journal',
-          hint: selected == null || selected.isPremium
+          hint: selected.isEmpty || selected.every((g) => g.isPremium)
               ? null
+              : anyPremium
+              ? 'Keeploom Memories groups only'
               : 'Keeploom Memories',
           trailing: Switch(
             value: _pin,
-            onChanged: _sharing || selected == null || !selected.isPremium
+            onChanged: _sharing || !anyPremium
                 ? null
                 : (v) => setState(() => _pin = v),
           ),
@@ -392,7 +428,11 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
         _OptionRow(
           icon: CloserIcons.starOutline,
           label: 'Add to a milestone',
-          value: _moment ? 'New special moment' : null,
+          value: !_moment
+              ? null
+              : selected.length > 1
+              ? 'In ${selected.first.name}'
+              : 'New special moment',
           onTap: _sharing ? null : () => setState(() => _moment = !_moment),
         ),
         const SizedBox(height: CloserSpacing.lg),
@@ -400,8 +440,8 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
         if (_sharing && _stage != null) ...[
           Semantics(
             liveRegion: true,
-            label: usable.length > 1
-                ? 'Sharing photo ${_current + 1} of ${usable.length}'
+            label: total > 1
+                ? 'Sharing ${_current + 1} of $total'
                 : _stage!.label,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -409,17 +449,14 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
                 ClipRRect(
                   borderRadius: CloserRadii.pillAll,
                   child: LinearProgressIndicator(
-                    value: usable.isEmpty
-                        ? null
-                        : (_current + _stage!.progress) / usable.length,
+                    value: (_current + _stage!.progress) / total,
                     minHeight: 8,
                   ),
                 ),
                 const SizedBox(height: CloserSpacing.xs),
                 Text(
-                  usable.length > 1
-                      ? 'Photo ${_current + 1} of ${usable.length} · '
-                            '${_stage!.label}'
+                  total > 1
+                      ? '${_current + 1} of $total · ${_stage!.label}'
                       : _stage!.label,
                   style: context.text.bodySmall,
                 ),
@@ -431,14 +468,16 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
         CloserButton(
           label: _error != null && usable.isNotEmpty ? 'Retry' : 'Share',
           isLoading: _sharing || _preparing,
-          onPressed: usable.isEmpty || selected == null
+          onPressed: usable.isEmpty || selected.isEmpty
               ? null
               : () => _share(selected),
         ),
-        if (usable.isEmpty || selected == null) ...[
+        if (usable.isEmpty || selected.isEmpty) ...[
           const SizedBox(height: CloserSpacing.xs),
           Text(
-            usable.isEmpty ? 'Add a photo to share.' : 'Choose a group.',
+            usable.isEmpty
+                ? 'Add a photo to share.'
+                : 'Choose at least one group.',
             textAlign: TextAlign.center,
             style: context.text.bodySmall,
           ),
@@ -578,8 +617,7 @@ class _GroupOption extends StatelessWidget {
     final c = context.closerColors;
     final n = group.memberCount;
     return Semantics(
-      inMutuallyExclusiveGroup: true,
-      selected: selected,
+      checked: selected,
       button: true,
       label: '${group.name}, $n ${n == 1 ? 'member' : 'members'}',
       excludeSemantics: true,

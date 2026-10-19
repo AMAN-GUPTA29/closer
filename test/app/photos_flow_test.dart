@@ -14,6 +14,14 @@ import '../helpers/fakes.dart';
 import '../helpers/photo_fakes.dart';
 
 Future<void> tapButton(WidgetTester tester, String label) async {
+  if (find.widgetWithText(InkWell, label).evaluate().isEmpty) {
+    // Lazily built lists only create visible children: scroll to it.
+    await tester.scrollUntilVisible(
+      find.widgetWithText(InkWell, label),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+  }
   final finder = find.widgetWithText(InkWell, label).last;
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
@@ -90,7 +98,7 @@ void main() {
 
     await addPhoto(tester);
     await tapButton(tester, 'Share');
-    expect(find.textContaining('The oldest photo was removed'), findsOneWidget);
+    expect(find.textContaining('oldest photo was removed'), findsOneWidget);
     final photos = (await repo.photos(groupId)).photos;
     expect(photos, hasLength(10));
     expect(photos.map((p) => p.id), isNot(contains(ids.first)));
@@ -196,7 +204,7 @@ void main() {
     expect(find.text('Choose a group'), findsOneWidget);
     await addPhoto(tester);
     expect(
-      find.text('Choose a group.'),
+      find.text('Choose at least one group.'),
       findsOneWidget,
       reason: 'no group yet',
     );
@@ -205,6 +213,51 @@ void main() {
     await tapButton(tester, 'Share');
     expect(find.text('Shared with Crew'), findsOneWidget);
     expect((await repo.photos(groupId)).photos, hasLength(1));
+  });
+
+  Future<void> pickBothAndShare(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Share a memory'));
+    await tester.pumpAndSettle();
+    await addPhoto(tester);
+    await tester.tap(find.text('Crew').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Family').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'Together');
+    await tester.scrollUntilVisible(
+      find.widgetWithText(InkWell, 'Share'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tapButton(tester, 'Share');
+  }
+
+  testWidgets('one share can go to several groups', (tester) async {
+    final family = await repo.createGroup(
+      name: 'Family',
+      type: GroupType.family,
+    );
+    await pump(tester);
+    await pickBothAndShare(tester);
+    expect(find.text('Shared with Crew and Family'), findsOneWidget);
+    expect((await repo.photos(groupId)).photos.single.caption, 'Together');
+    expect((await repo.photos(family)).photos.single.caption, 'Together');
+  });
+
+  testWidgets('a retry only resends what failed (no duplicates)', (
+    tester,
+  ) async {
+    final family = await repo.createGroup(
+      name: 'Family',
+      type: GroupType.family,
+    );
+    await pump(tester);
+    repo.failNextPut = true;
+    await pickBothAndShare(tester);
+    expect(find.text('Retry'), findsOneWidget);
+    await tapButton(tester, 'Retry');
+    expect((await repo.photos(groupId)).photos, hasLength(1));
+    expect((await repo.photos(family)).photos, hasLength(1));
   });
 
   testWidgets('several photos can be shared at once', (tester) async {
