@@ -25,6 +25,7 @@ import 'package:closer/features/photos/data/photos_backend.dart';
 import 'package:closer/features/photos/domain/photo_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
+import 'package:uuid/uuid.dart';
 
 final _env = Platform.environment;
 final _url = _env['E2E_SUPABASE_URL'] ?? '';
@@ -53,46 +54,6 @@ class Person {
 
   /// The app's upload sequence: reserve a slot, upload both files, finalize.
   Future<UploadResult> share(
-    String groupId,
-    List<int> jpeg, {
-    required String key,
-    String? caption,
-  }) async {
-    try {
-      return await _share(groupId, jpeg, key: key, caption: caption);
-    } on AppFailure {
-      // Repeat the raw calls to report what the server actually said.
-      final raw = await client.rpc<dynamic>(
-        'request_photo_upload',
-        params: {
-          'p_group_id': groupId,
-          'p_client_upload_id': '$key-raw',
-          'p_caption': caption,
-          'p_taken_at': null,
-          'p_width': 1200,
-          'p_height': 900,
-          'p_byte_size': jpeg.length,
-        },
-      );
-      final row = (raw as List).first as Map<String, dynamic>;
-      await client.storage
-          .from(SupabasePhotosBackend.bucket)
-          .uploadBinary(
-            row['storage_path'] as String,
-            Uint8List.fromList(jpeg),
-          );
-      await client.storage
-          .from(SupabasePhotosBackend.bucket)
-          .uploadBinary(row['thumb_path'] as String, Uint8List.fromList(jpeg));
-      await client.rpc<dynamic>(
-        'finalize_photo',
-        params: {'p_photo_id': row['photo_id']},
-      );
-      rethrow;
-    }
-  }
-
-  Future<UploadResult> _share(
     String groupId,
     List<int> jpeg, {
     required String key,
@@ -318,10 +279,12 @@ void main() {
   }, skip: skip);
 
   test('photos: upload, see, caption, privacy, retention', () async {
+    // Upload ids are UUIDs, as the app makes them; a retry reuses the id.
+    final beachKey = const Uuid().v4();
     final first = await asha.share(
       couple,
       jpeg,
-      key: 'e2e-$stamp-1',
+      key: beachKey,
       caption: 'Beach',
     );
     expect(first.removedCount, 0);
@@ -329,7 +292,7 @@ void main() {
     final again = await asha.share(
       couple,
       jpeg,
-      key: 'e2e-$stamp-1',
+      key: beachKey,
       caption: 'Beach',
     );
     expect(again.photoId, first.photoId);
@@ -372,7 +335,7 @@ void main() {
       removed += (await cara.share(
         friends,
         jpeg,
-        key: 'crew-$stamp-$i',
+        key: const Uuid().v4(),
       )).removedCount;
     }
     expect(removed, 1, reason: 'Basic keeps the latest 10');
