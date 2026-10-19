@@ -73,7 +73,7 @@ class AppNotification {
       NotificationKind.memberJoined => '$who joined $groupName',
       NotificationKind.milestoneAdded =>
         milestoneTitle == null
-            ? '$who added a special moment in $groupName'
+            ? '$who added a new milestone in $groupName'
             : '$who added “$milestoneTitle” in $groupName',
       NotificationKind.unknown => 'New activity in $groupName',
     };
@@ -151,14 +151,19 @@ class UserProfile {
     required this.displayName,
     this.avatarPath,
     this.username,
+    this.createdAt,
   });
 
-  factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
-    id: json['id'] as String,
-    displayName: json['display_name'] as String,
-    avatarPath: json['avatar_path'] as String?,
-    username: json['username'] as String?,
-  );
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    final created = json['created_at'] as String?;
+    return UserProfile(
+      id: json['id'] as String,
+      displayName: json['display_name'] as String,
+      avatarPath: json['avatar_path'] as String?,
+      username: json['username'] as String?,
+      createdAt: created == null ? null : DateTime.parse(created),
+    );
+  }
 
   final String id;
   final String displayName;
@@ -167,4 +172,7 @@ class UserProfile {
   /// Unique handle, lowercase. Null until chosen (Google sign-in, older
   /// accounts); the app then asks for one before anything else.
   final String? username;
+
+  /// When the account was created (the welcome message's time).
+  final DateTime? createdAt;
 }

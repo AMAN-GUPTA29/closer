@@ -264,7 +264,11 @@ class InMemoryContentBackend implements ContentBackend {
     displayName: _nameOverride ?? groups.currentUserName,
     avatarPath: _avatarPath,
     username: username,
+    createdAt: joinedAt,
   );
+
+  /// Account creation time shown by the welcome message.
+  DateTime joinedAt = DateTime.now().subtract(const Duration(days: 3));
 
   @override
   Future<String> setUsername(String value) async {

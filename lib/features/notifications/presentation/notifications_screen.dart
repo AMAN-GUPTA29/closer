@@ -50,15 +50,23 @@ class NotificationsScreen extends ConsumerWidget {
       for (final g in ref.watch(myGroupsProvider).value ?? const <Group>[])
         g.id: g,
     };
+    final welcomeAt = ref.watch(myProfileProvider).value?.createdAt;
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
+        titleSpacing: 0,
+        leading: IconButton(
+          tooltip: 'Back',
+          icon: const Icon(CloserIcons.back),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(Routes.home),
+        ),
         title: const Text('Notifications'),
         actions: [
-          if (unread > 0)
-            TextButton(
-              onPressed: () => _markAll(context, ref),
-              child: const Text('Mark all read'),
-            ),
+          TextButton(
+            onPressed: unread > 0 ? () => _markAll(context, ref) : null,
+            child: const Text('Mark all read'),
+          ),
           IconButton(
             tooltip: 'Notification preferences',
             icon: const Icon(CloserIcons.settings),
@@ -70,25 +78,12 @@ class NotificationsScreen extends ConsumerWidget {
         value: items,
         onRetry: () => ref.invalidate(notificationsProvider),
         builder: (list) {
-          if (list.isEmpty) {
-            return const EmptyState(
-              icon: CloserIcons.notifications,
-              title: 'You are all caught up',
-              message:
-                  'New photos, members and special moments from your groups '
-                  'will show up here.',
-            );
-          }
           final now = DateTime.now();
           final today = DateTime(now.year, now.month, now.day);
           String section(DateTime t) {
             final l = t.toLocal();
             final d = DateTime(l.year, l.month, l.day);
-            if (d == today) return 'Today';
-            if (d == today.subtract(const Duration(days: 1))) {
-              return 'Yesterday';
-            }
-            return 'Earlier';
+            return d == today ? 'Today' : 'Earlier';
           }
 
           final rows = <Widget>[];
@@ -102,11 +97,11 @@ class NotificationsScreen extends ConsumerWidget {
                     CloserSpacing.gutter,
                     CloserSpacing.lg,
                     CloserSpacing.gutter,
-                    CloserSpacing.xs,
+                    CloserSpacing.sm,
                   ),
                   child: Semantics(
                     header: true,
-                    child: Text(s, style: context.text.titleMedium),
+                    child: Text(s, style: context.text.titleLarge),
                   ),
                 ),
               );
@@ -125,8 +120,25 @@ class NotificationsScreen extends ConsumerWidget {
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
+                if (list.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: CloserSpacing.xl),
+                    child: EmptyState(
+                      icon: CloserIcons.notifications,
+                      title: 'You are all caught up',
+                      message:
+                          'New photos, members and special moments from your '
+                          'groups will show up here.',
+                    ),
+                  ),
                 ...rows,
-                const SizedBox(height: CloserSpacing.xxl),
+                const SizedBox(height: CloserSpacing.md),
+                _WelcomeTile(at: welcomeAt),
+                SizedBox(
+                  height:
+                      CloserSpacing.xxxl * 2 +
+                      MediaQuery.paddingOf(context).bottom,
+                ),
               ],
             ),
           );
@@ -160,68 +172,155 @@ class _NotificationTile extends StatelessWidget {
       ),
       _ => MemberAvatar(name: n.actorName ?? '?', size: 44),
     };
-    return Semantics(
-      button: true,
-      label:
-          '${n.isUnread ? 'Unread. ' : ''}$text, ${relativeTime(n.createdAt, DateTime.now())}',
-      excludeSemantics: true,
-      child: InkWell(
-        onTap: onTap,
+    final time = relativeTime(n.createdAt, DateTime.now());
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: CloserSpacing.md,
+        vertical: CloserSpacing.xxs,
+      ),
+      child: Semantics(
+        button: true,
+        label: '${n.isUnread ? 'Unread. ' : ''}$text, $time',
+        excludeSemantics: true,
+        child: Material(
+          color: n.isUnread ? c.accentSoft : Colors.transparent,
+          borderRadius: CloserRadii.xlAll,
+          child: InkWell(
+            borderRadius: CloserRadii.xlAll,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(CloserSpacing.md),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  leading,
+                  const SizedBox(width: CloserSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          text,
+                          style: context.text.bodyMedium?.copyWith(
+                            color: c.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: CloserSpacing.xxs),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(time, style: context.text.bodyMedium),
+                            ),
+                            if (n.photoThumbPath != null && group != null)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  top: CloserSpacing.xxs,
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: CloserRadii.mdAll,
+                                  child: SizedBox.square(
+                                    dimension: 56,
+                                    child: ThumbByPath(
+                                      groupId: group!.id,
+                                      path: n.photoThumbPath!,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 20,
+                    height: 72,
+                    child: n.isUnread
+                        ? Align(
+                            alignment: Alignment.centerRight,
+                            child: Container(
+                              width: 9,
+                              height: 9,
+                              decoration: BoxDecoration(
+                                color: c.accent,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The first message everyone gets: a welcome from Keeploom.
+class _WelcomeTile extends StatelessWidget {
+  const _WelcomeTile({required this.at});
+
+  final DateTime? at;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.closerColors;
+    final when = at;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: CloserSpacing.md,
+        vertical: CloserSpacing.xxs,
+      ),
+      child: Semantics(
+        label:
+            'System. Welcome to ${KeeploomLogo.name}!'
+            '${when == null ? '' : ' ${relativeTime(when, DateTime.now())}'}',
+        excludeSemantics: true,
         child: Container(
-          color: n.isUnread ? c.accentSoft.withValues(alpha: 0.45) : null,
-          padding: const EdgeInsets.symmetric(
-            horizontal: CloserSpacing.gutter,
-            vertical: CloserSpacing.sm,
+          padding: const EdgeInsets.all(CloserSpacing.md),
+          decoration: BoxDecoration(
+            // Dark: a lifted card, as on the board; light: plain.
+            color: Theme.of(context).brightness == Brightness.dark
+                ? c.surfaceMuted
+                : null,
+            borderRadius: CloserRadii.xlAll,
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              leading,
-              const SizedBox(width: CloserSpacing.sm),
+              Container(
+                width: 52,
+                height: 52,
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: c.surface,
+                  shape: BoxShape.circle,
+                  boxShadow: CloserElevation.low,
+                ),
+                child: const KeeploomLogo(size: 34),
+              ),
+              const SizedBox(width: CloserSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text('System', style: context.text.titleMedium),
                     Text(
-                      text,
-                      style: context.text.bodyMedium?.copyWith(
-                        color: c.textPrimary,
-                      ),
+                      'Welcome to ${KeeploomLogo.name}!',
+                      style: context.text.bodyLarge,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      relativeTime(n.createdAt, DateTime.now()),
-                      style: context.text.labelSmall?.copyWith(
-                        color: c.textTertiary,
+                    if (when != null)
+                      Text(
+                        relativeTime(when, DateTime.now()),
+                        style: context.text.bodyMedium,
                       ),
-                    ),
                   ],
                 ),
               ),
-              if (n.photoThumbPath != null && group != null) ...[
-                const SizedBox(width: CloserSpacing.sm),
-                ClipRRect(
-                  borderRadius: CloserRadii.smAll,
-                  child: SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: ThumbByPath(
-                      groupId: group!.id,
-                      path: n.photoThumbPath!,
-                    ),
-                  ),
-                ),
-              ],
-              if (n.isUnread) ...[
-                const SizedBox(width: CloserSpacing.xs),
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: c.accentStrong,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
