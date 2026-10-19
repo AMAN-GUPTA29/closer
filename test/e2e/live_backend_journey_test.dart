@@ -21,6 +21,7 @@ import 'package:closer/features/journal/data/content_backend.dart';
 import 'package:closer/features/journal/domain/journal_models.dart';
 import 'package:closer/features/notifications/domain/notification_models.dart';
 import 'package:closer/features/notifications/push/push_service.dart';
+import 'package:closer/features/photos/application/photo_upload.dart';
 import 'package:closer/features/photos/data/photos_backend.dart';
 import 'package:closer/features/photos/domain/photo_models.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,24 +53,25 @@ class Person {
 
   String get id => client.auth.currentUser!.id;
 
-  /// The app's upload sequence: reserve a slot, upload both files, finalize.
+  /// Shares through the app's own uploader (reserve, store, finalize).
   Future<UploadResult> share(
     String groupId,
     List<int> jpeg, {
     required String key,
     String? caption,
   }) async {
-    final slot = await photos.requestUpload(
-      groupId,
+    final bytes = Uint8List.fromList(jpeg);
+    return PhotoUploader(photos).upload(
+      groupId: groupId,
       clientUploadId: key,
       caption: caption,
-      width: 1200,
-      height: 900,
-      byteSize: jpeg.length,
+      photo: PreparedPhoto(
+        original: bytes,
+        thumbnail: bytes,
+        width: 1200,
+        height: 900,
+      ),
     );
-    await photos.putObject(slot.storagePath, Uint8List.fromList(jpeg));
-    await photos.putObject(slot.thumbPath, Uint8List.fromList(jpeg));
-    return photos.finalize(slot.photoId);
   }
 }
 
