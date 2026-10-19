@@ -58,6 +58,46 @@ class Person {
     required String key,
     String? caption,
   }) async {
+    try {
+      return await _share(groupId, jpeg, key: key, caption: caption);
+    } on AppFailure {
+      // Repeat the raw calls to report what the server actually said.
+      final raw = await client.rpc<dynamic>(
+        'request_photo_upload',
+        params: {
+          'p_group_id': groupId,
+          'p_client_upload_id': '$key-raw',
+          'p_caption': caption,
+          'p_taken_at': null,
+          'p_width': 1200,
+          'p_height': 900,
+          'p_byte_size': jpeg.length,
+        },
+      );
+      final row = (raw as List).first as Map<String, dynamic>;
+      await client.storage
+          .from(SupabasePhotosBackend.bucket)
+          .uploadBinary(
+            row['storage_path'] as String,
+            Uint8List.fromList(jpeg),
+          );
+      await client.storage
+          .from(SupabasePhotosBackend.bucket)
+          .uploadBinary(row['thumb_path'] as String, Uint8List.fromList(jpeg));
+      await client.rpc<dynamic>(
+        'finalize_photo',
+        params: {'p_photo_id': row['photo_id']},
+      );
+      rethrow;
+    }
+  }
+
+  Future<UploadResult> _share(
+    String groupId,
+    List<int> jpeg, {
+    required String key,
+    String? caption,
+  }) async {
     final slot = await photos.requestUpload(
       groupId,
       clientUploadId: key,
@@ -256,7 +296,13 @@ void main() {
       (await ben.groups.redeem(invite.code)).status,
       InviteStatus.alreadyMember,
     );
-    expect((await cara.groups.redeem(invite.code)).status, InviteStatus.full);
+    // A couple invite admits exactly one more person, so it is used up.
+    expect(
+      (await cara.groups.redeem(invite.code)).status,
+      InviteStatus.exhausted,
+    );
+    // Even a fresh invite can't overfill the couple.
+    await expectLater(asha.groups.create(couple), _fails());
 
     final members = await asha.groups.members(couple);
     expect(members.map((m) => m.userId), containsAll([asha.id, ben.id]));
