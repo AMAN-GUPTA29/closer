@@ -117,11 +117,7 @@ void main() {
     expect(find.byType(ProfileScreen), findsOneWidget);
     expect(find.text('alex@example.com'), findsOneWidget);
 
-    await tester.scrollUntilVisible(
-      find.text('Sign out'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.tap(find.byTooltip('Settings'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();

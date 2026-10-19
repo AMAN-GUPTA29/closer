@@ -267,6 +267,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const PurchasedGroupsScreen(),
                   ),
                   GoRoute(
+                    path: 'settings',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => const SettingsScreen(),
+                  ),
+                  GoRoute(
                     path: 'widgets',
                     parentNavigatorKey: _rootKey,
                     builder: (context, state) => const WidgetSetupScreen(),

@@ -250,3 +250,4 @@ _Last updated: 2026-10-14_
 - 2026-10-14 — Phase 5 approved. Phase 6: release + secret-scan + R8 CI, Codemagic, signing, security/purchase/performance/accessibility reviews, release-readiness report; 167 Flutter tests.
 - 2026-10-15 — Launch: Supabase project live (5 migrations, 5 Edge Functions, cleanup + reminder schedules, realtime); cron auth via Vault secret (migration 5, pgTAP 008).
 - 2026-10-18 — Keeploom redesign: brand tokens (light + dark), Appearance setting, vector logo + icons/splash/notification icon, floating dock, onboarding/Home/share-sheet polish, all visible text and native labels renamed; 192 Flutter tests.
+- 2026-10-20 — Keeploom redesign: Home, Journal, Share a memory (single screen, several photos and groups at once), Notifications and Profile now match the showcase in light and dark. Appearance, Sign out and Delete account moved to Profile → ⚙ Settings. 197 Flutter tests.

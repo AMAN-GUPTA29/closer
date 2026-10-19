@@ -15,26 +15,29 @@ import '../../journal/application/content_providers.dart';
 import 'profile_widgets.dart';
 import 'theme_settings_tile.dart';
 
-class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({super.key});
-
-  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
-    final ok = await showConfirmationDialog(
-      context,
-      title: 'Sign out?',
-      message: 'You can sign back in any time. Your groups stay as they are.',
-      confirmLabel: 'Sign out',
-    );
-    if (!ok) return;
-    try {
-      await ref.read(authControllerProvider.notifier).signOut();
-    } on AppFailure catch (f) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(f.message)));
-      }
+Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+  final ok = await showConfirmationDialog(
+    context,
+    title: 'Sign out?',
+    message: 'You can sign back in any time. Your groups stay as they are.',
+    confirmLabel: 'Sign out',
+  );
+  if (!ok) return;
+  try {
+    await ref.read(authControllerProvider.notifier).signOut();
+  } on AppFailure catch (f) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(f.message)));
     }
   }
+}
+
+/// Profile, as on the Keeploom showcase: avatar, name and email, then the
+/// account and help sections. Appearance, sign-out and account deletion
+/// live behind the settings gear.
+class ProfileScreen extends ConsumerWidget {
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,19 +55,35 @@ class ProfileScreen extends ConsumerWidget {
     final support = config.supportEmail;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        actions: [
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(CloserIcons.settings),
+            onPressed: () => context.push(Routes.settings),
+          ),
+          const SizedBox(width: CloserSpacing.xxs),
+        ],
+      ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: CloserSpacing.gutter,
-          vertical: CloserSpacing.md,
+        padding: EdgeInsets.fromLTRB(
+          CloserSpacing.gutter,
+          CloserSpacing.xs,
+          CloserSpacing.gutter,
+          CloserSpacing.xxxl * 2 + MediaQuery.paddingOf(context).bottom,
         ),
         children: [
-          Center(child: MyAvatar(fallbackName: displayName, size: 96)),
+          Center(
+            child: MyAvatar(fallbackName: displayName, size: 104, brand: true),
+          ),
           const SizedBox(height: CloserSpacing.md),
           Text(
             displayName,
             textAlign: TextAlign.center,
-            style: context.text.headlineSmall,
+            style: context.text.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
           ),
           if (profile?.username != null)
             Text(
@@ -72,6 +91,7 @@ class ProfileScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: context.text.titleSmall?.copyWith(color: c.accentStrong),
             ),
+          const SizedBox(height: 2),
           Text(
             user?.email ?? '',
             textAlign: TextAlign.center,
@@ -112,8 +132,6 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: CloserSpacing.md),
-          const _Section(children: [ThemeSettingsTile()]),
-          const SizedBox(height: CloserSpacing.md),
           _Section(
             children: [
               _Tile(
@@ -134,14 +152,36 @@ class ProfileScreen extends ConsumerWidget {
                 label: 'Terms of use',
                 onTap: () => context.push('${Routes.legal}/terms'),
               ),
-              if (kDebugMode)
-                _Tile(
-                  icon: CloserIcons.widgets,
-                  label: 'Component gallery (debug)',
-                  onTap: () => context.push(Routes.componentGallery),
-                ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Profile → ⚙: appearance and account actions.
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(authControllerProvider);
+    final c = context.closerColors;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+        leading: IconButton(
+          tooltip: 'Back',
+          icon: const Icon(CloserIcons.back),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(Routes.profile),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(CloserSpacing.gutter),
+        children: [
+          const _Section(children: [ThemeSettingsTile()]),
           const SizedBox(height: CloserSpacing.md),
           _Section(
             children: [
@@ -160,7 +200,18 @@ class ProfileScreen extends ConsumerWidget {
                 ),
             ],
           ),
-          const SizedBox(height: CloserSpacing.xl),
+          if (kDebugMode) ...[
+            const SizedBox(height: CloserSpacing.md),
+            _Section(
+              children: [
+                _Tile(
+                  icon: CloserIcons.widgets,
+                  label: 'Component gallery (debug)',
+                  onTap: () => context.push(Routes.componentGallery),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -178,15 +229,12 @@ class _Section extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: CloserRadii.lgAll,
+        borderRadius: CloserRadii.xlAll,
         boxShadow: dark ? CloserElevation.none : CloserElevation.low,
       ),
       child: Material(
-        color: c.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: CloserRadii.lgAll,
-          side: dark ? BorderSide(color: c.line) : BorderSide.none,
-        ),
+        color: dark ? c.surfaceMuted : c.surface,
+        shape: const RoundedRectangleBorder(borderRadius: CloserRadii.xlAll),
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
@@ -221,7 +269,7 @@ class _Tile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.closerColors;
     final enabled = onTap != null;
-    final fg = color ?? (enabled ? c.textPrimary : c.textTertiary);
+    final fg = color ?? c.textPrimary;
     final tag = trailing;
     return ListTile(
       enabled: enabled,
@@ -232,14 +280,17 @@ class _Tile extends StatelessWidget {
       trailing: tag != null
           ? Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: CloserSpacing.xs,
-                vertical: 2,
+                horizontal: CloserSpacing.sm,
+                vertical: CloserSpacing.xxs,
               ),
               decoration: BoxDecoration(
-                color: c.surfaceMuted,
+                color: c.accentSoft,
                 borderRadius: CloserRadii.pillAll,
               ),
-              child: Text(tag, style: context.text.labelSmall),
+              child: Text(
+                tag,
+                style: context.text.labelMedium?.copyWith(color: c.textPrimary),
+              ),
             )
           : (enabled && color == null
                 ? Icon(

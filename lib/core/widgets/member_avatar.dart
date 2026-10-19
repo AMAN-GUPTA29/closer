@@ -11,6 +11,7 @@ class MemberAvatar extends StatelessWidget {
     this.image,
     this.size = 40,
     this.ringColor,
+    this.colors,
   });
 
   final String name;
@@ -19,6 +20,9 @@ class MemberAvatar extends StatelessWidget {
 
   /// Optional ring (e.g. white ring when overlapping in a stack).
   final Color? ringColor;
+
+  /// (background, initials) overriding the name-based tint.
+  final (Color, Color)? colors;
 
   static const _tints = [
     Color(0xFFF36B7F),
@@ -52,10 +56,10 @@ class MemberAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ring = ringColor;
-    final tint = tintFor(name);
+    final tint = colors?.$2 ?? tintFor(name);
     Widget avatar = CircleAvatar(
       radius: size / 2,
-      backgroundColor: tint.withValues(alpha: 0.18),
+      backgroundColor: colors?.$1 ?? tint.withValues(alpha: 0.18),
       foregroundImage: image,
       child: Text(
         initialsOf(name),

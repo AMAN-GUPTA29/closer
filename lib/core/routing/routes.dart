@@ -37,6 +37,7 @@ abstract final class Routes {
   static const purchases = '/profile/purchases';
   static const deleteAccount = '/profile/delete';
   static const widgetSetup = '/profile/widgets';
+  static const settings = '/profile/settings';
   static const chooseUsername = '/username';
   static const share = '/share';
   static String addMemory(String id, {String? source}) =>

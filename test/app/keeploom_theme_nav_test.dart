@@ -27,7 +27,7 @@ void main() {
   tearDown(() => auth.dispose());
 
   Brightness brightness(WidgetTester tester) =>
-      Theme.of(tester.element(find.byType(KeeploomBottomNav))).brightness;
+      Theme.of(tester.element(find.byType(Scaffold).last)).brightness;
 
   ThemeMode mode(WidgetTester tester) =>
       tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode!;
@@ -35,12 +35,9 @@ void main() {
   Future<void> openProfile(WidgetTester tester) async {
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('Appearance'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.tap(find.byTooltip('Settings'));
     await tester.pumpAndSettle();
+    expect(find.text('Appearance'), findsOneWidget);
   }
 
   group('Appearance', () {
