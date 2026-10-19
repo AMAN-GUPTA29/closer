@@ -1,9 +1,10 @@
 # Keeploom: every screen, light and dark
 
-Captured 2026-10-18 on an Android 14 emulator (Pixel 8 size) in **Preview mode**: a debug build
-with built-in sample groups, so no real account or data is shown. Each screen exists in
-[`light/`](light) and [`dark/`](dark) under the same file name. The overviews are
-`00-overview-light.jpg` and `00-overview-dark.jpg`.
+Rendered 2026-10-20 from the app's own widgets in Flutter tests at phone size (390×844 pt, 3×).
+These are not captures from a device. The sample data is made up and uses the owner's sample
+photos. The system status bar is not shown, and the system photo picker can't be rendered in a
+test. Each screen is in [`light/`](light) and [`dark/`](dark) under the same file name. The
+overviews are `00-overview-light.jpg` and `00-overview-dark.jpg`.
 
 | # | Screen |
 |---|---|
@@ -11,36 +12,30 @@ with built-in sample groups, so no real account or data is shown. Each screen ex
 | 04–05 | Sign up (with username) |
 | 06 | Sign in |
 | 07 | Forgot password |
+| 08 | Confirm your email |
 | 10 | Home |
+| 11 | Your groups (See all) |
 | 13–14 | Journal (all groups) |
 | 15 | Alerts (notifications) |
 | 16 | Notification preferences |
-| 17 | Share sheet (the + button) |
-| 18–21 | Share a memory: source, system photo picker, caption/date form |
-| 30 | Couple group: Journal tab |
-| 31–32 | Milestones tab (days-together counter, countdowns) |
-| 33–34 | New special moment |
-| 35–36 | Details tab and the Keeploom Memories card |
-| 37 | Keeploom Memories (upgrade) |
-| 38 | Members |
-| 39–40 | Group settings (cover, leave, delete) |
-| 41 | Moment actions (edit, unpin, delete) |
-| 42 | Family group, empty state |
-| 43–45 | Invite: options, code created, invitation list |
-| 46–47 | Create group (Couple disabled: already in a couple group) |
-| 48 | Join group |
-| 50–51 | Profile and Appearance (Light / Dark / System) |
-| 52 | Edit profile (display name, username) |
+| 17–20 | Share a memory: empty, add-photo sheet, filled (two groups ticked), scrolled |
+| 30, 34 | Couple group: Journal tab, scrolled |
+| 31 | Couple group: Milestones |
+| 32–33 | Couple group: Details (+ upgrade card) |
+| 35 | All photos |
+| 36–37 | Create a special moment |
+| 38 | Edit a special moment |
+| 39 | Keeploom Memories (upgrade) |
+| 40–41 | Group settings (leave / delete) |
+| 42 | Family group |
+| 43 | Members |
+| 44–45 | Invite, invite code created |
+| 46 | Create a group |
+| 48 | Join a group |
+| 50 | Profile |
+| 51 | Settings (appearance, sign out, delete account) |
+| 52 | Edit profile |
 | 53 | Purchased groups |
-| 54–55 | Home-screen widget setup |
-| 56–57 | Privacy policy, Terms of use |
-| 59 | Offline banner |
-
-Not in this set (they need a live account or real photos, which Preview mode doesn't have):
-- full-screen photo viewer and "All photos" grid;
-- verify email, pick a username, delete account, set new password;
-- the in-app notification banner;
-- system dialogs (camera, notification permission).
-
-The home-screen widget, its group picker and the launcher pin dialog are in
-[`../keeploom-2026-10-18/`](../keeploom-2026-10-18).
+| 54–55 | Home screen widgets (setup + help) |
+| 56 | Delete account |
+| 57–58 | Privacy policy, Terms of use |
