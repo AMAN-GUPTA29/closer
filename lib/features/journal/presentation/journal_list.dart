@@ -169,6 +169,16 @@ class _DayHeader extends StatelessWidget {
 
   final DateTime day;
 
+  /// "Today", "Yesterday", then "20 Oct 2026".
+  static String _label(DateTime day) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final d = DateTime(day.year, day.month, day.day);
+    if (d == today) return 'Today';
+    if (today.difference(d).inDays == 1) return 'Yesterday';
+    return DateFormat('d MMM y').format(day);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -179,10 +189,9 @@ class _DayHeader extends StatelessWidget {
           bottom: CloserSpacing.sm,
         ),
         child: Text(
-          DateFormat.yMMMd().format(day).toUpperCase(),
-          style: context.text.labelSmall?.copyWith(
-            letterSpacing: 1.2,
-            color: context.closerColors.textTertiary,
+          _label(day),
+          style: context.text.labelMedium?.copyWith(
+            color: context.closerColors.textSecondary,
           ),
         ),
       ),
@@ -233,66 +242,60 @@ List<Widget> pinnedSlivers(BuildContext context, WidgetRef ref, Group group) {
   final photos = ref.watch(pinnedPhotosProvider(group.id)).value ?? const [];
   if (milestones.isEmpty && photos.isEmpty) return const [];
   return [
-    SliverPadding(
-      padding: const EdgeInsets.fromLTRB(
-        CloserSpacing.gutter,
-        CloserSpacing.md,
-        CloserSpacing.gutter,
-        0,
-      ),
-      sliver: SliverToBoxAdapter(
-        child: Row(
-          children: [
-            Icon(
-              CloserIcons.pinFilled,
-              size: 16,
-              color: context.closerColors.accentStrong,
-            ),
-            const SizedBox(width: CloserSpacing.xxs),
-            Text('Pinned', style: context.text.titleSmall),
-          ],
+    for (final m in milestones)
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          CloserSpacing.gutter,
+          CloserSpacing.md,
+          CloserSpacing.gutter,
+          0,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: MilestoneView(milestone: m, group: group),
         ),
       ),
-    ),
-    SliverToBoxAdapter(
-      child: SizedBox(
-        height: 132,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(
-            horizontal: CloserSpacing.gutter,
-            vertical: CloserSpacing.sm,
-          ),
-          children: [
-            for (final m in milestones)
-              _PinnedChip(
-                label: m.title,
-                sublabel: formatMediumDate(m.eventDate),
-                icon: m.theme.icon,
-                onTap: () => showMilestoneSheet(context, ref, m, group),
-              ),
-            for (final p in photos)
-              Padding(
-                padding: const EdgeInsets.only(right: CloserSpacing.sm),
-                child: GestureDetector(
-                  onTap: () => openPhotoViewer(
-                    context,
-                    ref,
-                    photos: photos,
-                    index: photos.indexOf(p),
-                    group: group,
-                    currentUserId: ref.read(currentUserIdProvider),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: CloserRadii.mdAll,
-                    child: SizedBox(width: 116, child: PhotoImage(photo: p)),
+    if (photos.isNotEmpty)
+      SliverToBoxAdapter(
+        child: SizedBox(
+          height: 132,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(
+              CloserSpacing.gutter,
+              CloserSpacing.md,
+              CloserSpacing.gutter,
+              0,
+            ),
+            children: [
+              for (final p in photos)
+                Padding(
+                  padding: const EdgeInsets.only(right: CloserSpacing.sm),
+                  child: Semantics(
+                    button: true,
+                    label: 'Pinned photo',
+                    child: GestureDetector(
+                      onTap: () => openPhotoViewer(
+                        context,
+                        ref,
+                        photos: photos,
+                        index: photos.indexOf(p),
+                        group: group,
+                        currentUserId: ref.read(currentUserIdProvider),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: CloserRadii.mdAll,
+                        child: SizedBox(
+                          width: 116,
+                          child: PhotoImage(photo: p),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
   ];
 }
 
@@ -300,51 +303,3 @@ final pinnedPhotosProvider = FutureProvider.autoDispose
     .family<List<Photo>, String>(
       (ref, groupId) => ref.watch(photosBackendProvider).pinnedPhotos(groupId),
     );
-
-class _PinnedChip extends StatelessWidget {
-  const _PinnedChip({
-    required this.label,
-    required this.sublabel,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String label;
-  final String sublabel;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.closerColors;
-    return Padding(
-      padding: const EdgeInsets.only(right: CloserSpacing.sm),
-      child: Material(
-        color: c.surfaceMuted,
-        borderRadius: CloserRadii.mdAll,
-        child: InkWell(
-          borderRadius: CloserRadii.mdAll,
-          onTap: onTap,
-          child: Container(
-            width: 160,
-            padding: const EdgeInsets.all(CloserSpacing.sm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(icon, color: c.accentStrong, size: 22),
-                const Spacer(),
-                Text(
-                  label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.text.titleSmall,
-                ),
-                Text(sublabel, style: context.text.labelSmall),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

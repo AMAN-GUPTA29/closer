@@ -16,8 +16,23 @@ String daysTogetherLabel(int days) => days == 1
     ? '1 day together'
     : '${NumberFormat.decimalPattern().format(days)} days together';
 
-/// Locale-aware medium date, e.g. "Apr 12, 2024".
-String formatMediumDate(DateTime date) => DateFormat.yMMMd().format(date);
+/// Medium date, e.g. "12 Apr 2024".
+String formatMediumDate(DateTime date) => DateFormat('d MMM y').format(date);
+
+/// Long date, e.g. "22 April 2026".
+String formatLongDate(DateTime date) => DateFormat('d MMMM y').format(date);
+
+/// "8 September" this year, "8 September 2025" otherwise.
+String formatDayMonth(DateTime date, [DateTime? now]) =>
+    date.year == (now ?? DateTime.now()).year
+    ? DateFormat('d MMMM').format(date)
+    : formatLongDate(date);
+
+/// "7 Nov" this year, "7 Nov 2027" otherwise.
+String formatShortDayMonth(DateTime date, [DateTime? now]) =>
+    date.year == (now ?? DateTime.now()).year
+    ? DateFormat('d MMM').format(date)
+    : formatMediumDate(date);
 
 /// Short relative description of a past instant ("just now", "2h ago",
 /// "3 days ago", or a date for anything older than a week).

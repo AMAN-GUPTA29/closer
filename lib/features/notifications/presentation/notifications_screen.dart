@@ -201,14 +201,9 @@ class _NotificationTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      text,
-                      style: context.text.bodyLarge?.copyWith(
-                        fontSize: 15,
-                        fontWeight: n.isUnread
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                      ),
+                    Text.rich(
+                      _emphasise(text, [?n.actorName, ?group?.name]),
+                      style: context.text.bodyLarge?.copyWith(fontSize: 15),
                     ),
                     const SizedBox(height: 2),
                     Text(time, style: context.text.bodyMedium),
@@ -307,4 +302,35 @@ class _WelcomeTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The sentence with people and group names in semibold (Keeploom concept).
+TextSpan _emphasise(String text, List<String> names) {
+  final spans = <TextSpan>[];
+  var rest = text;
+  while (rest.isNotEmpty) {
+    var at = -1;
+    var hit = '';
+    for (final n in names) {
+      if (n.isEmpty) continue;
+      final i = rest.indexOf(n);
+      if (i >= 0 && (at < 0 || i < at)) {
+        at = i;
+        hit = n;
+      }
+    }
+    if (at < 0) {
+      spans.add(TextSpan(text: rest));
+      break;
+    }
+    if (at > 0) spans.add(TextSpan(text: rest.substring(0, at)));
+    spans.add(
+      TextSpan(
+        text: hit,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+    );
+    rest = rest.substring(at + hit.length);
+  }
+  return TextSpan(children: spans);
 }

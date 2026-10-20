@@ -67,32 +67,16 @@ class LegalScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(CloserSpacing.gutter),
           children: [
-            Text('In short', style: context.text.headlineSmall),
+            Semantics(
+              header: true,
+              child: Text('In short', style: context.text.headlineMedium),
+            ),
+            const SizedBox(height: CloserSpacing.sm),
+            for (final p in points) DotPoint(p),
             const SizedBox(height: CloserSpacing.md),
-            for (final p in points)
-              Padding(
-                padding: const EdgeInsets.only(bottom: CloserSpacing.sm),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Icon(
-                        CloserIcons.heart,
-                        size: 14,
-                        color: context.closerColors.accent,
-                      ),
-                    ),
-                    const SizedBox(width: CloserSpacing.sm),
-                    Expanded(child: Text(p, style: context.text.bodyLarge)),
-                  ],
-                ),
-              ),
-            const SizedBox(height: CloserSpacing.lg),
             if (url != null)
               CloserButton.secondary(
                 label: 'Read the full ${doc.title.toLowerCase()}',
-                icon: const Icon(CloserIcons.link),
                 onPressed: () => launchUrl(
                   Uri.parse(url),
                   mode: LaunchMode.externalApplication,

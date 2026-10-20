@@ -1,10 +1,11 @@
 export 'closer_button.dart';
-export 'keeploom_logo.dart';
 export 'closer_photo.dart';
 export 'closer_text_field.dart';
 export 'confirmation_dialog.dart';
+export 'dot_point.dart';
 export 'group_card.dart';
 export 'invite_code_card.dart';
+export 'keeploom_logo.dart';
 export 'member_avatar.dart';
 export 'memory_card.dart';
 export 'milestone_card.dart';

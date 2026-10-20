@@ -36,7 +36,7 @@ class NotificationPreferencesScreen extends ConsumerWidget {
     final prefs = ref.watch(notificationPreferencesProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notification preferences'),
+        title: const Text('Notifications'),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(CloserIcons.back),
@@ -52,11 +52,11 @@ class NotificationPreferencesScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(CloserSpacing.gutter),
           children: [
             Text(
-              'Choose what Keeploom tells you about. These apply to all of your '
+              'Choose what Keeploom tells you about. These apply to all your '
               'groups.',
               style: context.text.bodyMedium,
             ),
-            const SizedBox(height: CloserSpacing.md),
+            const _Label('From your groups'),
             SectionCard(
               dividerIndent: CloserSpacing.md,
               children: [
@@ -64,9 +64,9 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                   contentPadding: _pad,
                   value: p.photos,
                   onChanged: (v) => _save(context, ref, p.copyWith(photos: v)),
-                  title: Text('New photos', style: context.text.bodyLarge),
+                  title: Text('New photos', style: _title(context)),
                   subtitle: Text(
-                    'When someone shares a photo in your groups',
+                    'When someone shares a photo',
                     style: context.text.bodySmall,
                   ),
                 ),
@@ -74,9 +74,9 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                   contentPadding: _pad,
                   value: p.members,
                   onChanged: (v) => _save(context, ref, p.copyWith(members: v)),
-                  title: Text('New members', style: context.text.bodyLarge),
+                  title: Text('New members', style: _title(context)),
                   subtitle: Text(
-                    'When someone joins one of your groups',
+                    'When someone joins a group',
                     style: context.text.bodySmall,
                   ),
                 ),
@@ -85,9 +85,9 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                   value: p.milestones,
                   onChanged: (v) =>
                       _save(context, ref, p.copyWith(milestones: v)),
-                  title: Text('Special moments', style: context.text.bodyLarge),
+                  title: Text('Special moments', style: _title(context)),
                   subtitle: Text(
-                    'When someone adds a milestone',
+                    'When someone adds a moment',
                     style: context.text.bodySmall,
                   ),
                 ),
@@ -96,28 +96,24 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                   value: p.reminders,
                   onChanged: (v) =>
                       _save(context, ref, p.copyWith(reminders: v)),
-                  title: Text('Reminders', style: context.text.bodyLarge),
+                  title: Text('Reminders', style: _title(context)),
                   subtitle: Text(
-                    'The day before an upcoming special moment',
+                    'The day before an upcoming moment',
                     style: context.text.bodySmall,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: CloserSpacing.md),
+            const _Label('On this phone'),
             SectionCard(
               children: [
                 SwitchListTile(
                   contentPadding: _pad,
                   value: p.push,
                   onChanged: (v) => _save(context, ref, p.copyWith(push: v)),
-                  title: Text(
-                    'Phone notifications',
-                    style: context.text.bodyLarge,
-                  ),
+                  title: Text('Phone notifications', style: _title(context)),
                   subtitle: Text(
-                    'Pop-ups on this phone. When off, everything still appears in '
-                    'Alerts inside Keeploom.',
+                    'When off, everything still appears in Alerts.',
                     style: context.text.bodySmall,
                   ),
                 ),
@@ -128,4 +124,33 @@ class NotificationPreferencesScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+TextStyle? _title(BuildContext context) =>
+    context.text.bodyLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w500);
+
+/// Small muted label above a panel.
+class _Label extends StatelessWidget {
+  const _Label(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      4,
+      CloserSpacing.lg,
+      4,
+      CloserSpacing.xs,
+    ),
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: context.text.labelMedium?.copyWith(
+          color: context.closerColors.textSecondary,
+        ),
+      ),
+    ),
+  );
 }

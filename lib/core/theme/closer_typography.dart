@@ -24,7 +24,11 @@ TextStyle closerStyle({
     fontFamily: family,
     fontSize: size,
     fontWeight: weight,
-    fontVariations: [FontVariation('wght', weight.value.toDouble())],
+    fontVariations: [
+      FontVariation('wght', weight.value.toDouble()),
+      if (family == CloserFonts.serif)
+        FontVariation('opsz', size.clamp(9, 144).toDouble()),
+    ],
     height: height,
     letterSpacing: letterSpacing,
   );

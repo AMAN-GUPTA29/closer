@@ -11,6 +11,7 @@ import '../../../core/theme/closer_theme.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/auth_models.dart';
+import '../../groups/application/group_providers.dart';
 import '../../journal/application/content_providers.dart';
 import 'profile_widgets.dart';
 import 'theme_settings_tile.dart';
@@ -53,6 +54,10 @@ class ProfileScreen extends ConsumerWidget {
     final displayName =
         profile?.displayName ?? user?.displayName ?? user?.friendlyName ?? '';
     final support = config.supportEmail;
+    final pushOn = ref.watch(notificationPreferencesProvider).value?.push;
+    final premium = (ref.watch(myGroupsProvider).value ?? const [])
+        .where((g) => g.isPremium)
+        .length;
 
     return Scaffold(
       appBar: AppBar(
@@ -124,21 +129,27 @@ class ProfileScreen extends ConsumerWidget {
               ),
               _Tile(
                 icon: CloserIcons.notifications,
-                label: 'Notification preferences',
+                label: 'Notifications',
+                value: pushOn == null ? null : (pushOn ? 'On' : 'Off'),
                 onTap: () => context.push(Routes.notificationPreferences),
-              ),
-              _Tile(
-                icon: CloserIcons.crown,
-                label: 'Purchased groups',
-                onTap: () => context.push(Routes.purchases),
               ),
               _Tile(
                 icon: CloserIcons.widgets,
                 label: 'Home screen widgets',
                 onTap: () => context.push(Routes.widgetSetup),
               ),
+              _Tile(
+                icon: CloserIcons.crown,
+                label: 'Keeploom Memories',
+                value: premium == 0
+                    ? 'None yet'
+                    : '$premium ${premium == 1 ? 'group' : 'groups'}',
+                onTap: () => context.push(Routes.purchases),
+              ),
             ],
           ),
+          const SizedBox(height: CloserSpacing.xl),
+          const ThemeSettingsTile(),
           const _Label('Help'),
           SectionCard(
             children: [
@@ -189,14 +200,13 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(CloserSpacing.gutter),
         children: [
-          const SectionCard(children: [ThemeSettingsTile()]),
-          const SizedBox(height: CloserSpacing.md),
+          const ThemeSettingsTile(),
+          const _Label('Account'),
           SectionCard(
             children: [
               _Tile(
                 icon: CloserIcons.signOut,
                 label: 'Sign out',
-                color: c.danger,
                 onTap: () => _signOut(context, ref),
               ),
               if (status is SignedIn)
@@ -233,6 +243,7 @@ class _Tile extends StatelessWidget {
     this.onTap,
     this.color,
     this.trailing,
+    this.value,
   });
 
   final IconData icon;
@@ -241,6 +252,9 @@ class _Tile extends StatelessWidget {
   final Color? color;
 
   final String? trailing;
+
+  /// Current setting shown on the right, e.g. "On".
+  final String? value;
 
   @override
   Widget build(BuildContext context) {
@@ -251,10 +265,16 @@ class _Tile extends StatelessWidget {
     return ListTile(
       enabled: enabled,
       onTap: enabled ? onTap : null,
-      minTileHeight: 56,
-      leading: Icon(icon, color: fg, size: 22),
-      title: Text(label, style: context.text.bodyLarge?.copyWith(color: fg)),
-      trailing: tag != null
+      minTileHeight: 54,
+      horizontalTitleGap: 14,
+      leading: Icon(icon, color: fg, size: 19),
+      title: Text(
+        label,
+        style: context.text.bodyLarge?.copyWith(color: fg, fontSize: 15),
+      ),
+      trailing: value != null
+          ? Text(value!, style: context.text.bodyMedium)
+          : tag != null
           ? Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: CloserSpacing.sm,

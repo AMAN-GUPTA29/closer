@@ -144,7 +144,7 @@ class _JoinGroupScreenState extends ConsumerState<JoinGroupScreen> {
     final preview = _preview;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Join a Group'),
+        title: const Text('Join a group'),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(CloserIcons.back),
@@ -156,40 +156,40 @@ class _JoinGroupScreenState extends ConsumerState<JoinGroupScreen> {
         child: ListView(
           padding: const EdgeInsets.all(CloserSpacing.gutter),
           children: [
-            Text('Enter invitation code', style: context.text.titleMedium),
-            const SizedBox(height: CloserSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: CloserTextField(
-                    controller: _code,
-                    hint: 'e.g. ABCD-EF23',
-                    icon: CloserIcons.lock,
-                    textCapitalization: TextCapitalization.characters,
-                    textInputAction: TextInputAction.go,
-                    onSubmitted: (_) => _submitCode(),
-                    maxLength: 12,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp('[A-Za-z0-9 -]'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: CloserSpacing.xs),
-                CloserIconButton(
-                  icon: CloserIcons.forward,
-                  semanticLabel: 'Check code',
-                  filled: true,
-                  size: 52,
-                  onPressed: _checking ? null : _submitCode,
-                ),
+            Semantics(
+              header: true,
+              child: Text('Got an invite?', style: context.text.headlineMedium),
+            ),
+            const SizedBox(height: CloserSpacing.xs),
+            Text(
+              'Enter the code someone in the group sent you. You’ll see the '
+              'group before you join.',
+              style: context.text.bodyMedium?.copyWith(fontSize: 14.5),
+            ),
+            const SizedBox(height: CloserSpacing.lg),
+            CloserTextField(
+              controller: _code,
+              hint: 'Invitation code',
+              placeholder: 'ABCD-EF23',
+              textCapitalization: TextCapitalization.characters,
+              textInputAction: TextInputAction.go,
+              onSubmitted: (_) => _submitCode(),
+              maxLength: 12,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9 -]')),
               ],
+            ),
+            const SizedBox(height: CloserSpacing.sm),
+            Tooltip(
+              message: 'Check code',
+              child: CloserButton(
+                label: 'Continue',
+                onPressed: _checking ? null : _submitCode,
+              ),
             ),
             const OrDivider(),
             CloserButton.secondary(
               label: 'Paste invite link',
-              icon: const Icon(CloserIcons.link),
               onPressed: _checking ? null : _pasteLink,
             ),
             const SizedBox(height: CloserSpacing.xl),

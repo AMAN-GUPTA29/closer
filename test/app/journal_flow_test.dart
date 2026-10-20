@@ -103,7 +103,7 @@ void main() {
       find.byType(TextFormField).at(1),
       'Coffee that lasted all day',
     );
-    await tapButton(tester, 'Save Moment');
+    await tapButton(tester, 'Save moment');
     expect(find.text('Moment saved'), findsOneWidget);
 
     final saved = (await content.milestones(couple)).single;
@@ -122,7 +122,7 @@ void main() {
     await tester.pumpAndSettle();
     await tapButton(tester, 'Edit');
     await tester.enterText(find.byType(TextFormField).first, 'First date ever');
-    await tapButton(tester, 'Save Moment');
+    await tapButton(tester, 'Save moment');
     expect((await content.milestones(couple)).single.title, 'First date ever');
 
     // Delete with confirmation.
@@ -145,8 +145,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Choose from gallery'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Add to a milestone'));
-    await tester.tap(find.text('Add to a milestone'));
+    await tester.ensureVisible(find.text('Make it a special moment'));
+    await tester.tap(find.text('Make it a special moment'));
     await tester.pumpAndSettle();
     expect(find.text('New special moment'), findsOneWidget);
     await tapButton(tester, 'Share');
@@ -156,7 +156,7 @@ void main() {
       find.byType(TextFormField).first,
       'Sunset on the pier',
     );
-    await tapButton(tester, 'Save Moment');
+    await tapButton(tester, 'Save moment');
     final m = (await content.milestones(couple)).single;
     final photo = (await groups.photos(couple)).photos.single;
     expect(m.coverPhotoId, photo.id);
@@ -172,7 +172,7 @@ void main() {
     await seedPhotos(groups, couple, 1, caption: 'Beach');
     await seedPhotos(groups, friends, 1, caption: 'Hike');
     await pump(tester);
-    await tester.tap(find.text('Journal'));
+    await tester.tap(find.text('Journal').last);
     await tester.pumpAndSettle();
     expect(find.text('Beach 1'), findsOneWidget);
     expect(find.text('Hike 1'), findsOneWidget);
@@ -221,7 +221,7 @@ void main() {
     await pump(tester);
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Notification preferences'));
+    await tester.tap(find.text('Notifications'));
     await tester.pumpAndSettle();
     expect(find.textContaining('arrive in a later update'), findsNothing);
     await tester.tap(find.text('Phone notifications'));

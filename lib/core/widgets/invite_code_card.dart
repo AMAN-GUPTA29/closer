@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../theme/closer_icons.dart';
 import '../theme/closer_theme.dart';
 
 /// Shows a group invitation code in spaced capitals with a copy action.
@@ -11,12 +10,16 @@ class InviteCodeCard extends StatelessWidget {
     required this.code,
     this.caption,
     this.onCopied,
+    this.detail,
   });
 
   final String code;
 
   /// e.g. "Share this code or link with your partner."
   final String? caption;
+
+  /// Small line under the code, e.g. "Expires in 6 days · any number of people".
+  final String? detail;
 
   /// Called after the code has been copied to the clipboard.
   final VoidCallback? onCopied;
@@ -37,51 +40,57 @@ class InviteCodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.closerColors;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (caption != null) ...[
-          Text(
-            caption!,
-            textAlign: TextAlign.center,
-            style: context.text.bodyMedium,
-          ),
+          Text(caption!, style: context.text.bodyMedium),
           const SizedBox(height: CloserSpacing.md),
         ],
-        Container(
-          padding: const EdgeInsets.fromLTRB(
-            CloserSpacing.xl,
-            CloserSpacing.xs,
-            CloserSpacing.xs,
-            CloserSpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: c.surface,
+        Tooltip(
+          message: 'Copy invite code',
+          child: Material(
+            color: c.surfaceMuted,
             borderRadius: CloserRadii.lgAll,
-            border: Border.all(color: c.line),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Semantics(
-                  label: 'Invite code ${code.split('').join(' ')}',
-                  excludeSemantics: true,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      spaced(code),
-                      style: context.text.headlineSmall?.copyWith(
-                        letterSpacing: 2,
+            child: InkWell(
+              borderRadius: CloserRadii.lgAll,
+              onTap: () => _copy(context),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  CloserSpacing.md,
+                  22,
+                  CloserSpacing.md,
+                  18,
+                ),
+                child: Column(
+                  children: [
+                    Semantics(
+                      label: 'Invite code ${code.split('').join(' ')}',
+                      excludeSemantics: true,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          spaced(code),
+                          style: context.text.headlineMedium?.copyWith(
+                            fontFamily: context.text.bodyLarge?.fontFamily,
+                            fontVariations: const [],
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 1,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    if (detail != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        detail!,
+                        textAlign: TextAlign.center,
+                        style: context.text.bodySmall,
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              IconButton(
-                tooltip: 'Copy invite code',
-                icon: Icon(CloserIcons.copy, color: c.textPrimary),
-                onPressed: () => _copy(context),
-              ),
-            ],
+            ),
           ),
         ),
       ],

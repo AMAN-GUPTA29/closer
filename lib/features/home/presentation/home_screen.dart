@@ -86,9 +86,9 @@ class HomeScreen extends ConsumerWidget {
                       if (groups.value?.isNotEmpty ?? false)
                         TextButton(
                           style: TextButton.styleFrom(
-                            foregroundColor: context.closerColors.textPrimary,
+                            foregroundColor: context.closerColors.textSecondary,
                             textStyle: context.text.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           onPressed: () => context.push(Routes.allGroups),
@@ -97,11 +97,6 @@ class HomeScreen extends ConsumerWidget {
                             semanticsLabel: 'See all',
                           ),
                         ),
-                      IconButton(
-                        tooltip: 'Create a group',
-                        icon: const Icon(CloserIcons.plus),
-                        onPressed: () => context.push(Routes.createGroup),
-                      ),
                     ],
                   ),
                 ),
@@ -125,27 +120,6 @@ class HomeScreen extends ConsumerWidget {
                       itemCount: value.length.clamp(0, homeGroupLimit),
                       separatorBuilder: (_, _) => const Divider(),
                       itemBuilder: (context, i) => GroupListTile(value[i]),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                      CloserSpacing.xs,
-                      0,
-                      CloserSpacing.gutter,
-                      CloserSpacing.xs,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          style: TextButton.styleFrom(
-                            foregroundColor: context.closerColors.textPrimary,
-                          ),
-                          icon: const Icon(CloserIcons.invite, size: 18),
-                          label: const Text('Join a group with a code'),
-                          onPressed: () => context.push(Routes.joinGroup),
-                        ),
-                      ),
                     ),
                   ),
                   const SliverToBoxAdapter(child: _RecentMoments()),
@@ -234,7 +208,7 @@ class _Header extends ConsumerWidget {
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: () => context.go(Routes.profile),
-            child: MyAvatar(fallbackName: name, size: 36, brand: true),
+            child: MyAvatar(fallbackName: name, size: 36),
           ),
         ),
       ],
@@ -263,20 +237,38 @@ class _Greeting extends ConsumerWidget {
       fontWeight: FontWeight.w600,
       fontSize: 15,
     );
+    final me = ref.watch(currentUserIdProvider);
+    final photos = [
+      for (final e in ref.watch(journalProvider(null)).value?.entries ?? [])
+        if (e is PhotoEntry) e.photo,
+    ];
     final spans = <InlineSpan>[];
     if (latest != null) {
       final group = groups.where((g) => g.id == latest.groupId).firstOrNull;
+      // The latest run of photos by one person in one group.
+      final run = photos
+          .takeWhile(
+            (p) =>
+                p.groupId == latest.groupId &&
+                p.uploaderId == latest.uploaderId,
+          )
+          .length;
+      final who = latest.uploaderId == me
+          ? 'You'
+          : (latest.uploaderName ?? 'Someone').split(' ').first;
       spans.addAll([
-        TextSpan(text: latest.uploaderName ?? 'Someone', style: strong),
+        TextSpan(text: who, style: strong),
         TextSpan(
-          text: ' shared a photo${group == null ? '' : ' in ${group.name}'}. ',
+          text:
+              ' added ${run == 1 ? 'a photo' : '$run photos'}'
+              '${group == null ? '' : ' to ${group.name}'}. ',
         ),
       ]);
     }
     if (couple != null) {
       final days = daysTogether(couple.relationshipStartDate!, DateTime.now());
       spans.addAll([
-        const TextSpan(text: 'Together '),
+        const TextSpan(text: 'You’ve been together '),
         TextSpan(text: '$days ${days == 1 ? 'day' : 'days'}', style: strong),
         const TextSpan(text: ' today.'),
       ]);
@@ -412,7 +404,7 @@ class _RecentMoments extends ConsumerWidget {
                   ),
                 ),
                 onPressed: openJournal,
-                child: const Text('See all'),
+                child: const Text('Journal'),
               ),
             ],
           ),

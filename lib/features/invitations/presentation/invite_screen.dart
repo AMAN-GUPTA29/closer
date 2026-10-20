@@ -53,6 +53,14 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
   CreatedInvitation? _created;
   bool _busy = false;
 
+  /// "any number of people", "5 people", "for your partner".
+  String _whoLabel(bool isCouple) {
+    if (isCouple) return 'for your partner';
+    final n = _uses.count;
+    if (n == null) return 'any number of people';
+    return '$n ${n == 1 ? 'person' : 'people'}';
+  }
+
   Future<void> _create(Group group) async {
     setState(() => _busy = true);
     try {
@@ -142,8 +150,6 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
     return ListView(
       padding: const EdgeInsets.all(CloserSpacing.gutter),
       children: [
-        _GroupBanner(group: group),
-        const SizedBox(height: CloserSpacing.xl),
         if (group.isFull && created == null)
           NoticeCard(
             icon: CloserIcons.heart,
@@ -158,24 +164,24 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
             caption: isCouple
                 ? 'Share this code or link with your partner.'
                 : 'Share this code or link with the people you want here.',
+            detail:
+                '${sentenceCase(expiryLabel(created.expiresAt, DateTime.now()))}'
+                ' · ${_whoLabel(isCouple)}',
           ),
-          const SizedBox(height: CloserSpacing.sm),
+          const SizedBox(height: CloserSpacing.xs),
           Text(
-            '${sentenceCase(expiryLabel(created.expiresAt, DateTime.now()))}. '
             'For your privacy the code is shown only now — you can always '
             'create a new one.',
             style: context.text.bodySmall,
           ),
-          const SizedBox(height: CloserSpacing.lg),
+          const SizedBox(height: CloserSpacing.md),
           CloserButton(
-            label: 'Share Invite',
-            icon: const Icon(CloserIcons.share),
+            label: 'Share invite',
             onPressed: () => _share(group, created),
           ),
           const SizedBox(height: CloserSpacing.sm),
           CloserButton.secondary(
-            label: 'Copy invite link',
-            icon: const Icon(CloserIcons.link),
+            label: 'Copy link',
             onPressed: () => _copyLink(created),
           ),
           const SizedBox(height: CloserSpacing.sm),
@@ -186,8 +192,13 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
             ),
           ),
         ] else ...[
-          Text('Expires after', style: context.text.titleMedium),
-          const SizedBox(height: CloserSpacing.sm),
+          Text(
+            isCouple
+                ? 'Create a code for your partner to join ${group.name}.'
+                : 'Create a code for the people you want in ${group.name}.',
+            style: context.text.bodyMedium,
+          ),
+          const _Label('Expires after'),
           _ChoiceChips<InviteExpiry>(
             values: InviteExpiry.values,
             selected: _expiry,
@@ -195,9 +206,7 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
             onSelected: (e) => setState(() => _expiry = e),
           ),
           if (!isCouple) ...[
-            const SizedBox(height: CloserSpacing.lg),
-            Text('Can be used by', style: context.text.titleMedium),
-            const SizedBox(height: CloserSpacing.sm),
+            const _Label('Can be used by'),
             _ChoiceChips<InviteUses>(
               values: InviteUses.values,
               selected: _uses,
@@ -211,67 +220,42 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
               style: context.text.bodySmall,
             ),
           ],
-          const SizedBox(height: CloserSpacing.xl),
+          const SizedBox(height: CloserSpacing.lg),
           CloserButton(
             label: 'Create invite code',
-            icon: const Icon(CloserIcons.invite),
             isLoading: _busy,
             onPressed: () => _create(group),
           ),
         ],
-        const SizedBox(height: CloserSpacing.xxl),
+        const SizedBox(height: CloserSpacing.md),
         _InvitationList(groupId: group.id, onRevoke: _revoke),
       ],
     );
   }
 }
 
-class _GroupBanner extends StatelessWidget {
-  const _GroupBanner({required this.group});
+/// Small muted label above a group of choices or a list.
+class _Label extends StatelessWidget {
+  const _Label(this.text);
 
-  final Group group;
+  final String text;
 
   @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: CloserRadii.xlAll,
-      child: SizedBox(
-        height: 150,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            CloserPhoto(placeholderVariant: group.placeholderVariant),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: context.closerColors.heroScrim,
-              ),
-            ),
-            Positioned(
-              left: CloserSpacing.md,
-              bottom: CloserSpacing.md,
-              right: CloserSpacing.md,
-              child: Row(
-                children: [
-                  Icon(group.type.icon, color: Colors.white, size: 22),
-                  const SizedBox(width: CloserSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      group.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.text.titleLarge?.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(
+      top: CloserSpacing.lg,
+      bottom: CloserSpacing.xs,
+    ),
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: context.text.labelMedium?.copyWith(
+          color: context.closerColors.textSecondary,
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 class _ChoiceChips<T> extends StatelessWidget {
@@ -331,8 +315,7 @@ class _InvitationList extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Invitations', style: context.text.titleLarge),
-        const SizedBox(height: CloserSpacing.sm),
+        const _Label('Invitations'),
         switch (invites) {
           AsyncData(:final value) when value.isEmpty => Text(
             'No invitations yet.',
@@ -402,9 +385,8 @@ class _InvitationTile extends StatelessWidget {
           CloserSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: c.surface,
+          color: c.surfaceMuted,
           borderRadius: CloserRadii.mdAll,
-          border: Border.all(color: c.line),
         ),
         child: Row(
           children: [
@@ -416,7 +398,10 @@ class _InvitationTile extends StatelessWidget {
                     children: [
                       Text(
                         'Code ••••-••${invitation.codeHint}',
-                        style: context.text.titleSmall,
+                        style: context.text.bodyLarge?.copyWith(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       const SizedBox(width: CloserSpacing.xs),
                       Text(
@@ -437,7 +422,7 @@ class _InvitationTile extends StatelessWidget {
             if (canRevoke)
               TextButton(
                 onPressed: onRevoke,
-                style: TextButton.styleFrom(foregroundColor: c.danger),
+                style: TextButton.styleFrom(foregroundColor: c.accentStrong),
                 child: const Text('Cancel'),
               ),
           ],

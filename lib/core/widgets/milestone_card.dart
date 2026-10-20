@@ -23,18 +23,25 @@ class MilestoneCard extends StatefulWidget {
     this.cover,
     this.onTap,
     this.placeholderVariant = 0,
+    this.showChevron = false,
   });
 
   final String title;
   final String dateLabel;
   final String? highlight;
   final String? highlightCaption;
+
+  /// Not shown in the compact row; the detail sheet shows it.
   final String? description;
   final MilestoneTheme theme;
   final bool isPinned;
   final ImageProvider? cover;
   final VoidCallback? onTap;
   final int placeholderVariant;
+
+  /// A chevron on the right (lists that open details); otherwise a pin
+  /// marks pinned moments.
+  final bool showChevron;
 
   @override
   State<MilestoneCard> createState() => _MilestoneCardState();
@@ -99,62 +106,51 @@ class _MilestoneCardState extends State<MilestoneCard>
         child: InkWell(
           onTap: widget.onTap,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              CloserSpacing.md,
-              CloserSpacing.md,
-              CloserSpacing.md,
-              CloserSpacing.md,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: ScaleTransition(
-                        scale: Tween(begin: 0.6, end: 1.0).animate(scale),
-                        child: Icon(_icon, color: accent, size: 22),
-                      ),
+                    ScaleTransition(
+                      scale: Tween(begin: 0.6, end: 1.0).animate(scale),
+                      child: Icon(_icon, color: accent, size: 20),
                     ),
-                    const SizedBox(width: CloserSpacing.md),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title, style: context.text.headlineSmall),
-                          if (widget.highlight != null)
-                            Text(widget.title, style: context.text.bodyMedium),
-                          const SizedBox(height: 2),
+                          Text(
+                            title,
+                            style: context.text.headlineSmall?.copyWith(
+                              fontSize: 19,
+                              height: 1.25,
+                            ),
+                          ),
                           Text(
                             widget.isPinned
                                 ? '${widget.dateLabel} · pinned'
                                 : widget.dateLabel,
-                            style: context.text.bodyMedium,
-                          ),
-                          if (widget.description != null) ...[
-                            const SizedBox(height: CloserSpacing.xs),
-                            Text(
-                              widget.description!,
-                              style: context.text.bodyMedium?.copyWith(
-                                color: c.textPrimary,
-                              ),
+                            style: context.text.bodySmall?.copyWith(
+                              fontSize: 13.5,
                             ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
-                    if (widget.isPinned)
+                    if (widget.showChevron)
                       Icon(
-                        CloserIcons.pinFilled,
-                        color: c.textSecondary,
-                        size: 16,
-                      ),
+                        CloserIcons.chevronRight,
+                        color: c.textPrimary,
+                        size: 18,
+                      )
+                    else if (widget.isPinned)
+                      Icon(CloserIcons.pin, color: c.textSecondary, size: 16),
                   ],
                 ),
                 if (widget.cover != null) ...[
-                  const SizedBox(height: CloserSpacing.md),
+                  const SizedBox(height: CloserSpacing.sm),
                   ClipRRect(
                     borderRadius: CloserRadii.mdAll,
                     child: AspectRatio(

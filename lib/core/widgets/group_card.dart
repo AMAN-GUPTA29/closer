@@ -21,6 +21,8 @@ class GroupCard extends StatelessWidget {
     this.activity,
     this.isPremium = false,
     this.placeholderVariant = 0,
+    this.showCount = true,
+    this.badge,
   });
 
   final String name;
@@ -39,6 +41,12 @@ class GroupCard extends StatelessWidget {
   final String? activity;
   final bool isPremium;
   final int placeholderVariant;
+
+  /// Writes out "N members" when there are no faces to show it.
+  final bool showCount;
+
+  /// A short coral note in place of the chevron, e.g. "2 new".
+  final String? badge;
 
   static const double coverSize = 64;
 
@@ -94,7 +102,11 @@ class GroupCard extends StatelessWidget {
                         ),
                         if (type == GroupType.couple) ...[
                           const SizedBox(width: 6),
-                          Icon(CloserIcons.heart, size: 15, color: c.accent),
+                          Icon(
+                            CloserIcons.heart,
+                            size: 15,
+                            color: c.textPrimary,
+                          ),
                         ],
                         if (isPremium) ...[
                           const SizedBox(width: CloserSpacing.xxs),
@@ -111,7 +123,7 @@ class GroupCard extends StatelessWidget {
                         ],
                         // Faces already show who is here; the count is
                         // only written out when there are no faces yet.
-                        if (members == null)
+                        if (members == null && showCount)
                           Flexible(
                             child: Text(
                               membersLabel,
@@ -121,7 +133,8 @@ class GroupCard extends StatelessWidget {
                             ),
                           ),
                         if (activity != null) ...[
-                          if (members == null) Text(' · ', style: meta),
+                          if (members == null && showCount)
+                            Text(' · ', style: meta),
                           Flexible(
                             flex: 2,
                             child: Text(
@@ -138,7 +151,16 @@ class GroupCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: CloserSpacing.xs),
-              Icon(CloserIcons.chevronRight, color: c.textTertiary, size: 20),
+              if (badge != null)
+                Text(
+                  badge!,
+                  style: context.text.labelMedium?.copyWith(
+                    color: c.accentStrong,
+                    fontSize: 12,
+                  ),
+                )
+              else
+                Icon(CloserIcons.chevronRight, color: c.textPrimary, size: 20),
             ],
           ),
         ),

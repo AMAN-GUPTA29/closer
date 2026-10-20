@@ -28,8 +28,10 @@ class GroupTypeOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final tint = type.tint(c);
     final disabled = disabledReason != null;
+    final icon = type == GroupType.couple
+        ? CloserIcons.heartOutline
+        : type.icon;
     return Semantics(
       selected: selected,
       inMutuallyExclusiveGroup: true,
@@ -38,54 +40,53 @@ class GroupTypeOption extends StatelessWidget {
       label: '${type.label}. ${disabledReason ?? type.blurb}',
       excludeSemantics: true,
       child: Opacity(
-        opacity: disabled ? 0.55 : 1,
-        child: Material(
-          color: selected ? c.surface : c.surfaceMuted,
-          borderRadius: CloserRadii.lgAll,
-          child: InkWell(
-            borderRadius: CloserRadii.lgAll,
-            onTap: disabled ? null : onTap,
-            child: AnimatedContainer(
-              duration: CloserMotion.of(context, CloserMotion.fast),
-              padding: const EdgeInsets.all(CloserSpacing.md),
-              decoration: BoxDecoration(
-                borderRadius: CloserRadii.lgAll,
-                border: Border.all(
-                  color: selected ? c.accent : c.line,
-                  width: selected ? 1.5 : 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: tint.withValues(alpha: 0.14),
-                      borderRadius: CloserRadii.mdAll,
-                    ),
-                    child: Icon(type.icon, color: tint, size: 26),
-                  ),
-                  const SizedBox(width: CloserSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(type.label, style: context.text.titleMedium),
-                        Text(
-                          disabledReason ?? type.blurb,
-                          style: context.text.bodySmall,
+        opacity: disabled ? 0.5 : 1,
+        child: InkWell(
+          onTap: disabled ? null : onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: CloserSpacing.md,
+              vertical: 12,
+            ),
+            child: Row(
+              children: [
+                Icon(icon, color: c.textPrimary, size: 18),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        type.label,
+                        style: context.text.bodyLarge?.copyWith(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ],
+                      ),
+                      Text(
+                        disabledReason ?? type.blurb,
+                        style: context.text.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedContainer(
+                  duration: CloserMotion.of(context, CloserMotion.fast),
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: selected ? c.primary : Colors.transparent,
+                    border: Border.all(
+                      color: selected ? c.primary : c.textTertiary,
+                      width: 1.5,
                     ),
                   ),
-                  AnimatedOpacity(
-                    opacity: selected ? 1 : 0,
-                    duration: CloserMotion.of(context, CloserMotion.fast),
-                    child: Icon(CloserIcons.success, color: c.accentStrong),
-                  ),
-                ],
-              ),
+                  child: selected
+                      ? Icon(Icons.check_rounded, size: 14, color: c.onPrimary)
+                      : null,
+                ),
+              ],
             ),
           ),
         ),
@@ -127,22 +128,21 @@ class RelationshipDateField extends StatelessWidget {
         borderRadius: CloserRadii.mdAll,
         onTap: () => _pick(context),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: CloserSpacing.md,
-            vertical: CloserSpacing.sm,
-          ),
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.only(left: 14),
           decoration: BoxDecoration(
             borderRadius: CloserRadii.mdAll,
             border: Border.all(color: c.line),
           ),
           child: Row(
             children: [
-              Icon(CloserIcons.calendar, color: c.textTertiary, size: 22),
+              Icon(CloserIcons.calendar, color: c.textSecondary, size: 18),
               const SizedBox(width: CloserSpacing.sm),
               Expanded(
                 child: Text(
-                  value == null ? 'Pick a date' : formatMediumDate(value!),
+                  value == null ? 'Pick a date' : formatLongDate(value!),
                   style: context.text.bodyLarge?.copyWith(
+                    fontSize: 15,
                     color: value == null ? c.textTertiary : c.textPrimary,
                   ),
                 ),
@@ -150,11 +150,13 @@ class RelationshipDateField extends StatelessWidget {
               if (value != null)
                 IconButton(
                   tooltip: 'Clear date',
-                  icon: const Icon(CloserIcons.close, size: 20),
+                  icon: Icon(
+                    CloserIcons.close,
+                    size: 16,
+                    color: c.textSecondary,
+                  ),
                   onPressed: () => onChanged(null),
-                )
-              else
-                const SizedBox(height: 48),
+                ),
             ],
           ),
         ),

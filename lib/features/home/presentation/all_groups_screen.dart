@@ -43,20 +43,20 @@ class AllGroupsScreen extends ConsumerWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
               CloserSpacing.gutter,
-              CloserSpacing.md,
+              CloserSpacing.xxs,
               CloserSpacing.gutter,
               CloserSpacing.xl + MediaQuery.paddingOf(context).bottom,
             ),
             itemCount: list.length + 1,
-            separatorBuilder: (_, _) =>
-                const SizedBox(height: CloserSpacing.sm),
+            separatorBuilder: (_, i) => i < list.length - 1
+                ? const Divider()
+                : const SizedBox(height: CloserSpacing.sm),
             itemBuilder: (context, i) => i < list.length
-                ? GroupListTile(list[i])
+                ? GroupListTile(list[i], detailed: true)
                 : Padding(
                     padding: const EdgeInsets.only(top: CloserSpacing.sm),
                     child: CloserButton.secondary(
                       label: 'Join a group with a code',
-                      icon: const Icon(CloserIcons.invite),
                       onPressed: () => context.push(Routes.joinGroup),
                     ),
                   ),

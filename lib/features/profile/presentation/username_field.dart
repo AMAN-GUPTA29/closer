@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/widgets.dart';
@@ -106,7 +105,6 @@ class _UsernameFieldState extends ConsumerState<UsernameField> {
         CloserTextField(
           controller: widget.controller,
           hint: 'Username',
-          icon: CloserIcons.atSign,
           validator: (v) {
             final e = Validators.username(v);
             if (e != null) return e;

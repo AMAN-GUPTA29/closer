@@ -241,7 +241,7 @@ void main() {
     );
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Purchased groups'));
+    await tester.tap(find.text('Keeploom Memories'));
     await tester.pumpAndSettle();
     expect(find.byType(PurchasedGroupsScreen), findsOneWidget);
     expect(find.text('Unused Keeploom Memories purchase'), findsOneWidget);

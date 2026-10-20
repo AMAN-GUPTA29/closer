@@ -45,9 +45,7 @@ class SpecialMomentScreen extends ConsumerWidget {
         : ref.watch(milestonesProvider(groupId));
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          milestoneId == null ? 'Create a Special Moment' : 'Edit Moment',
-        ),
+        title: Text(milestoneId == null ? 'New special moment' : 'Edit moment'),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(CloserIcons.back),
@@ -207,16 +205,14 @@ class _MomentFormState extends ConsumerState<_MomentForm> {
         padding: const EdgeInsets.all(CloserSpacing.gutter),
         children: [
           if (widget.existing == null) ...[
-            Text('Start from', style: context.text.titleMedium),
-            const SizedBox(height: CloserSpacing.sm),
+            const _Label('Start from'),
             Wrap(
-              spacing: CloserSpacing.xs,
-              runSpacing: CloserSpacing.xs,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 for (final t in templates)
                   _Choice(
                     label: t.label,
-                    icon: t.theme.icon,
                     selected:
                         _type == t.type &&
                         (t.title.isEmpty || _title.text == t.title),
@@ -226,63 +222,81 @@ class _MomentFormState extends ConsumerState<_MomentForm> {
             ),
             const SizedBox(height: CloserSpacing.lg),
           ],
-          Text('Title', style: context.text.titleMedium),
-          const SizedBox(height: CloserSpacing.sm),
           CloserTextField(
             controller: _title,
-            hint: 'e.g. 100 days together',
+            hint: 'Title',
+            placeholder: 'e.g. Our first trip',
             maxLength: 80,
             textCapitalization: TextCapitalization.sentences,
             validator: (v) =>
                 (v?.trim() ?? '').isEmpty ? 'Give this moment a title.' : null,
           ),
-          const SizedBox(height: CloserSpacing.md),
-          Text('Date', style: context.text.titleMedium),
           const SizedBox(height: CloserSpacing.sm),
-          Material(
-            color: c.surface,
-            borderRadius: CloserRadii.mdAll,
-            child: ListTile(
+          const _Label('Date', top: 0),
+          Semantics(
+            button: true,
+            label: 'Date, ${formatLongDate(_date)}',
+            excludeSemantics: true,
+            child: Material(
+              color: c.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: CloserRadii.mdAll,
                 side: BorderSide(color: c.line),
               ),
-              leading: Icon(CloserIcons.calendar, color: c.textTertiary),
-              title: Text(
-                formatMediumDate(_date),
-                style: context.text.bodyLarge,
+              child: InkWell(
+                borderRadius: CloserRadii.mdAll,
+                onTap: _pickDate,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 13,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        CloserIcons.calendar,
+                        color: c.textSecondary,
+                        size: 18,
+                      ),
+                      const SizedBox(width: CloserSpacing.sm),
+                      Text(
+                        formatLongDate(_date),
+                        style: context.text.bodyLarge?.copyWith(fontSize: 15),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              subtitle: _date.isAfter(_today())
-                  ? Text(
-                      'Upcoming — it will count down until then',
-                      style: context.text.bodySmall,
-                    )
-                  : null,
-              onTap: _pickDate,
             ),
           ),
+          if (_date.isAfter(_today()))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 6, 4, 0),
+              child: Text(
+                'Upcoming — it will count down until then',
+                style: context.text.bodySmall,
+              ),
+            ),
           const SizedBox(height: CloserSpacing.md),
-          Text('Description (optional)', style: context.text.titleMedium),
-          const SizedBox(height: CloserSpacing.sm),
           CloserTextField(
             controller: _description,
-            hint: 'A few words about this moment',
+            hint: 'A few words (optional)',
+            placeholder: 'What made it special?',
             maxLength: 1000,
             textCapitalization: TextCapitalization.sentences,
           ),
-          const SizedBox(height: CloserSpacing.md),
-          Text('Cover photo (optional)', style: context.text.titleMedium),
           const SizedBox(height: CloserSpacing.sm),
-          _CoverPreview(
+          const _Label('Cover photo (optional)', top: 0),
+          _CoverPicker(
             group: widget.group,
             photoId: _cover,
-            onTap: _pickCover,
+            onChoose: (id) => setState(() => _cover = id),
+            onMore: _pickCover,
           ),
-          const SizedBox(height: CloserSpacing.md),
-          Text('Style', style: context.text.titleMedium),
-          const SizedBox(height: CloserSpacing.sm),
+          const _Label('Style'),
           Wrap(
-            spacing: CloserSpacing.xs,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               for (final t in MilestoneTheme.values)
                 if (t != MilestoneTheme.heart ||
@@ -290,25 +304,25 @@ class _MomentFormState extends ConsumerState<_MomentForm> {
                     _theme == MilestoneTheme.heart)
                   _Choice(
                     label: t.label,
-                    icon: t.icon,
                     selected: _theme == t,
                     onSelected: () => setState(() => _theme = t),
                   ),
             ],
           ),
+          const SizedBox(height: CloserSpacing.xs),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             value: _pinned,
             onChanged: (v) => setState(() => _pinned = v),
             title: Text(
               'Pin to the top of the journal',
-              style: context.text.bodyLarge,
+              style: context.text.bodyLarge?.copyWith(fontSize: 15),
             ),
           ),
           const SizedBox(height: CloserSpacing.lg),
           FormErrorText(_error),
           CloserButton(
-            label: 'Save Moment',
+            label: 'Save moment',
             isLoading: _saving,
             onPressed: _save,
           ),
@@ -318,56 +332,117 @@ class _MomentFormState extends ConsumerState<_MomentForm> {
   }
 }
 
-class _CoverPreview extends ConsumerWidget {
-  const _CoverPreview({
+/// The group's newest photos as tappable covers (the chosen one outlined),
+/// with "More photos" for the rest.
+class _CoverPicker extends ConsumerWidget {
+  const _CoverPicker({
     required this.group,
     required this.photoId,
-    required this.onTap,
+    required this.onChoose,
+    required this.onMore,
   });
 
   final Group group;
   final String? photoId;
-  final VoidCallback onTap;
+  final ValueChanged<String?> onChoose;
+  final VoidCallback onMore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.closerColors;
-    final photos = ref.watch(groupPhotosProvider(group.id)).value?.photos;
-    final photo = photoId == null
-        ? null
-        : photos?.where((p) => p.id == photoId).firstOrNull;
-    return Semantics(
-      button: true,
-      label: photo == null ? 'Choose a cover photo' : 'Change cover photo',
-      excludeSemantics: true,
-      child: InkWell(
-        borderRadius: CloserRadii.lgAll,
-        onTap: onTap,
-        child: Container(
-          height: 120,
-          decoration: BoxDecoration(
-            borderRadius: CloserRadii.lgAll,
-            border: Border.all(color: c.line),
-            color: c.surface,
+    final photos =
+        ref.watch(groupPhotosProvider(group.id)).value?.photos ??
+        const <Photo>[];
+    if (photos.isEmpty) {
+      return Semantics(
+        button: true,
+        label: 'Choose a cover photo',
+        excludeSemantics: true,
+        child: InkWell(
+          borderRadius: CloserRadii.lgAll,
+          onTap: onMore,
+          child: Container(
+            height: 96,
+            decoration: BoxDecoration(
+              borderRadius: CloserRadii.lgAll,
+              border: Border.all(color: c.line),
+            ),
+            child: Center(
+              child: Text(
+                'Share a photo in this group to use it as a cover',
+                style: context.text.bodySmall,
+              ),
+            ),
           ),
-          clipBehavior: Clip.antiAlias,
-          child: photo == null
-              ? Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(CloserIcons.gallery, color: c.textTertiary),
-                      const SizedBox(width: CloserSpacing.xs),
-                      Text(
-                        'Choose from this group’s photos',
-                        style: context.text.bodyMedium,
-                      ),
-                    ],
-                  ),
-                )
-              : SizedBox.expand(child: PhotoImage(photo: photo)),
         ),
-      ),
+      );
+    }
+    final chosen = photos.where((p) => p.id == photoId).firstOrNull;
+    final shown = [
+      ?chosen,
+      ...photos.where((p) => p.id != photoId),
+    ].take(3).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            for (var i = 0; i < 3; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1 / 1.03,
+                  child: i >= shown.length
+                      ? const SizedBox.shrink()
+                      : Semantics(
+                          button: true,
+                          selected: shown[i].id == photoId,
+                          label: shown[i].id == photoId
+                              ? 'Cover photo, chosen'
+                              : 'Use as cover photo',
+                          excludeSemantics: true,
+                          child: GestureDetector(
+                            onTap: () => onChoose(
+                              shown[i].id == photoId ? null : shown[i].id,
+                            ),
+                            child: AnimatedContainer(
+                              duration: CloserMotion.of(
+                                context,
+                                CloserMotion.fast,
+                              ),
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                borderRadius: CloserRadii.mdAll,
+                                border: Border.all(
+                                  color: shown[i].id == photoId
+                                      ? c.textPrimary
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: CloserRadii.smAll,
+                                child: PhotoImage(photo: shown[i]),
+                              ),
+                            ),
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        if (photos.length > 3)
+          Semantics(
+            label: 'Choose a cover photo',
+            button: true,
+            excludeSemantics: true,
+            child: TextButton(
+              onPressed: onMore,
+              child: const Text('More photos'),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -453,13 +528,11 @@ class PhotoChooserSheet extends ConsumerWidget {
 class _Choice extends StatelessWidget {
   const _Choice({
     required this.label,
-    required this.icon,
     required this.selected,
     required this.onSelected,
   });
 
   final String label;
-  final IconData icon;
   final bool selected;
   final VoidCallback onSelected;
 
@@ -469,14 +542,34 @@ class _Choice extends StatelessWidget {
     final fg = selected ? c.onPrimary : c.textPrimary;
     return ChoiceChip(
       label: Text(label),
-      avatar: Icon(icon, size: 16, color: selected ? c.onPrimary : c.accent),
       selected: selected,
       onSelected: (_) => onSelected(),
       showCheckmark: false,
       backgroundColor: c.background,
       selectedColor: c.primary,
       side: BorderSide(color: selected ? c.primary : c.line),
-      labelStyle: context.text.labelLarge?.copyWith(color: fg),
+      labelStyle: context.text.labelLarge?.copyWith(color: fg, fontSize: 14),
+      visualDensity: VisualDensity.compact,
     );
   }
+}
+
+/// Small muted label above a field or a group of choices.
+class _Label extends StatelessWidget {
+  const _Label(this.text, {this.top = CloserSpacing.md});
+
+  final String text;
+  final double top;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(top: top, bottom: 6),
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: context.text.titleSmall?.copyWith(fontSize: 13.5),
+      ),
+    ),
+  );
 }

@@ -300,37 +300,23 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
         CloserSpacing.xl,
       ),
       children: [
-        Center(
-          child: Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: c.textTertiary.withValues(alpha: 0.5),
-              borderRadius: CloserRadii.pillAll,
+        Row(
+          children: [
+            IconButton(
+              tooltip: 'Close',
+              icon: const Icon(CloserIcons.close),
+              onPressed: _sharing ? null : _close,
             ),
-          ),
+            const SizedBox(width: CloserSpacing.xxs),
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text('Share a memory', style: context.text.titleLarge),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: CloserSpacing.xs),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            tooltip: 'Close',
-            icon: const Icon(CloserIcons.close),
-            onPressed: _sharing ? null : _close,
-          ),
-        ),
-        const SizedBox(height: CloserSpacing.md),
-        Semantics(
-          header: true,
-          child: Text('Share a memory', style: context.text.headlineLarge),
-        ),
-        const SizedBox(height: CloserSpacing.xxs),
-        Text('Choose a group', style: context.text.bodyLarge),
-        Text(
-          'Tick more than one to share with several groups.',
-          style: context.text.bodySmall,
-        ),
-        const SizedBox(height: CloserSpacing.lg),
         _PhotoStrip(
           picks: _picks,
           enabled: !_sharing,
@@ -343,6 +329,25 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
             FormErrorText(p.error),
           ],
         const SizedBox(height: CloserSpacing.md),
+        CloserTextField(
+          controller: _caption,
+          hint: 'Add a caption',
+          showLabel: false,
+          maxLength: 500,
+          enabled: !_sharing,
+          textCapitalization: TextCapitalization.sentences,
+        ),
+        const SizedBox(height: CloserSpacing.lg),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, CloserSpacing.xs),
+          child: Semantics(
+            header: true,
+            child: Text(
+              'Share with',
+              style: context.text.labelMedium?.copyWith(color: c.textSecondary),
+            ),
+          ),
+        ),
         if (groups.isEmpty) ...[
           const NoticeCard(
             title: 'No groups yet',
@@ -355,67 +360,69 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
             onPressed: () => context.push(Routes.createGroup),
           ),
         ] else
-          for (final g in groups)
-            _GroupOption(
-              group: g,
-              selected: _groupIds.contains(g.id),
-              onTap: _sharing
-                  ? null
-                  : () => setState(() {
-                      _groupIds.contains(g.id)
-                          ? _groupIds.remove(g.id)
-                          : _groupIds.add(g.id);
-                      if (!_groupIds.any(
-                        (id) => byId[id]?.isPremium ?? false,
-                      )) {
-                        _pin = false;
-                      }
-                    }),
-            ),
+          SectionCard(
+            dividerIndent: CloserSpacing.md,
+            children: [
+              for (final g in groups)
+                _GroupOption(
+                  group: g,
+                  selected: _groupIds.contains(g.id),
+                  onTap: _sharing
+                      ? null
+                      : () => setState(() {
+                          _groupIds.contains(g.id)
+                              ? _groupIds.remove(g.id)
+                              : _groupIds.add(g.id);
+                          if (!_groupIds.any(
+                            (id) => byId[id]?.isPremium ?? false,
+                          )) {
+                            _pin = false;
+                          }
+                        }),
+                ),
+            ],
+          ),
         for (final g in selected)
           if (g.nextUploadRemovesOldest) ...[
             const SizedBox(height: CloserSpacing.sm),
             RetentionNotice(group: g),
           ],
-        const SizedBox(height: CloserSpacing.md),
-        CloserTextField(
-          controller: _caption,
-          hint: 'Add a caption...',
-          maxLength: 500,
-          enabled: !_sharing,
-          textCapitalization: TextCapitalization.sentences,
-        ),
         const SizedBox(height: CloserSpacing.sm),
-        _OptionRow(
-          icon: CloserIcons.journal,
-          label: 'Pin to journal',
-          hint: selected.isEmpty || selected.every((g) => g.isPremium)
-              ? null
-              : anyPremium
-              ? 'Keeploom Memories groups only'
-              : 'Keeploom Memories',
-          trailing: Switch(
-            value: _pin,
-            onChanged: _sharing || !anyPremium
-                ? null
-                : (v) => setState(() => _pin = v),
-          ),
-        ),
-        _OptionRow(
-          icon: CloserIcons.calendar,
-          label: 'Add a date',
-          value: _takenAt == null ? null : formatMediumDate(_takenAt!),
-          onTap: _sharing ? null : _pickDate,
-        ),
-        _OptionRow(
-          icon: CloserIcons.starOutline,
-          label: 'Add to a milestone',
-          value: !_moment
-              ? null
-              : selected.length > 1
-              ? 'In ${selected.first.name}'
-              : 'New special moment',
-          onTap: _sharing ? null : () => setState(() => _moment = !_moment),
+        SectionCard(
+          dividerIndent: CloserSpacing.md,
+          children: [
+            _OptionRow(
+              icon: CloserIcons.calendar,
+              label: 'Date',
+              value: _takenAt == null ? 'Today' : formatMediumDate(_takenAt!),
+              onTap: _sharing ? null : _pickDate,
+            ),
+            _OptionRow(
+              icon: CloserIcons.starOutline,
+              label: 'Make it a special moment',
+              value: !_moment
+                  ? null
+                  : selected.length > 1
+                  ? 'In ${selected.first.name}'
+                  : 'New special moment',
+              onTap: _sharing ? null : () => setState(() => _moment = !_moment),
+            ),
+            _OptionRow(
+              icon: CloserIcons.journal,
+              label: 'Pin to journal',
+              hint: selected.isEmpty || selected.every((g) => g.isPremium)
+                  ? null
+                  : anyPremium
+                  ? 'Keeploom Memories groups only'
+                  : 'Keeploom Memories',
+              trailing: Switch(
+                value: _pin,
+                onChanged: _sharing || !anyPremium
+                    ? null
+                    : (v) => setState(() => _pin = v),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: CloserSpacing.lg),
         FormErrorText(_error),
@@ -448,7 +455,14 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
           const SizedBox(height: CloserSpacing.md),
         ],
         CloserButton(
-          label: _error != null && usable.isNotEmpty ? 'Retry' : 'Share',
+          label: _error != null && usable.isNotEmpty
+              ? 'Retry'
+              : usable.length <= 1 && selected.length <= 1
+              ? 'Share'
+              : 'Share ${usable.length} '
+                    '${usable.length == 1 ? 'photo' : 'photos'} with '
+                    '${selected.length} '
+                    '${selected.length == 1 ? 'group' : 'groups'}',
           isLoading: _sharing || _preparing,
           onPressed: usable.isEmpty || selected.isEmpty
               ? null
@@ -487,20 +501,22 @@ class _PhotoStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final size =
+    final w =
         (MediaQuery.sizeOf(context).width -
             CloserSpacing.gutter * 2 -
-            CloserSpacing.sm) /
-        2;
+            CloserSpacing.xs * 2) /
+        3;
+    final h = w * 1.29;
     final tiles = <Widget>[
       for (final p in picks)
-        SizedBox.square(
-          dimension: size,
+        SizedBox(
+          width: w,
+          height: h,
           child: Stack(
             fit: StackFit.expand,
             children: [
               ClipRRect(
-                borderRadius: CloserRadii.xlAll,
+                borderRadius: CloserRadii.lgAll,
                 child: Image.memory(
                   p.prepared?.thumbnail ?? p.raw,
                   fit: BoxFit.cover,
@@ -514,7 +530,7 @@ class _PhotoStrip extends StatelessWidget {
               ),
               if (!p.ready && p.error == null)
                 const ClipRRect(
-                  borderRadius: CloserRadii.xlAll,
+                  borderRadius: CloserRadii.lgAll,
                   child: ColoredBox(
                     color: Color(0x55000000),
                     child: LoadingState(),
@@ -529,17 +545,17 @@ class _PhotoStrip extends StatelessWidget {
                     label: 'Remove photo',
                     excludeSemantics: true,
                     child: Material(
-                      color: c.accent,
+                      color: Colors.black.withValues(alpha: 0.45),
                       shape: const CircleBorder(),
                       child: InkWell(
                         customBorder: const CircleBorder(),
                         onTap: () => onRemove(p),
                         child: const SizedBox.square(
-                          dimension: 36,
+                          dimension: 32,
                           child: Icon(
                             CloserIcons.close,
                             color: Colors.white,
-                            size: 20,
+                            size: 18,
                           ),
                         ),
                       ),
@@ -550,24 +566,26 @@ class _PhotoStrip extends StatelessWidget {
           ),
         ),
       if (onAdd != null)
-        SizedBox.square(
-          dimension: size,
+        SizedBox(
+          width: w,
+          height: h,
           child: Material(
-            color: c.surfaceMuted,
-            borderRadius: CloserRadii.xlAll,
+            color: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: CloserRadii.lgAll,
+              side: BorderSide(color: c.textTertiary, width: 1.2),
+            ),
             child: InkWell(
-              borderRadius: CloserRadii.xlAll,
+              borderRadius: CloserRadii.lgAll,
               onTap: enabled ? onAdd : null,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(CloserIcons.plus, size: 32, color: c.textSecondary),
-                  const SizedBox(height: CloserSpacing.xs),
+                  Icon(CloserIcons.gallery, size: 22, color: c.textSecondary),
+                  const SizedBox(height: CloserSpacing.xxs),
                   Text(
                     picks.isEmpty ? 'Add photo' : 'Add more',
-                    style: context.text.bodyLarge?.copyWith(
-                      color: c.textSecondary,
-                    ),
+                    style: context.text.bodySmall,
                   ),
                 ],
               ),
@@ -576,8 +594,8 @@ class _PhotoStrip extends StatelessWidget {
         ),
     ];
     return Wrap(
-      spacing: CloserSpacing.sm,
-      runSpacing: CloserSpacing.sm,
+      spacing: CloserSpacing.xs,
+      runSpacing: CloserSpacing.xs,
       children: tiles,
     );
   }
@@ -604,41 +622,34 @@ class _GroupOption extends StatelessWidget {
       label: '${group.name}, $n ${n == 1 ? 'member' : 'members'}',
       excludeSemantics: true,
       child: InkWell(
-        borderRadius: CloserRadii.lgAll,
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: CloserSpacing.xs),
+          padding: const EdgeInsets.symmetric(
+            horizontal: CloserSpacing.md,
+            vertical: 9,
+          ),
           child: Row(
             children: [
               ClipRRect(
-                borderRadius: CloserRadii.mdAll,
+                borderRadius: CloserRadii.smAll,
                 child: SizedBox.square(
-                  dimension: 64,
+                  dimension: 36,
                   child: GroupCover(group: group),
                 ),
               ),
-              const SizedBox(width: CloserSpacing.md),
+              const SizedBox(width: 14),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      group.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.text.titleMedium,
-                    ),
-                    Text(
-                      '$n ${n == 1 ? 'member' : 'members'}',
-                      style: context.text.bodyMedium,
-                    ),
-                  ],
+                child: Text(
+                  group.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.bodyLarge?.copyWith(fontSize: 15),
                 ),
               ),
               AnimatedContainer(
                 duration: CloserMotion.of(context, CloserMotion.fast),
-                width: 28,
-                height: 28,
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: selected ? c.primary : Colors.transparent,
@@ -648,10 +659,9 @@ class _GroupOption extends StatelessWidget {
                   ),
                 ),
                 child: selected
-                    ? Icon(Icons.check_rounded, color: c.onPrimary, size: 18)
+                    ? Icon(Icons.check_rounded, color: c.onPrimary, size: 16)
                     : null,
               ),
-              const SizedBox(width: CloserSpacing.xs),
             ],
           ),
         ),
@@ -681,11 +691,12 @@ class _OptionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.closerColors;
     return ListTile(
-      contentPadding: EdgeInsets.zero,
+      contentPadding: const EdgeInsets.symmetric(horizontal: CloserSpacing.md),
       minTileHeight: 52,
+      horizontalTitleGap: 14,
       onTap: onTap,
-      leading: Icon(icon, color: c.textPrimary, size: 22),
-      title: Text(label, style: context.text.bodyLarge),
+      leading: Icon(icon, color: c.textPrimary, size: 18),
+      title: Text(label, style: context.text.bodyLarge?.copyWith(fontSize: 15)),
       subtitle: hint == null
           ? null
           : Text(hint!, style: context.text.bodySmall),
@@ -694,13 +705,7 @@ class _OptionRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (value != null)
-                Text(
-                  value!,
-                  style: context.text.bodyLarge?.copyWith(
-                    color: c.textSecondary,
-                  ),
-                ),
+              if (value != null) Text(value!, style: context.text.bodyMedium),
               const SizedBox(width: CloserSpacing.xxs),
               Icon(CloserIcons.chevronRight, color: c.textTertiary, size: 20),
             ],

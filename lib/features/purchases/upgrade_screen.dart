@@ -96,7 +96,6 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
   }
 
   Widget _body(Group group) {
-    final c = context.closerColors;
     final service = ref.watch(purchaseServiceProvider);
     final product = ref.watch(_productProvider);
     if (group.isPremium) {
@@ -111,37 +110,35 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
     return ListView(
       padding: const EdgeInsets.all(CloserSpacing.gutter),
       children: [
-        Icon(CloserIcons.crown, color: c.premium, size: 40),
-        const SizedBox(height: CloserSpacing.sm),
         Text(
-          'Keep every memory from this group',
+          'Keep every memory from ${group.name}',
           style: context.text.headlineMedium,
         ),
         const SizedBox(height: CloserSpacing.xs),
         Text(
           'Basic lets you share the moment. Keeploom Memories lets you keep the '
           'story.',
-          style: context.text.bodyLarge,
-        ),
-        const SizedBox(height: CloserSpacing.xl),
-        _Compare(
-          label: 'Basic',
-          points: [
-            'Latest ${Group.basicPhotoLimit} photos',
-            'The oldest photo is removed when a new one is shared',
-          ],
+          style: context.text.bodyMedium?.copyWith(fontSize: 14.5),
         ),
         const SizedBox(height: CloserSpacing.md),
+        _Compare(
+          label: 'Basic, what you have',
+          points: [
+            'The latest ${Group.basicPhotoLimit} photos',
+            'The oldest is replaced when a new one arrives',
+          ],
+        ),
+        const SizedBox(height: CloserSpacing.sm),
         const _Compare(
           label: 'Keeploom Memories',
           highlight: true,
           points: [
             'Every photo, kept for the whole group',
-            'Pin favourite memories to the top',
-            'One purchase for this group — everyone in it gets it',
+            'Pin favourites to the top',
+            'One purchase: everyone in the group gets it',
           ],
         ),
-        const SizedBox(height: CloserSpacing.xl),
+        const SizedBox(height: CloserSpacing.md),
         if (service.unavailableReason != null) ...[
           NoticeCard(message: service.unavailableReason!),
           const SizedBox(height: CloserSpacing.md),
@@ -157,7 +154,6 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
           label: product.value == null
               ? 'Upgrade ${group.name}'
               : 'Upgrade for ${product.value!.priceLabel}',
-          icon: const Icon(CloserIcons.sparkle),
           isLoading: _buying,
           onPressed: service.unavailableReason == null
               ? () => _buy(group)
@@ -203,31 +199,43 @@ class _Compare extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(CloserSpacing.md),
       decoration: BoxDecoration(
-        color: highlight ? c.background : c.surfaceMuted,
+        color: highlight ? Colors.transparent : c.surfaceMuted,
         borderRadius: CloserRadii.lgAll,
         border: Border.all(
-          color: highlight ? c.primary : Colors.transparent,
-          width: 1.5,
+          color: highlight ? c.textPrimary : Colors.transparent,
+          width: 1.2,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: context.text.titleMedium),
-          const SizedBox(height: CloserSpacing.xs),
+          Text(label, style: context.text.titleSmall),
+          const SizedBox(height: 4),
           for (final p in points)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    highlight ? CloserIcons.success : CloserIcons.clock,
-                    size: 18,
-                    color: highlight ? c.accentStrong : c.textTertiary,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(2, 8, 10, 0),
+                    child: Container(
+                      width: 5,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: c.accent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: CloserSpacing.xs),
-                  Expanded(child: Text(p, style: context.text.bodyMedium)),
+                  Expanded(
+                    child: Text(
+                      p,
+                      style: context.text.bodyMedium?.copyWith(
+                        color: c.textPrimary,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

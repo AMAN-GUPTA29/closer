@@ -52,6 +52,6 @@ void main() {
     expect(find.text('Kept this week'), findsOneWidget);
     await tester.tap(find.text('Share a moment'));
     await tester.pumpAndSettle();
-    expect(find.text('Choose a group'), findsOneWidget);
+    expect(find.text('Share with'), findsOneWidget);
   });
 }

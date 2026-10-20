@@ -94,7 +94,7 @@ void main() {
     expect(find.text('Start your first group'), findsOneWidget);
     expect(find.text('Create a group'), findsOneWidget);
 
-    await tester.tap(find.text('Journal'));
+    await tester.tap(find.text('Journal').last);
     await tester.pumpAndSettle();
     expect(find.byType(AllJournalScreen), findsOneWidget);
 
@@ -148,7 +148,7 @@ void main() {
     expect(repo.lastUsername, 'sam.lee', reason: 'sent normalised');
     expect(find.textContaining('sam@example.com'), findsOneWidget);
 
-    await tester.tap(find.text('Resend confirmation email'));
+    await tester.tap(find.text('Resend email'));
     await tester.pump();
     expect(repo.calls, contains('resend:sam@example.com'));
     expect(find.textContaining('Resend in'), findsOneWidget);

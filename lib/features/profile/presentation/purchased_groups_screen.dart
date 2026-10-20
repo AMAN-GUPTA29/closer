@@ -119,7 +119,7 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
     final service = ref.watch(purchaseServiceProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Purchased groups'),
+        title: const Text('Keeploom Memories'),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(CloserIcons.back),
@@ -135,12 +135,14 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
           return ListView(
             padding: const EdgeInsets.all(CloserSpacing.gutter),
             children: [
-              Text(
-                'Keeploom Memories belongs to a group: everyone in it keeps every '
-                'photo, whoever bought it.',
-                style: context.text.bodyMedium,
-              ),
-              const SizedBox(height: CloserSpacing.lg),
+              if (premium.isNotEmpty || unassigned.isNotEmpty) ...[
+                Text(
+                  'Keeploom Memories belongs to a group: everyone in it keeps '
+                  'every photo, whoever bought it.',
+                  style: context.text.bodyMedium,
+                ),
+                const SizedBox(height: CloserSpacing.lg),
+              ],
               for (final p in unassigned) ...[
                 NoticeCard(
                   icon: CloserIcons.crown,
@@ -160,10 +162,10 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
               if (premium.isEmpty)
                 const EmptyState(
                   icon: CloserIcons.crown,
-                  title: 'No Keeploom Memories groups yet',
+                  title: 'No upgraded groups yet',
                   message:
-                      'Upgrade a group from its Details tab to keep its whole '
-                      'story.',
+                      'Upgrade a group from its Details tab and everyone in it '
+                      'keeps every photo.',
                 )
               else
                 for (final g in premium)
@@ -179,7 +181,7 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
                       onTap: () => context.push(Routes.group(g.id)),
                     ),
                   ),
-              const SizedBox(height: CloserSpacing.xl),
+              const SizedBox(height: CloserSpacing.md),
               if (service.unavailableReason != null) ...[
                 NoticeCard(message: service.unavailableReason!),
                 const SizedBox(height: CloserSpacing.sm),
@@ -190,7 +192,6 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
               ],
               CloserButton.secondary(
                 label: 'Restore purchases',
-                icon: const Icon(CloserIcons.retry),
                 isLoading: _restoring,
                 onPressed: service.unavailableReason == null ? _restore : null,
               ),

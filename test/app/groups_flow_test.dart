@@ -63,17 +63,17 @@ void main() {
     expect(find.byType(CreateGroupScreen), findsOneWidget);
 
     // Validation: type and name are required.
-    await tapButton(tester, 'Create Group');
+    await tapButton(tester, 'Create group');
     expect(find.text('Choose who this group is for.'), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel(RegExp('^Couple')));
     await tester.pumpAndSettle();
     expect(find.text('Together since (optional)'), findsOneWidget);
-    await tapButton(tester, 'Create Group');
+    await tapButton(tester, 'Create group');
     expect(find.text('Give your group a name.'), findsOneWidget);
 
     await tester.enterText(find.byType(TextFormField).first, 'My Love');
-    await tapButton(tester, 'Create Group');
+    await tapButton(tester, 'Create group');
 
     expect(find.byType(InviteScreen), findsOneWidget);
     expect(find.text('Invite to My Love'), findsOneWidget);
@@ -92,7 +92,7 @@ void main() {
     );
     expect(find.textContaining('••${created.codeHint}'), findsOneWidget);
     expect(find.text('Active'), findsOneWidget);
-    expect(find.text('Share Invite'), findsOneWidget);
+    expect(find.text('Share invite'), findsOneWidget);
 
     // Back to the group, then Home lists it.
     await tester.tap(find.byTooltip('Back'));
@@ -270,7 +270,7 @@ void main() {
     expect(find.text('Remove Bob Lee?'), findsOneWidget);
     await tapButton(tester, 'Remove');
     expect(find.text('Bob Lee'), findsNothing);
-    expect(find.text('2 members'), findsOneWidget);
+    expect(find.textContaining('· 2 people'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();

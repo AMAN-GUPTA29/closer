@@ -2,61 +2,91 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/appearance.dart';
-import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
 
-/// Profile → Appearance: Light, Dark or System. Applies immediately and is
-/// remembered on this device.
-class ThemeSettingsTile extends ConsumerWidget {
-  const ThemeSettingsTile({super.key});
+/// Light, Dark or System as one tonal segmented control (Keeploom concept).
+/// Applies immediately and is remembered on this device.
+class AppearanceSwitch extends ConsumerWidget {
+  const AppearanceSwitch({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(appearanceProvider);
     final c = context.closerColors;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        CloserSpacing.md,
-        CloserSpacing.sm,
-        CloserSpacing.md,
-        CloserSpacing.md,
+    Widget segment(ThemeMode value, String label) {
+      final selected = value == mode;
+      return Expanded(
+        child: Semantics(
+          button: true,
+          selected: selected,
+          label: '$label appearance',
+          excludeSemantics: true,
+          child: Material(
+            color: selected ? c.background : Colors.transparent,
+            borderRadius: CloserRadii.mdAll,
+            child: InkWell(
+              borderRadius: CloserRadii.mdAll,
+              onTap: () => ref.read(appearanceProvider.notifier).set(value),
+              child: SizedBox(
+                height: 44,
+                child: Center(
+                  child: Text(
+                    label,
+                    style: context.text.bodyMedium?.copyWith(
+                      color: selected ? c.textPrimary : c.textSecondary,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: c.surfaceMuted,
+        borderRadius: CloserRadii.lgAll,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(CloserIcons.appearance, color: c.textPrimary, size: 22),
-              const SizedBox(width: CloserSpacing.md),
-              Text('Appearance', style: context.text.bodyLarge),
-            ],
-          ),
-          const SizedBox(height: CloserSpacing.sm),
-          SegmentedButton<ThemeMode>(
-            showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(
-                value: ThemeMode.light,
-                label: Text('Light'),
-                icon: Icon(CloserIcons.sun, size: 18),
-              ),
-              ButtonSegment(
-                value: ThemeMode.dark,
-                label: Text('Dark'),
-                icon: Icon(CloserIcons.moon, size: 18),
-              ),
-              ButtonSegment(
-                value: ThemeMode.system,
-                label: Text('System'),
-                icon: Icon(CloserIcons.phone, size: 18),
-              ),
-            ],
-            selected: {mode},
-            onSelectionChanged: (s) =>
-                ref.read(appearanceProvider.notifier).set(s.first),
-          ),
+          segment(ThemeMode.light, 'Light'),
+          const SizedBox(width: 4),
+          segment(ThemeMode.dark, 'Dark'),
+          const SizedBox(width: 4),
+          segment(ThemeMode.system, 'System'),
         ],
       ),
+    );
+  }
+}
+
+/// "Appearance" label above the [AppearanceSwitch].
+class ThemeSettingsTile extends StatelessWidget {
+  const ThemeSettingsTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, CloserSpacing.xs),
+          child: Semantics(
+            header: true,
+            child: Text(
+              'Appearance',
+              style: context.text.labelMedium?.copyWith(
+                color: context.closerColors.textSecondary,
+              ),
+            ),
+          ),
+        ),
+        const AppearanceSwitch(),
+      ],
     );
   }
 }

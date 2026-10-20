@@ -78,15 +78,20 @@ class MembersScreen extends ConsumerWidget {
             builder: (list) => ListView(
               padding: const EdgeInsets.all(CloserSpacing.gutter),
               children: [
-                Text(
-                  g.type.maxMembers == null
-                      ? '${list.length} ${list.length == 1 ? 'member' : 'members'}'
-                      : '${list.length} of ${g.type.maxMembers} members',
-                  style: context.text.bodyMedium,
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Text(
+                    g.type.maxMembers == null
+                        ? '${g.name} · ${list.length} '
+                              '${list.length == 1 ? 'person' : 'people'}'
+                        : '${g.name} · ${list.length} of '
+                              '${g.type.maxMembers} people',
+                    style: context.text.bodySmall?.copyWith(fontSize: 13.5),
+                  ),
                 ),
                 const SizedBox(height: CloserSpacing.sm),
                 SectionCard(
-                  dividerIndent: 72,
+                  dividerIndent: 64,
                   children: [
                     for (final m in list)
                       _MemberTile(
@@ -97,11 +102,10 @@ class MembersScreen extends ConsumerWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: CloserSpacing.xl),
+                const SizedBox(height: CloserSpacing.md),
                 if (!g.isFull)
                   CloserButton(
                     label: 'Invite people',
-                    icon: const Icon(CloserIcons.invite),
                     onPressed: () => context.push(Routes.invite(groupId)),
                   ),
               ],
@@ -134,39 +138,35 @@ class _MemberTile extends StatelessWidget {
         left: CloserSpacing.md,
         right: canManage ? CloserSpacing.xxs : CloserSpacing.md,
       ),
-      minTileHeight: 68,
-      leading: MemberAvatar(name: member.displayName, size: 44),
+      minTileHeight: 62,
+      horizontalTitleGap: 12,
+      leading: MemberAvatar(name: member.displayName, size: 36),
       title: Text(
         isMe ? '${member.displayName} (you)' : member.displayName,
-        style: context.text.titleSmall,
+        style: context.text.bodyLarge?.copyWith(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
       ),
       subtitle: Text(
-        'Joined ${formatMediumDate(member.joinedAt.toLocal())}',
+        'Joined ${formatShortDayMonth(member.joinedAt.toLocal())}',
         style: context.text.bodySmall,
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (member.isOwner)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: CloserSpacing.sm,
-                vertical: CloserSpacing.xxs,
-              ),
-              decoration: BoxDecoration(
-                color: c.accentSoft,
-                borderRadius: CloserRadii.pillAll,
-              ),
-              child: Text(
-                'Owner',
-                style: context.text.labelMedium?.copyWith(
-                  color: c.accentStrong,
-                ),
+            Text(
+              'Owner',
+              style: context.text.labelMedium?.copyWith(
+                color: c.accentStrong,
+                fontWeight: FontWeight.w600,
               ),
             ),
           if (canManage)
             PopupMenuButton<_MemberAction>(
               tooltip: 'Options for ${member.displayName}',
+              icon: Icon(CloserIcons.more, color: c.textPrimary, size: 20),
               onSelected: onAction,
               itemBuilder: (_) => const [
                 PopupMenuItem(

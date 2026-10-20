@@ -257,7 +257,7 @@ void main() {
     // With reduced motion the intro animation is already complete.
     expect(tester.hasRunningAnimations, isFalse);
     expect(find.text('100 days together'), findsOneWidget);
-    expect(find.text('A hundred days'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('A hundred days')), findsOneWidget);
   });
 
   testWidgets('PhotoViewer pages through photos and closes', (tester) async {

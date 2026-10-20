@@ -11,6 +11,7 @@ import '../../core/theme/closer_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../groups/application/group_providers.dart';
 import '../groups/presentation/group_widgets.dart';
+import '../photos/presentation/photo_widgets.dart';
 import 'widget_sync.dart';
 
 /// Whether this device can add widgets from inside the app (Android 8+
@@ -91,18 +92,21 @@ class WidgetSetupScreen extends ConsumerWidget {
         builder: (list) => ListView(
           padding: const EdgeInsets.all(CloserSpacing.gutter),
           children: [
-            Text(
-              'Keep your people on your home screen',
-              style: context.text.headlineSmall,
+            Semantics(
+              header: true,
+              child: Text(
+                'Your people, on your home screen',
+                style: context.text.headlineMedium,
+              ),
             ),
             const SizedBox(height: CloserSpacing.xs),
             Text(
               'Each widget shows one group’s newest photo. Add as many as you '
-              'like — one for your partner, one for family, one for friends, '
-              'or two for the same group. Changing one never changes the others.',
-              style: context.text.bodyMedium,
+              'like — one for your partner, one for family, or two for the '
+              'same group. Changing one never changes the others.',
+              style: context.text.bodyMedium?.copyWith(fontSize: 14.5),
             ),
-            const SizedBox(height: CloserSpacing.lg),
+            const SizedBox(height: CloserSpacing.md),
             if (list.isEmpty)
               const NoticeCard(
                 message: 'Create or join a group first — widgets show a group.',
@@ -112,57 +116,81 @@ class WidgetSetupScreen extends ConsumerWidget {
                 crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: CloserSpacing.md,
-                crossAxisSpacing: CloserSpacing.md,
+                mainAxisSpacing: CloserSpacing.sm,
+                crossAxisSpacing: CloserSpacing.sm,
+                childAspectRatio: 1.05,
                 children: [
-                  for (final g in list.take(4))
+                  for (final g in list.take(2))
                     WidgetPreviewCard(
                       groupName: g.name,
                       groupType: g.type,
                       subtitle: WidgetSnapshot.subtitleFor(g, DateTime.now()),
                       placeholderVariant: g.placeholderVariant,
+                      cover: GroupCover(group: g),
                     ),
                 ],
               ),
-            const SizedBox(height: CloserSpacing.xl),
+            const SizedBox(height: CloserSpacing.md),
             if (canPin) ...[
               CloserButton(
                 label: 'Add a widget',
-                icon: const Icon(CloserIcons.widgets),
                 onPressed: list.isEmpty ? null : () => _add(context, ref),
               ),
               const SizedBox(height: CloserSpacing.lg),
             ],
-            Text(
-              canPin ? 'Or add it yourself' : 'How to add a widget',
-              style: context.text.titleMedium,
+            Semantics(
+              header: true,
+              child: Text(
+                canPin ? 'Or add it yourself' : 'How to add one',
+                style: context.text.labelMedium?.copyWith(
+                  color: c.textSecondary,
+                ),
+              ),
             ),
             const SizedBox(height: CloserSpacing.sm),
             for (var i = 0; i < steps.length; i++)
               Padding(
-                padding: const EdgeInsets.only(bottom: CloserSpacing.xs),
+                padding: const EdgeInsets.only(bottom: CloserSpacing.sm),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 12,
-                      backgroundColor: c.accentSoft,
+                    Container(
+                      width: 22,
+                      height: 22,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: c.line),
+                      ),
                       child: Text(
                         '${i + 1}',
                         style: context.text.labelSmall?.copyWith(
-                          color: c.accentStrong,
+                          color: c.textSecondary,
                         ),
                       ),
                     ),
                     const SizedBox(width: CloserSpacing.sm),
                     Expanded(
-                      child: Text(steps[i], style: context.text.bodyMedium),
+                      child: Text(
+                        steps[i],
+                        style: context.text.bodyMedium?.copyWith(
+                          color: c.textPrimary,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-            const SizedBox(height: CloserSpacing.lg),
-            Text('If something looks wrong', style: context.text.titleMedium),
+            const SizedBox(height: CloserSpacing.md),
+            Semantics(
+              header: true,
+              child: Text(
+                'If something looks wrong',
+                style: context.text.labelMedium?.copyWith(
+                  color: c.textSecondary,
+                ),
+              ),
+            ),
             const SizedBox(height: CloserSpacing.sm),
             for (final tip in const [
               'A new photo can take a minute or two to appear — your phone '

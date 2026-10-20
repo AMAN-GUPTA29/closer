@@ -82,7 +82,9 @@ void main() {
 
     expect(find.text('Shared with Crew'), findsOneWidget);
     expect(find.byType(GroupHomeScreen), findsOneWidget);
-    expect(find.text('Basic · 1 of 10 photos kept'), findsOneWidget);
+    await tester.tap(find.text('Details'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 of 10 (Basic)'), findsOneWidget);
     expect((await repo.photos(groupId)).photos.single.caption, 'First dinner');
   });
 
@@ -171,9 +173,9 @@ void main() {
     await openGroup(tester);
     await tester.tap(find.text('Details'));
     await tester.pumpAndSettle();
-    await tapButton(tester, 'Upgrade this group');
+    await tapButton(tester, 'See Keeploom Memories');
     expect(find.byType(UpgradeScreen), findsOneWidget);
-    expect(find.text('Keep every memory from this group'), findsOneWidget);
+    expect(find.text('Keep every memory from Crew'), findsOneWidget);
     expect(
       find.textContaining('aren’t available in this build'),
       findsOneWidget,
@@ -192,8 +194,8 @@ void main() {
     await openGroup(tester);
     await tester.tap(find.text('Details'));
     await tester.pumpAndSettle();
-    expect(find.text('Keeploom Memories · keeps every photo'), findsOneWidget);
-    expect(find.text('Upgrade this group'), findsNothing);
+    expect(find.text('Every photo'), findsOneWidget);
+    expect(find.text('See Keeploom Memories'), findsNothing);
   });
 
   testWidgets('the + button shares into a chosen group', (tester) async {
@@ -201,7 +203,7 @@ void main() {
     await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
     expect(find.byType(AddMemoryScreen), findsOneWidget);
-    expect(find.text('Choose a group'), findsOneWidget);
+    expect(find.text('Share with'), findsOneWidget);
     await addPhoto(tester);
     expect(
       find.text('Choose at least one group.'),
@@ -225,11 +227,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), 'Together');
     await tester.scrollUntilVisible(
-      find.widgetWithText(InkWell, 'Share'),
+      find.widgetWithText(InkWell, 'Share 1 photo with 2 groups'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    await tapButton(tester, 'Share');
+    await tapButton(tester, 'Share 1 photo with 2 groups');
   }
 
   testWidgets('one share can go to several groups', (tester) async {
@@ -272,11 +274,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel('Remove photo'), findsNWidgets(2));
     await tester.scrollUntilVisible(
-      find.widgetWithText(InkWell, 'Share'),
+      find.widgetWithText(InkWell, 'Share 2 photos with 1 group'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    await tapButton(tester, 'Share');
+    await tapButton(tester, 'Share 2 photos with 1 group');
     expect(find.text('Shared 2 with Crew'), findsOneWidget);
     expect((await repo.photos(groupId)).photos, hasLength(2));
   });

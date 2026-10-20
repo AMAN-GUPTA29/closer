@@ -38,7 +38,7 @@ class KeeploomBottomNav extends StatelessWidget {
   final ValueChanged<int> onSelect;
   final VoidCallback onAdd;
 
-  static const double dockHeight = 64;
+  static const double dockHeight = 58;
   static const double _addSize = 52;
 
   @override
@@ -113,7 +113,7 @@ class _DockButton extends StatelessWidget {
               duration: duration,
               width: 20,
               height: 2,
-              margin: const EdgeInsets.only(bottom: 6),
+              margin: const EdgeInsets.only(bottom: 5),
               decoration: BoxDecoration(
                 color: selected ? c.accent : Colors.transparent,
                 borderRadius: CloserRadii.pillAll,
@@ -121,7 +121,7 @@ class _DockButton extends StatelessWidget {
             ),
             SizedBox(
               width: 44,
-              height: 26,
+              height: 24,
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,

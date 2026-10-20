@@ -80,7 +80,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
         false;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create a Group'),
+        title: const Text('New group'),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(CloserIcons.back),
@@ -90,78 +90,98 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       body: SafeArea(
         child: Form(
           key: _form,
-          child: ListView(
-            padding: const EdgeInsets.all(CloserSpacing.gutter),
+          child: Column(
             children: [
-              Text('Choose a group type', style: context.text.titleMedium),
-              const SizedBox(height: CloserSpacing.sm),
-              for (final t in GroupType.values) ...[
-                GroupTypeOption(
-                  type: t,
-                  selected: _type == t,
-                  disabledReason: t == GroupType.couple && inCouple
-                      ? 'You’re already in a couple group'
-                      : null,
-                  onTap: () => setState(() {
-                    _type = t;
-                    _error = null;
-                  }),
-                ),
-                const SizedBox(height: CloserSpacing.sm),
-              ],
-              const SizedBox(height: CloserSpacing.md),
-              Text('Group name', style: context.text.titleMedium),
-              const SizedBox(height: CloserSpacing.sm),
-              CloserTextField(
-                controller: _name,
-                hint: _nameHint,
-                maxLength: 60,
-                textCapitalization: TextCapitalization.words,
-                textInputAction: TextInputAction.done,
-                validator: (v) {
-                  final value = v?.trim() ?? '';
-                  if (value.isEmpty) return 'Give your group a name.';
-                  if (value.length > 60) return 'Keep it under 60 characters.';
-                  return null;
-                },
-              ),
-              if (_type == GroupType.couple) ...[
-                const SizedBox(height: CloserSpacing.lg),
-                Text(
-                  'Together since (optional)',
-                  style: context.text.titleMedium,
-                ),
-                const SizedBox(height: CloserSpacing.sm),
-                RelationshipDateField(
-                  value: _startDate,
-                  onChanged: (d) => setState(() => _startDate = d),
-                ),
-                if (_startDate != null) ...[
-                  const SizedBox(height: CloserSpacing.xs),
-                  Text(
-                    daysTogetherLabel(
-                      daysTogether(_startDate!, DateTime.now()),
-                    ),
-                    style: context.text.bodySmall?.copyWith(
-                      color: context.closerColors.accentStrong,
-                    ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    CloserSpacing.gutter,
+                    CloserSpacing.xs,
+                    CloserSpacing.gutter,
+                    CloserSpacing.lg,
                   ),
-                ],
-              ],
-              const SizedBox(height: CloserSpacing.lg),
-              Text('Cover photo (optional)', style: context.text.titleMedium),
-              const SizedBox(height: CloserSpacing.xs),
-              Text(
-                'Your newest photo becomes the cover. The owner can pick a '
-                'different one any time in Group settings.',
-                style: context.text.bodySmall,
+                  children: [
+                    const _Label('Who is it for?'),
+                    SectionCard(
+                      dividerIndent: CloserSpacing.md,
+                      children: [
+                        for (final t in GroupType.values)
+                          GroupTypeOption(
+                            type: t,
+                            selected: _type == t,
+                            disabledReason: t == GroupType.couple && inCouple
+                                ? 'You’re already in a couple group'
+                                : null,
+                            onTap: () => setState(() {
+                              _type = t;
+                              _error = null;
+                            }),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: CloserSpacing.lg),
+                    CloserTextField(
+                      controller: _name,
+                      hint: 'Group name',
+                      placeholder: _nameHint,
+                      maxLength: 60,
+                      textCapitalization: TextCapitalization.words,
+                      textInputAction: TextInputAction.done,
+                      validator: (v) {
+                        final value = v?.trim() ?? '';
+                        if (value.isEmpty) return 'Give your group a name.';
+                        if (value.length > 60) {
+                          return 'Keep it under 60 characters.';
+                        }
+                        return null;
+                      },
+                    ),
+                    if (_type == GroupType.couple) ...[
+                      const SizedBox(height: CloserSpacing.xs),
+                      const _Label('Together since (optional)'),
+                      RelationshipDateField(
+                        value: _startDate,
+                        onChanged: (d) => setState(() => _startDate = d),
+                      ),
+                      if (_startDate != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          daysTogetherLabel(
+                            daysTogether(_startDate!, DateTime.now()),
+                          ),
+                          style: context.text.bodySmall?.copyWith(
+                            color: context.closerColors.accentStrong,
+                          ),
+                        ),
+                      ],
+                    ],
+                    const SizedBox(height: CloserSpacing.sm),
+                    Text(
+                      'The newest photo becomes the cover. You can choose '
+                      'another later.',
+                      style: context.text.bodySmall,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: CloserSpacing.xl),
-              FormErrorText(_error),
-              CloserButton(
-                label: 'Create Group',
-                isLoading: _busy,
-                onPressed: _submit,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  CloserSpacing.gutter,
+                  0,
+                  CloserSpacing.gutter,
+                  CloserSpacing.md,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FormErrorText(_error),
+                    CloserButton(
+                      label: 'Create group',
+                      isLoading: _busy,
+                      onPressed: _submit,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -169,4 +189,23 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       ),
     );
   }
+}
+
+/// Small label above a field.
+class _Label extends StatelessWidget {
+  const _Label(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 6, top: CloserSpacing.sm),
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: context.text.titleSmall?.copyWith(fontSize: 13.5),
+      ),
+    ),
+  );
 }

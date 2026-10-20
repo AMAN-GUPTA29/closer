@@ -12,6 +12,7 @@ class MyAvatar extends ConsumerWidget {
     required this.fallbackName,
     this.size = 44,
     this.brand = false,
+    this.serif = false,
   });
 
   final String fallbackName;
@@ -19,6 +20,9 @@ class MyAvatar extends ConsumerWidget {
 
   /// Blush circle with a coral initial (Profile header), as on the board.
   final bool brand;
+
+  /// Serif initials, as on the large profile avatars.
+  final bool serif;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,6 +35,7 @@ class MyAvatar extends ConsumerWidget {
       name: profile?.displayName ?? fallbackName,
       image: image,
       size: size,
+      serif: serif,
       colors: brand
           ? (context.closerColors.accentSoft, context.closerColors.accentStrong)
           : null,

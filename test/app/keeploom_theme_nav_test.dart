@@ -126,7 +126,7 @@ void main() {
       await pumpCloserApp(tester, repository: auth, groups: groups);
       expect(find.byType(HomeScreen), findsOneWidget);
 
-      await tester.tap(find.text('Journal'));
+      await tester.tap(find.text('Journal').last);
       await tester.pumpAndSettle();
       expect(find.byType(AllJournalScreen), findsOneWidget);
 
@@ -153,12 +153,12 @@ void main() {
       await pumpCloserApp(tester, repository: auth, groups: groups);
       await tester.tap(find.byTooltip('Share a memory'));
       await tester.pumpAndSettle();
-      expect(find.text('Choose a group'), findsOneWidget);
+      expect(find.text('Share with'), findsOneWidget);
       expect(find.text('Us'), findsWidgets);
 
       await tester.tap(find.byTooltip('Close'));
       await tester.pumpAndSettle();
-      expect(find.text('Choose a group'), findsNothing);
+      expect(find.text('Share with'), findsNothing);
       expect(find.byType(HomeScreen), findsOneWidget, reason: 'no new page');
     });
 
