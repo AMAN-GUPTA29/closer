@@ -10,6 +10,11 @@ import '../../groups/presentation/group_widgets.dart';
 import '../../journal/application/content_providers.dart';
 import '../domain/notification_models.dart';
 
+const _pad = EdgeInsets.symmetric(
+  horizontal: CloserSpacing.md,
+  vertical: CloserSpacing.xxs,
+);
+
 class NotificationPreferencesScreen extends ConsumerWidget {
   const NotificationPreferencesScreen({super.key});
 
@@ -31,7 +36,7 @@ class NotificationPreferencesScreen extends ConsumerWidget {
     final prefs = ref.watch(notificationPreferencesProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notification preferences'),
+        title: const Text('Notifications'),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(CloserIcons.back),
@@ -47,51 +52,105 @@ class NotificationPreferencesScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(CloserSpacing.gutter),
           children: [
             Text(
-              'Choose what Closer tells you about. These apply to all of your '
+              'Choose what Keeploom tells you about. These apply to all your '
               'groups.',
               style: context.text.bodyMedium,
             ),
-            const SizedBox(height: CloserSpacing.md),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: p.photos,
-              onChanged: (v) => _save(context, ref, p.copyWith(photos: v)),
-              title: Text('New photos', style: context.text.bodyLarge),
-              subtitle: Text(
-                'When someone shares a photo in your groups',
-                style: context.text.bodySmall,
-              ),
+            const _Label('From your groups'),
+            SectionCard(
+              dividerIndent: CloserSpacing.md,
+              children: [
+                SwitchListTile(
+                  contentPadding: _pad,
+                  value: p.photos,
+                  onChanged: (v) => _save(context, ref, p.copyWith(photos: v)),
+                  title: Text('New photos', style: _title(context)),
+                  subtitle: Text(
+                    'When someone shares a photo',
+                    style: context.text.bodySmall,
+                  ),
+                ),
+                SwitchListTile(
+                  contentPadding: _pad,
+                  value: p.members,
+                  onChanged: (v) => _save(context, ref, p.copyWith(members: v)),
+                  title: Text('New members', style: _title(context)),
+                  subtitle: Text(
+                    'When someone joins a group',
+                    style: context.text.bodySmall,
+                  ),
+                ),
+                SwitchListTile(
+                  contentPadding: _pad,
+                  value: p.milestones,
+                  onChanged: (v) =>
+                      _save(context, ref, p.copyWith(milestones: v)),
+                  title: Text('Special moments', style: _title(context)),
+                  subtitle: Text(
+                    'When someone adds a moment',
+                    style: context.text.bodySmall,
+                  ),
+                ),
+                SwitchListTile(
+                  contentPadding: _pad,
+                  value: p.reminders,
+                  onChanged: (v) =>
+                      _save(context, ref, p.copyWith(reminders: v)),
+                  title: Text('Reminders', style: _title(context)),
+                  subtitle: Text(
+                    'The day before an upcoming moment',
+                    style: context.text.bodySmall,
+                  ),
+                ),
+              ],
             ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: p.members,
-              onChanged: (v) => _save(context, ref, p.copyWith(members: v)),
-              title: Text('New members', style: context.text.bodyLarge),
-              subtitle: Text(
-                'When someone joins one of your groups',
-                style: context.text.bodySmall,
-              ),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: p.milestones,
-              onChanged: (v) => _save(context, ref, p.copyWith(milestones: v)),
-              title: Text('Special moments', style: context.text.bodyLarge),
-              subtitle: Text(
-                'When someone adds a milestone',
-                style: context.text.bodySmall,
-              ),
-            ),
-            const SizedBox(height: CloserSpacing.lg),
-            const NoticeCard(
-              icon: CloserIcons.phone,
-              message:
-                  'Push notifications on your phone arrive in a later update. '
-                  'For now these settings control the in-app list.',
+            const _Label('On this phone'),
+            SectionCard(
+              children: [
+                SwitchListTile(
+                  contentPadding: _pad,
+                  value: p.push,
+                  onChanged: (v) => _save(context, ref, p.copyWith(push: v)),
+                  title: Text('Phone notifications', style: _title(context)),
+                  subtitle: Text(
+                    'When off, everything still appears in Alerts.',
+                    style: context.text.bodySmall,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
+}
+
+TextStyle? _title(BuildContext context) =>
+    context.text.bodyLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w500);
+
+/// Small muted label above a panel.
+class _Label extends StatelessWidget {
+  const _Label(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      4,
+      CloserSpacing.lg,
+      4,
+      CloserSpacing.xs,
+    ),
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: context.text.labelMedium?.copyWith(
+          color: context.closerColors.textSecondary,
+        ),
+      ),
+    ),
+  );
 }

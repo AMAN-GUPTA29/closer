@@ -38,11 +38,13 @@ class MilestoneView extends ConsumerWidget {
     required this.milestone,
     required this.group,
     this.showGroup = false,
+    this.showChevron = false,
   });
 
   final Milestone milestone;
   final Group? group;
   final bool showGroup;
+  final bool showChevron;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,8 +77,9 @@ class MilestoneView extends ConsumerWidget {
           ? m.title
           : (m.description ?? context0 ?? 'A special moment'),
       dateLabel: context0 != null && number == null
-          ? '${formatMediumDate(m.eventDate)} · $context0'
-          : formatMediumDate(m.eventDate),
+          ? '${formatDayMonth(m.eventDate)} · $context0'
+          : formatDayMonth(m.eventDate),
+      showChevron: showChevron,
       description: number == null ? m.description : null,
       theme: m.theme,
       isPinned: m.isPinned,
@@ -221,21 +224,29 @@ class MilestonesTab extends ConsumerWidget {
         final upcoming = milestones.where((m) => m.isUpcoming(now)).toList()
           ..sort((a, b) => a.eventDate.compareTo(b.eventDate));
         final past = milestones.where((m) => !m.isUpcoming(now)).toList();
-        final c = context.closerColors;
+        final rows = <(String, DateTime, int, Milestone?)>[
+          if (group.hasCounter)
+            for (final cd in coupleCountdowns(
+              group.relationshipStartDate!,
+              now,
+            ))
+              (cd.label, cd.date, cd.daysLeft, null),
+          for (final m in upcoming)
+            (m.title, m.eventDate, _daysUntil(m.eventDate, now), m),
+        ];
         return ListView(
           padding: EdgeInsets.fromLTRB(
             CloserSpacing.gutter,
-            CloserSpacing.md,
+            CloserSpacing.xs,
             CloserSpacing.gutter,
-            MediaQuery.paddingOf(context).bottom + CloserSpacing.xxxl * 2,
+            MediaQuery.paddingOf(context).bottom + CloserSpacing.xxl,
           ),
           children: [
-            if (group.hasCounter) ...[
-              _CounterCard(group: group),
-              const SizedBox(height: CloserSpacing.lg),
-            ] else if (group.type == GroupType.couple &&
+            if (!group.hasCounter &&
+                group.type == GroupType.couple &&
                 group.relationshipStartDate == null &&
                 group.isOwner) ...[
+              const SizedBox(height: CloserSpacing.sm),
               NoticeCard(
                 icon: CloserIcons.heart,
                 title: 'Add your “together since” date',
@@ -243,33 +254,28 @@ class MilestonesTab extends ConsumerWidget {
                     'See how many days you’ve shared and count down to your '
                     'next anniversary. Set it in Group settings.',
               ),
-              const SizedBox(height: CloserSpacing.lg),
             ],
-            CloserButton(
-              label: 'Create a special moment',
-              icon: const Icon(CloserIcons.sparkle),
-              onPressed: () => context.push(Routes.newMoment(group.id)),
-            ),
-            if (upcoming.isNotEmpty) ...[
-              const SizedBox(height: CloserSpacing.xl),
-              Text('Coming up', style: context.text.titleLarge),
-              const SizedBox(height: CloserSpacing.sm),
-              for (final m in upcoming)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(m.theme.icon, color: c.accentStrong),
-                  title: Text(m.title, style: context.text.titleSmall),
-                  subtitle: Text(
-                    '${formatMediumDate(m.eventDate)} · in '
-                    '${_daysUntil(m.eventDate, now)} '
-                    '${_daysUntil(m.eventDate, now) == 1 ? 'day' : 'days'}',
-                    style: context.text.bodySmall,
-                  ),
-                  onTap: () => showMilestoneSheet(context, ref, m, group),
+            if (rows.isNotEmpty) ...[
+              const _Label('Coming up'),
+              for (var i = 0; i < rows.length; i++) ...[
+                if (i > 0) const Divider(),
+                _UpcomingRow(
+                  title: rows[i].$1,
+                  date: rows[i].$2,
+                  daysLeft: rows[i].$3,
+                  onTap: rows[i].$4 == null
+                      ? null
+                      : () => showMilestoneSheet(
+                          context,
+                          ref,
+                          rows[i].$4!,
+                          group,
+                        ),
                 ),
+              ],
             ],
-            const SizedBox(height: CloserSpacing.xl),
-            if (past.isEmpty)
+            if (past.isEmpty) ...[
+              const SizedBox(height: CloserSpacing.lg),
               EmptyState(
                 icon: group.type == GroupType.couple
                     ? CloserIcons.heartOutline
@@ -278,16 +284,24 @@ class MilestonesTab extends ConsumerWidget {
                 message: group.type == GroupType.couple
                     ? 'Celebrate 100 days, anniversaries and first trips.'
                     : 'Mark birthdays, reunions, trips and the moments that matter.',
-              )
-            else ...[
-              Text('Moments', style: context.text.titleLarge),
-              const SizedBox(height: CloserSpacing.sm),
+              ),
+            ] else ...[
+              const _Label('Kept'),
               for (final m in past)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: CloserSpacing.md),
-                  child: MilestoneView(milestone: m, group: group),
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: MilestoneView(
+                    milestone: m,
+                    group: group,
+                    showChevron: true,
+                  ),
                 ),
             ],
+            const SizedBox(height: CloserSpacing.md),
+            CloserButton(
+              label: 'Create a special moment',
+              onPressed: () => context.push(Routes.newMoment(group.id)),
+            ),
           ],
         );
       },
@@ -301,52 +315,62 @@ class MilestonesTab extends ConsumerWidget {
   ).difference(DateTime.utc(now.year, now.month, now.day)).inDays;
 }
 
-class _CounterCard extends StatelessWidget {
-  const _CounterCard({required this.group});
+/// Small muted section label ("Coming up", "Kept").
+class _Label extends StatelessWidget {
+  const _Label(this.text);
 
-  final Group group;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: CloserSpacing.lg, bottom: 4),
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: context.text.labelMedium?.copyWith(
+          color: context.closerColors.textSecondary,
+        ),
+      ),
+    ),
+  );
+}
+
+/// "200 days together ........ in 18 days · 7 Nov"
+class _UpcomingRow extends StatelessWidget {
+  const _UpcomingRow({
+    required this.title,
+    required this.date,
+    required this.daysLeft,
+    this.onTap,
+  });
+
+  final String title;
+  final DateTime date;
+  final int daysLeft;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final start = group.relationshipStartDate!;
-    final days = daysTogether(start, now);
-    final countdowns = coupleCountdowns(start, now);
-    final c = context.closerColors;
-    return Container(
-      padding: const EdgeInsets.all(CloserSpacing.xl),
-      decoration: BoxDecoration(
-        color: c.accentSoft,
-        borderRadius: CloserRadii.xlAll,
-      ),
-      child: Column(
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
         children: [
-          Icon(CloserIcons.heart, color: c.accentStrong, size: 32),
-          Text(
-            '$days',
-            style: context.text.displayLarge?.copyWith(color: c.accentStrong),
-          ),
-          Text(
-            days == 1 ? 'day together' : 'days together',
-            style: context.text.titleMedium?.copyWith(color: c.accentStrong),
-          ),
-          Text(
-            'Since ${formatMediumDate(start)}',
-            style: context.text.bodySmall,
-          ),
-          const SizedBox(height: CloserSpacing.md),
-          for (final cd in countdowns)
-            Padding(
-              padding: const EdgeInsets.only(top: CloserSpacing.xxs),
-              child: Text(
-                '${cd.label} in ${cd.daysLeft} '
-                '${cd.daysLeft == 1 ? 'day' : 'days'} · ${formatMediumDate(cd.date)}',
-                textAlign: TextAlign.center,
-                style: context.text.bodyMedium,
-              ),
+          Expanded(
+            child: Text(
+              title,
+              style: context.text.bodyLarge?.copyWith(fontSize: 15),
             ),
+          ),
+          const SizedBox(width: CloserSpacing.sm),
+          Text(
+            'in $daysLeft ${daysLeft == 1 ? 'day' : 'days'}'
+            ' · ${formatShortDayMonth(date)}',
+            style: context.text.bodySmall?.copyWith(fontSize: 13.5),
+          ),
         ],
       ),
     );
+    return onTap == null ? row : InkWell(onTap: onTap, child: row);
   }
 }

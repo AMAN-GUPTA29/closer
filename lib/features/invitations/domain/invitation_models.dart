@@ -13,6 +13,7 @@ enum InviteStatus {
   revoked,
   exhausted,
   full,
+  alreadyInCouple,
   rateLimited;
 
   static InviteStatus parse(String? value) => switch (value) {
@@ -23,6 +24,7 @@ enum InviteStatus {
     'revoked' => InviteStatus.revoked,
     'exhausted' => InviteStatus.exhausted,
     'full' => InviteStatus.full,
+    'already_in_couple' => InviteStatus.alreadyInCouple,
     'rate_limited' => InviteStatus.rateLimited,
     _ => InviteStatus.invalid,
   };
@@ -38,6 +40,8 @@ enum InviteStatus {
       'This invitation has already been used. Ask for a new one.',
     InviteStatus.full =>
       'This couple group already has two people, so it can’t take anyone else.',
+    InviteStatus.alreadyInCouple =>
+      'You’re already in a couple group. Leave it first to join this one.',
     InviteStatus.rateLimited =>
       'Too many attempts. Please wait 15 minutes and try again.',
     _ => null,
@@ -218,7 +222,7 @@ abstract final class InviteCodes {
     required String groupName,
     required CreatedInvitation invitation,
   }) {
-    return 'Join "$groupName" on Closer.\n'
+    return 'Join "$groupName" on Keeploom.\n'
         'Invite code: ${invitation.displayCode}\n'
         'Or open: ${invitation.link}';
   }

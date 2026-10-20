@@ -33,7 +33,8 @@ class AuthScaffold extends StatelessWidget {
             )
           : null,
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
               horizontal: CloserSpacing.gutter,
@@ -63,21 +64,24 @@ class AuthHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Left-aligned mark and serif title (Impeccable redesign).
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CloserLogo(size: 60),
-        const SizedBox(height: CloserSpacing.lg),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: context.text.headlineLarge,
+        const KeeploomLogo(size: 28),
+        const SizedBox(height: CloserSpacing.md),
+        Semantics(
+          header: true,
+          child: Text(title, style: context.text.displaySmall),
         ),
         if (subtitle != null) ...[
           const SizedBox(height: CloserSpacing.xs),
           Text(
             subtitle!,
-            textAlign: TextAlign.center,
-            style: context.text.bodyMedium,
+            style: context.text.bodyLarge?.copyWith(
+              color: context.closerColors.textSecondary,
+              fontSize: 15,
+            ),
           ),
         ],
         const SizedBox(height: CloserSpacing.xl),

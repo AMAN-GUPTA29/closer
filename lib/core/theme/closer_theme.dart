@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
+import 'appearance.dart';
+
 import 'closer_colors.dart';
 import 'closer_tokens.dart';
 import 'closer_typography.dart';
@@ -58,8 +60,61 @@ abstract final class CloserTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         titleTextStyle: text.titleLarge,
+        systemOverlayStyle: systemBarsFor(brightness, c.background),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (s) =>
+                s.contains(WidgetState.selected) ? c.surface : c.surfaceMuted,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected)
+                ? c.textPrimary
+                : c.textSecondary,
+          ),
+          side: WidgetStatePropertyAll(BorderSide(color: c.surfaceMuted)),
+          textStyle: WidgetStatePropertyAll(text.titleSmall),
+          minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (s) =>
+              s.contains(WidgetState.selected) ? c.onPrimary : c.textTertiary,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? c.primary : c.surfaceMuted,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? Colors.transparent : c.line,
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        iconColor: c.textSecondary,
+        textColor: c.textPrimary,
+      ),
+      cardTheme: CardThemeData(
+        color: c.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: CloserRadii.lgAll,
+          side: BorderSide(color: c.line),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: c.surface,
+        surfaceTintColor: Colors.transparent,
+        textStyle: text.bodyLarge,
+      ),
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: c.surface,
+        surfaceTintColor: Colors.transparent,
+        headerBackgroundColor: c.accentSoft,
+        headerForegroundColor: c.textPrimary,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -70,12 +125,12 @@ abstract final class CloserTheme {
         ),
         hintStyle: text.bodyLarge?.copyWith(color: c.textTertiary),
         labelStyle: text.bodyMedium,
-        floatingLabelStyle: text.bodyMedium?.copyWith(color: c.accentStrong),
+        floatingLabelStyle: text.bodyMedium?.copyWith(color: c.textPrimary),
         prefixIconColor: c.textTertiary,
         suffixIconColor: c.textTertiary,
         border: border(c.line),
         enabledBorder: border(c.line),
-        focusedBorder: border(c.accent, 1.5),
+        focusedBorder: border(c.textPrimary, 1.5),
         errorBorder: border(c.danger),
         focusedErrorBorder: border(c.danger, 1.5),
         errorStyle: text.bodySmall?.copyWith(color: c.danger),
@@ -83,10 +138,31 @@ abstract final class CloserTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: c.accentStrong,
+          foregroundColor: c.textPrimary,
           textStyle: text.titleSmall,
           minimumSize: const Size(48, 48),
         ),
+      ),
+      // Selected chips: dark rose on blush, never white on pink (contrast).
+      chipTheme: ChipThemeData(
+        backgroundColor: c.background,
+        selectedColor: c.primary,
+        checkmarkColor: c.onPrimary,
+        labelStyle: text.labelLarge?.copyWith(
+          color: WidgetStateColor.resolveWith(
+            (s) =>
+                s.contains(WidgetState.selected) ? c.onPrimary : c.textPrimary,
+          ),
+          fontSize: 14,
+        ),
+        secondaryLabelStyle: text.labelLarge?.copyWith(color: c.onPrimary),
+        side: WidgetStateBorderSide.resolveWith(
+          (states) => BorderSide(
+            color: states.contains(WidgetState.selected) ? c.primary : c.line,
+          ),
+        ),
+        shape: const StadiumBorder(),
+        iconTheme: IconThemeData(color: c.textSecondary, size: 18),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: c.surface,
@@ -111,7 +187,7 @@ abstract final class CloserTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: c.textPrimary,
+        backgroundColor: c.primary,
         contentTextStyle: text.bodyMedium?.copyWith(color: c.background),
         shape: const RoundedRectangleBorder(borderRadius: CloserRadii.mdAll),
       ),
@@ -134,7 +210,7 @@ abstract final class CloserTheme {
       ),
       dividerTheme: DividerThemeData(color: c.line, thickness: 1, space: 1),
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: c.accentStrong,
+        color: c.primary,
         linearTrackColor: c.accentSoft,
       ),
       pageTransitionsTheme: const PageTransitionsTheme(

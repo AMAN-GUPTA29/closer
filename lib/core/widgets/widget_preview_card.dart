@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../models/group_type.dart';
-import '../theme/closer_icons.dart';
 import '../theme/closer_theme.dart';
 import 'closer_photo.dart';
 
@@ -18,6 +17,7 @@ class WidgetPreviewCard extends StatelessWidget {
     this.image,
     this.size = WidgetPreviewSize.small,
     this.placeholderVariant = 0,
+    this.cover,
   });
 
   final String groupName;
@@ -26,6 +26,9 @@ class WidgetPreviewCard extends StatelessWidget {
   final ImageProvider? image;
   final WidgetPreviewSize size;
   final int placeholderVariant;
+
+  /// The group's real cover (e.g. its newest photo); wins over [image].
+  final Widget? cover;
 
   @override
   Widget build(BuildContext context) {
@@ -39,31 +42,30 @@ class WidgetPreviewCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: c.surface,
-            borderRadius: CloserRadii.xlAll,
-            boxShadow: CloserElevation.medium,
+            borderRadius: CloserRadii.lgAll,
+            border: Border.all(color: c.line),
           ),
-          padding: const EdgeInsets.all(CloserSpacing.xs),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: ClipRRect(
-                  borderRadius: CloserRadii.lgAll,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: CloserPhoto(
-                      image: image,
-                      placeholderVariant: placeholderVariant,
-                    ),
-                  ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child:
+                      cover ??
+                      CloserPhoto(
+                        image: image,
+                        placeholderVariant: placeholderVariant,
+                      ),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
+                  CloserSpacing.sm,
                   CloserSpacing.xs,
+                  CloserSpacing.sm,
                   CloserSpacing.xs,
-                  CloserSpacing.xs,
-                  CloserSpacing.xxs,
                 ),
                 child: Row(
                   children: [
@@ -75,19 +77,22 @@ class WidgetPreviewCard extends StatelessWidget {
                             groupName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: context.text.titleSmall,
+                            style: context.text.bodyMedium?.copyWith(
+                              color: c.textPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                           Text(
                             subtitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: context.text.labelSmall,
+                            style: context.text.bodySmall?.copyWith(
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    if (groupType == GroupType.couple)
-                      Icon(CloserIcons.heart, size: 16, color: c.accent),
                   ],
                 ),
               ),

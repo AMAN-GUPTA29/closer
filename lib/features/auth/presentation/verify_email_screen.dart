@@ -92,35 +92,52 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final c = context.closerColors;
     return AuthScaffold(
       children: [
-        const SizedBox(height: CloserSpacing.xl),
-        Center(
+        const SizedBox(height: CloserSpacing.xxl),
+        Align(
+          alignment: Alignment.centerLeft,
           child: Container(
-            width: 88,
-            height: 88,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
               color: c.accentSoft,
               shape: BoxShape.circle,
             ),
-            child: Icon(CloserIcons.mailSent, color: c.accent, size: 40),
+            child: Icon(CloserIcons.mailSent, color: c.accent, size: 22),
           ),
         ),
-        const SizedBox(height: CloserSpacing.xl),
-        Text(
-          'Confirm your email',
-          textAlign: TextAlign.center,
-          style: context.text.headlineLarge,
+        const SizedBox(height: CloserSpacing.lg),
+        Semantics(
+          header: true,
+          child: Text('Confirm your email', style: context.text.displaySmall),
         ),
         const SizedBox(height: CloserSpacing.xs),
-        Text(
+        Text.rich(
           email == null
-              ? 'We sent you a confirmation link. Open it on this phone to '
-                    'finish creating your account.'
-              : 'We sent a confirmation link to $email. Open it on this '
-                    'phone to finish creating your account.',
-          textAlign: TextAlign.center,
-          style: context.text.bodyMedium,
+              ? const TextSpan(
+                  text:
+                      'We sent you a link. Open it on this phone to finish '
+                      'creating your account.',
+                )
+              : TextSpan(
+                  children: [
+                    const TextSpan(text: 'We sent a link to '),
+                    TextSpan(
+                      text: email,
+                      style: TextStyle(
+                        color: c.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const TextSpan(
+                      text:
+                          '. Open it on this phone to finish creating your '
+                          'account.',
+                    ),
+                  ],
+                ),
+          style: context.text.bodyMedium?.copyWith(fontSize: 14.5),
         ),
-        const SizedBox(height: CloserSpacing.xxl),
+        const SizedBox(height: CloserSpacing.xl),
         FormErrorText(_error),
         if (_message != null)
           Padding(
@@ -134,12 +151,12 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
               ),
             ),
           ),
-        CloserButton(label: 'I have confirmed', onPressed: _continue),
+        CloserButton(label: 'I’ve confirmed', onPressed: _continue),
         const SizedBox(height: CloserSpacing.sm),
         CloserButton.secondary(
           label: _secondsLeft > 0
               ? 'Resend in ${_secondsLeft}s'
-              : 'Resend confirmation email',
+              : 'Resend email',
           isLoading: _busy,
           onPressed: (email == null || _secondsLeft > 0) ? null : _resend,
         ),

@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/backend_errors.dart';
+import '../../../core/utils/validators.dart';
 import '../../groups/data/in_memory_groups_repository.dart';
 import '../../notifications/domain/notification_models.dart';
 import '../domain/journal_models.dart';
@@ -31,6 +32,14 @@ class InMemoryContentBackend implements ContentBackend {
   Uint8List? _avatar;
   String? _avatarPath;
   String? _nameOverride;
+
+  /// Preview/tests start with a username; set to null to test the gate.
+  late String? username = Validators.normalizeUsername(
+    groups.currentUserName.replaceAll(' ', '.'),
+  );
+
+  /// Usernames other (pretend) people already use.
+  final takenUsernames = <String>{'sam', 'taken.name'};
   int _seq = 0;
   bool accountDeleted = false;
 
@@ -254,7 +263,31 @@ class InMemoryContentBackend implements ContentBackend {
     id: groups.currentUserId,
     displayName: _nameOverride ?? groups.currentUserName,
     avatarPath: _avatarPath,
+    username: username,
+    createdAt: joinedAt,
   );
+
+  /// Account creation time shown by the welcome message.
+  DateTime joinedAt = DateTime.now().subtract(const Duration(days: 3));
+
+  @override
+  Future<String> setUsername(String value) async {
+    final v = Validators.normalizeUsername(value);
+    if (Validators.username(v) != null) {
+      _fail('invalid_username');
+    }
+    if (takenUsernames.contains(v)) {
+      _fail('username_taken');
+    }
+    username = v;
+    return v;
+  }
+
+  @override
+  Future<bool> usernameAvailable(String value) async {
+    final v = Validators.normalizeUsername(value);
+    return Validators.username(v) == null && !takenUsernames.contains(v);
+  }
 
   @override
   Future<void> updateDisplayName(String name) async {

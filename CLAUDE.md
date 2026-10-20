@@ -1,7 +1,7 @@
-# CLAUDE.md — Closer
+# CLAUDE.md — Keeploom
 
-Closer is a private photo-sharing and shared-journal app for couples, friends and families
-(Flutter + Supabase, native Android/iOS widgets). Tagline: *Your people. Your moments. Always close.*
+Keeploom (formerly Closer) is a private photo-sharing and shared-journal app for couples, friends and families
+(Flutter + Supabase, native Android/iOS widgets). Tagline: *Keep what brings you closer.*
 
 ## Working rules (apply to local, cloud and GitHub-Action sessions)
 
@@ -23,7 +23,10 @@ Closer is a private photo-sharing and shared-journal app for couples, friends an
   store keys, APNs/FCM credentials, signing keys live in GitHub Secrets / Supabase secrets only.
 - **Security.** Never trust the client for membership, roles, capacity, photo count or Premium.
   Enforce with RLS + trusted server code (Postgres functions / Edge Functions).
-- **Design.** The reference board is `Closer App UI Concept Board.png` (repo root; copy in `docs/design/`).
+- **Design.** References: `docs/design/Keeploom Brand Identity Board.png` and
+  `docs/design/Keeploom App Design Showcase.png` (light + dark). See `docs/design-system.md`.
+- **Identifiers.** The visible name is Keeploom; package/bundle id `com.closerapp.closer`, the URL
+  scheme, App Group and Dart package `closer` are unchanged on purpose (see docs/architecture.md).
   Use the tokens and components in `lib/core/theme` and `lib/core/widgets`; no default-looking screens.
 
 ## Commands

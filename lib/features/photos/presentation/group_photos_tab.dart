@@ -39,6 +39,10 @@ class GroupPhotosTab extends ConsumerWidget {
             ),
           );
         }
+        final free = group.isPremium
+            ? 0
+            : Group.basicPhotoLimit - data.photos.length;
+        final slots = data.photos.length + (free > 0 ? free : 0);
         return NotificationListener<ScrollNotification>(
           onNotification: (n) {
             if (n.metrics.extentAfter < 600) {
@@ -58,7 +62,10 @@ class GroupPhotosTab extends ConsumerWidget {
                 ),
                 sliver: SliverToBoxAdapter(
                   child: Text(
-                    photoHistoryLabel(group),
+                    group.isPremium
+                        ? photoHistoryLabel(group)
+                        : 'Basic keeps the latest ${Group.basicPhotoLimit} '
+                              'photos. ${data.photos.length} kept.',
                     style: context.text.bodySmall,
                   ),
                 ),
@@ -74,8 +81,21 @@ class GroupPhotosTab extends ConsumerWidget {
                     mainAxisSpacing: CloserSpacing.xs,
                     crossAxisSpacing: CloserSpacing.xs,
                   ),
-                  itemCount: data.photos.length,
+                  itemCount: slots,
                   itemBuilder: (context, i) {
+                    if (i >= data.photos.length) {
+                      // An empty Basic slot, so the limit is visible.
+                      return ExcludeSemantics(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: CloserRadii.mdAll,
+                            border: Border.all(
+                              color: context.closerColors.line,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
                     final p = data.photos[i];
                     return Semantics(
                       button: true,
@@ -119,6 +139,23 @@ class GroupPhotosTab extends ConsumerWidget {
                   },
                 ),
               ),
+              if (free > 0)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    CloserSpacing.gutter,
+                    CloserSpacing.sm,
+                    CloserSpacing.gutter,
+                    CloserSpacing.lg,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: Text(
+                      '$free more ${free == 1 ? 'photo fits' : 'photos fit'} '
+                      'before the oldest is replaced.',
+                      textAlign: TextAlign.center,
+                      style: context.text.bodySmall,
+                    ),
+                  ),
+                ),
               if (data.loadingMore)
                 const SliverToBoxAdapter(
                   child: Padding(

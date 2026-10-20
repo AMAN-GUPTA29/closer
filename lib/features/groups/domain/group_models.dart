@@ -74,7 +74,7 @@ class Group {
   /// Active photos in the group.
   final int photoCount;
 
-  /// Closer Memories (server-side entitlement, including grace period).
+  /// Keeploom Memories (server-side entitlement, including grace period).
   final bool isPremium;
 
   /// Thumbnail of the cover: the chosen cover photo, else the newest photo.

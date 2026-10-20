@@ -40,9 +40,9 @@ class LegalScreen extends ConsumerWidget {
     'Only share photos you have the right to share.',
     'Basic groups keep the latest 10 photos. Older photos are removed '
         'permanently when new ones are added.',
-    'Closer Memories is a one-time upgrade for a single group that keeps '
+    'Keeploom Memories is a one-time upgrade for a single group that keeps '
         'every photo for all of its members.',
-    'Do not use Closer to harass others or share illegal content.',
+    'Do not use Keeploom to harass others or share illegal content.',
   ];
 
   @override
@@ -67,32 +67,16 @@ class LegalScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(CloserSpacing.gutter),
           children: [
-            Text('In short', style: context.text.headlineSmall),
+            Semantics(
+              header: true,
+              child: Text('In short', style: context.text.headlineMedium),
+            ),
+            const SizedBox(height: CloserSpacing.sm),
+            for (final p in points) DotPoint(p),
             const SizedBox(height: CloserSpacing.md),
-            for (final p in points)
-              Padding(
-                padding: const EdgeInsets.only(bottom: CloserSpacing.sm),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Icon(
-                        CloserIcons.heart,
-                        size: 14,
-                        color: context.closerColors.accent,
-                      ),
-                    ),
-                    const SizedBox(width: CloserSpacing.sm),
-                    Expanded(child: Text(p, style: context.text.bodyLarge)),
-                  ],
-                ),
-              ),
-            const SizedBox(height: CloserSpacing.lg),
             if (url != null)
               CloserButton.secondary(
                 label: 'Read the full ${doc.title.toLowerCase()}',
-                icon: const Icon(CloserIcons.link),
                 onPressed: () => launchUrl(
                   Uri.parse(url),
                   mode: LaunchMode.externalApplication,
@@ -102,7 +86,7 @@ class LegalScreen extends ConsumerWidget {
               const NoticeCard(
                 message:
                     'This is a draft summary. The full document will be '
-                    'published before Closer is released.',
+                    'published before Keeploom is released.',
               ),
           ],
         ),

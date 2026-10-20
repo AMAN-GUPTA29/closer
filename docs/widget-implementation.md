@@ -65,5 +65,5 @@ iOS App Group container `widgets/<id>.jpg`). They contain no captions.
 ## Background refresh
 
 When Firebase is configured, `closerBackgroundMessage` (data push `photo_added`) refreshes that
-group's widget while the app is in the background. Unverified until FCM is set up (ISSUES C10).
+group's widget while the app is in the background. In that isolate MainActivity's channel doesn't exist, so the refresh falls back to home_widget's update broadcast. **Verified 2026-10-17** on a OnePlus phone: with Closer closed, the widget switched to a newly shared photo about 30 s later (`docs/screenshots/phase5/phone-widget-auto-update.png`).
 The OS decides how often iOS widgets actually reload, so no exact interval is promised.

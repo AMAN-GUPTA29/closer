@@ -11,7 +11,7 @@
         android:id="@+id/item_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#2B1A2E"
+        android:textColor="@color/kl_text"
         android:textSize="16sp"
         android:textStyle="bold" />
 
@@ -19,6 +19,6 @@
         android:id="@+id/item_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#8E7D8C"
+        android:textColor="@color/kl_text_secondary"
         android:textSize="13sp" />
 </LinearLayout>

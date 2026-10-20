@@ -129,7 +129,7 @@ void main() {
 
     test('extracts secrets from pasted messages', () {
       const message =
-          'Join "Us" on Closer.\nInvite code: ABCD-EF23\n'
+          'Join "Us" on Keeploom.\nInvite code: ABCD-EF23\n'
           'Or open: com.closerapp.closer://invite?t=Zx9_-token';
       expect(InviteCodes.extractSecret(message), 'Zx9_-token');
       expect(InviteCodes.extractSecret('abcd-ef23'), 'ABCDEF23');

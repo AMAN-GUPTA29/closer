@@ -72,7 +72,7 @@ class PreviewSession extends AuthStatus {
 
   static const user = AuthUser(
     id: 'preview',
-    email: 'preview@closer.local',
+    email: 'preview@keeploom.local',
     emailConfirmed: true,
     displayName: 'Preview',
   );
