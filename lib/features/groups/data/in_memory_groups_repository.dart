@@ -43,7 +43,14 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
   bool failNextPut = false;
 
   /// Test/preview helper: marks a group as Keeploom Memories.
-  void grantPremium(String groupId) => _premium.add(groupId);
+  /// Grants a yearly pass ending at [until] (default: a year from now).
+  void grantPremium(String groupId, {DateTime? until}) {
+    _premium.add(groupId);
+    _premiumUntil[groupId] =
+        until ?? DateTime.now().add(const Duration(days: 365));
+  }
+
+  final _premiumUntil = <String, DateTime>{};
 
   /// Object paths currently stored (for tests).
   Set<String> get storedObjects => _objects.keys.toSet();
@@ -140,6 +147,7 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
       myRole: me?.role ?? MemberRole.member,
       photoCount: _active(id).length,
       isPremium: _premium.contains(id),
+      premiumExpiresAt: _premiumUntil[id],
       latestThumbPath:
           (g.coverPhotoId != null && _photos[g.coverPhotoId]?.status == 'active'
               ? _photos[g.coverPhotoId]!.thumbPath

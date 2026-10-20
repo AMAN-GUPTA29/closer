@@ -176,7 +176,11 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
                       type: g.type,
                       memberCount: g.memberCount,
                       isPremium: true,
-                      activity: '${g.photoCount} photos kept',
+                      activity: g.premiumExpiresAt == null
+                          ? '${g.photoCount} photos kept'
+                          : g.premiumLapsed
+                          ? 'Ended ${formatMediumDate(g.premiumExpiresAt!)} · renew'
+                          : 'Until ${formatMediumDate(g.premiumExpiresAt!)}',
                       coverWidget: GroupCover(group: g),
                       onTap: () => context.push(Routes.group(g.id)),
                     ),

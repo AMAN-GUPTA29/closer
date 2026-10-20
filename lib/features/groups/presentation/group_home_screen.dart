@@ -328,6 +328,11 @@ class _DetailsTab extends StatelessWidget {
             ? 'Every photo'
             : '${group.photoCount} of ${Group.basicPhotoLimit} (Basic)',
       ),
+      if (group.isPremium && group.premiumExpiresAt != null)
+        (
+          group.premiumLapsed ? 'Memories ended' : 'Memories until',
+          formatMediumDate(group.premiumExpiresAt!),
+        ),
     ];
     Widget link(IconData icon, String label, String route) => ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: CloserSpacing.md),
@@ -381,7 +386,7 @@ class _DetailsTab extends StatelessWidget {
             link(CloserIcons.user, 'Members', Routes.members(group.id)),
           ],
         ),
-        if (!group.isPremium) ...[
+        if (!group.isPremium || group.premiumEndsSoon) ...[
           const SizedBox(height: CloserSpacing.md),
           Container(
             padding: const EdgeInsets.all(CloserSpacing.md),
@@ -401,7 +406,14 @@ class _DetailsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  group.type == GroupType.couple
+                  group.premiumLapsed
+                      ? 'Renew by ${formatDayMonth(group.premiumGraceEnds!)} '
+                            'to keep every photo.'
+                      : group.premiumEndsSoon
+                      ? 'Your pass ends on '
+                            '${formatDayMonth(group.premiumExpiresAt!)}. '
+                            'Renew to keep every photo.'
+                      : group.type == GroupType.couple
                       ? 'Keep every photo from ${group.name}, for both of you.'
                       : 'Keep every photo from ${group.name}, for everyone in it.',
                   style: context.text.headlineSmall?.copyWith(
@@ -411,7 +423,9 @@ class _DetailsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: CloserSpacing.sm),
                 CloserButton(
-                  label: 'See Keeploom Memories',
+                  label: group.isPremium
+                      ? 'Renew Keeploom Memories'
+                      : 'See Keeploom Memories',
                   onPressed: () => context.push(Routes.upgrade(group.id)),
                 ),
               ],
