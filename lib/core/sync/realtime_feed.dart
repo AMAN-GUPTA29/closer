@@ -5,10 +5,13 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 /// A change the app should react to while it's open. Ids only: the app
 /// refetches content through the normal (RLS-protected) queries.
 class RealtimeChange {
-  const RealtimeChange(this.table, {this.groupId});
+  const RealtimeChange(this.table, {this.groupId, this.rowId});
 
   final String table;
   final String? groupId;
+
+  /// Primary key of the changed row when it is numeric (notifications).
+  final int? rowId;
 }
 
 abstract interface class RealtimeFeed {
@@ -40,7 +43,14 @@ class SupabaseRealtimeFeed implements RealtimeFeed {
     final out = _out = StreamController<RealtimeChange>.broadcast();
     void emit(String table, sb.PostgresChangePayload p) {
       final row = p.newRecord.isNotEmpty ? p.newRecord : p.oldRecord;
-      out.add(RealtimeChange(table, groupId: row['group_id'] as String?));
+      final id = row['id'];
+      out.add(
+        RealtimeChange(
+          table,
+          groupId: row['group_id'] as String?,
+          rowId: id is num ? id.toInt() : null,
+        ),
+      );
     }
 
     _channel = _db

@@ -125,8 +125,9 @@ Checked:
   (≤ 200 character) error messages. They never log tokens, request bodies, emails or names.
 
 Accepted risks / follow-ups (also in ISSUES):
-- Any signed-in user can trigger `dispatch-push` / `cleanup-storage`. These only drain queues;
-  leasing makes repeat calls harmless.
+- ~~Any signed-in user can trigger `dispatch-push`~~ Fixed 2026-10-15: `dispatch-push` only
+  accepts the Vault cron secret. `cleanup-storage` accepts the cron secret or a signed-in user;
+  it only drains the queue, and leasing makes repeat calls harmless.
 - Custom-scheme links (`com.closerapp.closer://`) could be registered by another app. Invite
   tokens are single-use, limited and revocable. Verified https App Links / Universal Links need a
   domain (D4).

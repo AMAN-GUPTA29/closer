@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_name">Closer</string>
+    <string name="widget_name">Keeploom</string>
     <string name="widget_description">The latest photo from one of your groups</string>
-    <string name="widget_sign_in">Sign in to Closer to see your groups</string>
+    <string name="widget_sign_in">Sign in to Keeploom to see your groups</string>
     <string name="widget_choose_group">Tap to choose a group</string>
     <string name="widget_group_unavailable">This group is no longer available. Tap to choose another.</string>
     <string name="widget_configure_title">Choose a group</string>
     <string name="widget_configure_subtitle">Each widget shows one group. Add more widgets for other groups.</string>
-    <string name="widget_configure_empty">Open Closer and create or join a group first.</string>
+    <string name="widget_configure_empty">Open Keeploom and create or join a group first.</string>
     <string name="group_type_couple">Couple</string>
     <string name="group_type_family">Family</string>
     <string name="group_type_friends">Friends</string>

@@ -8,6 +8,11 @@ import 'app_failure.dart';
 /// Friendly text for each `closer:<key>` raised by the database.
 String backendMessage(String key) => switch (key) {
   'group_full' => 'This couple group already has two people.',
+  'username_taken' => 'That username is taken. Try another one.',
+  'invalid_username' =>
+    'Usernames use 3–20 letters, numbers, dots or underscores.',
+  'already_in_couple' =>
+    'You’re already in a couple group. Leave it first to start a new one.',
   'not_a_member' => 'You are not a member of this group anymore.',
   'not_allowed' => 'Only the group owner can do that.',
   'not_authenticated' => 'Please sign in again.',
@@ -21,7 +26,7 @@ String backendMessage(String key) => switch (key) {
   'upload_incomplete' => 'The photo didn’t finish uploading. Please try again.',
   'upload_expired' => 'This upload expired. Please share the photo again.',
   'photo_not_found' => 'That photo is no longer available.',
-  'premium_required' => 'Pinning photos is part of Closer Memories.',
+  'premium_required' => 'Pinning photos is part of Keeploom Memories.',
   'taken_in_future' => 'The photo date can’t be in the future.',
   'invalid_cover_photo' => 'Choose a photo from this group.',
   'invalid_milestone' => 'This moment can’t be moved to another group.',

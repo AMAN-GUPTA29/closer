@@ -16,7 +16,7 @@
 | Routing | GoRouter 18 | Declarative redirects, deep links, `StatefulShellRoute` |
 | Backend | Supabase (Auth, Postgres + RLS, private Storage, Realtime, Edge Functions) | Spec requirement; no extra backend |
 | Icons | Lucide (`lucide_icons_flutter`) + a few Material rounded fills | Maintained; Phosphor 2.1 no longer compiles on Flutter 3.47 (`IconData` is final) |
-| Fonts | Plus Jakarta Sans (UI) + Fraunces (display), bundled, OFL | No runtime font downloads |
+| Fonts | Plus Jakarta Sans (UI and display), bundled, OFL | No runtime font downloads |
 | Brand marks | Simple Icons SVGs via `flutter_svg` (CC0) | Google/Apple buttons |
 
 ## Folder structure
@@ -155,4 +155,6 @@ in the database / Edge Functions, never only in Flutter.
 | 2026-10-14 | Purchases via RevenueCat; app-initiated server verification (REST API) plus webhook safety net; purchases without a known group stay "unassigned" for the user to apply. |
 | 2026-10-14 | Phase 6: signed Android builds only from a protected GitHub environment; iOS signing + TestFlight on Codemagic; release builds fall back to the debug key only locally. |
 | 2026-10-14 | Phase 6: Android app data excluded from backups/device transfer (session tokens stay on the device). |
+| 2026-10-18 | Rebrand to **Keeploom**: visible name, logo, icons, splash, native labels and copy only. Package/bundle id `com.closerapp.closer`, URL scheme, App Group, Firebase/Supabase config, store product id and the Dart package name stay unchanged, so installed builds, sign-in redirects, push and widgets keep working. |
+| 2026-10-18 | Appearance: Light/Dark/System via Riverpod + shared_preferences, read before first frame. |
 | 2026-10-14 | Account deletion keeps photos/milestones a user shared with others (uploader becomes anonymous) rather than deleting other people's memories. |

@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF8F5"
+    android:background="@color/kl_background"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
     android:padding="20dp">
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="24dp"
         android:text="@string/widget_configure_title"
-        android:textColor="#2B1A2E"
+        android:textColor="@color/kl_text"
         android:textSize="22sp"
         android:textStyle="bold" />
 
@@ -22,7 +22,7 @@
         android:paddingTop="4dp"
         android:paddingBottom="16dp"
         android:text="@string/widget_configure_subtitle"
-        android:textColor="#5B4A5C"
+        android:textColor="@color/kl_text_secondary"
         android:textSize="14sp" />
 
     <ListView
@@ -38,7 +38,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="24dp"
         android:text="@string/widget_configure_empty"
-        android:textColor="#5B4A5C"
+        android:textColor="@color/kl_text_secondary"
         android:textSize="15sp"
         android:visibility="gone" />
 </LinearLayout>

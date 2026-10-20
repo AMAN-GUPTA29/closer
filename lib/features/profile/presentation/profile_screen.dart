@@ -11,29 +11,34 @@ import '../../../core/theme/closer_theme.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/auth_models.dart';
+import '../../groups/application/group_providers.dart';
 import '../../journal/application/content_providers.dart';
 import 'profile_widgets.dart';
+import 'theme_settings_tile.dart';
 
-class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({super.key});
-
-  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
-    final ok = await showConfirmationDialog(
-      context,
-      title: 'Sign out?',
-      message: 'You can sign back in any time. Your groups stay as they are.',
-      confirmLabel: 'Sign out',
-    );
-    if (!ok) return;
-    try {
-      await ref.read(authControllerProvider.notifier).signOut();
-    } on AppFailure catch (f) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(f.message)));
-      }
+Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+  final ok = await showConfirmationDialog(
+    context,
+    title: 'Sign out?',
+    message: 'You can sign back in any time. Your groups stay as they are.',
+    confirmLabel: 'Sign out',
+  );
+  if (!ok) return;
+  try {
+    await ref.read(authControllerProvider.notifier).signOut();
+  } on AppFailure catch (f) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(f.message)));
     }
   }
+}
+
+/// Profile, as on the Keeploom showcase: avatar, name and email, then the
+/// account and help sections. Appearance, sign-out and account deletion
+/// live behind the settings gear.
+class ProfileScreen extends ConsumerWidget {
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,26 +54,61 @@ class ProfileScreen extends ConsumerWidget {
     final displayName =
         profile?.displayName ?? user?.displayName ?? user?.friendlyName ?? '';
     final support = config.supportEmail;
+    final pushOn = ref.watch(notificationPreferencesProvider).value?.push;
+    final premium = (ref.watch(myGroupsProvider).value ?? const [])
+        .where((g) => g.isPremium)
+        .length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        titleSpacing: CloserSpacing.gutter,
+        toolbarHeight: 64,
+        title: Semantics(
+          header: true,
+          child: Text('Profile', style: context.text.headlineLarge),
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(CloserIcons.settings),
+            onPressed: () => context.push(Routes.settings),
+          ),
+          const SizedBox(width: CloserSpacing.xxs),
+        ],
+      ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: CloserSpacing.gutter,
-          vertical: CloserSpacing.md,
+        padding: EdgeInsets.fromLTRB(
+          CloserSpacing.gutter,
+          CloserSpacing.xs,
+          CloserSpacing.gutter,
+          CloserSpacing.xxxl * 2 + MediaQuery.paddingOf(context).bottom,
         ),
         children: [
-          Center(child: MyAvatar(fallbackName: displayName, size: 96)),
-          const SizedBox(height: CloserSpacing.md),
-          Text(
-            displayName,
-            textAlign: TextAlign.center,
-            style: context.text.headlineSmall,
-          ),
-          Text(
-            user?.email ?? '',
-            textAlign: TextAlign.center,
-            style: context.text.bodyMedium,
+          Row(
+            children: [
+              MyAvatar(fallbackName: displayName, size: 72, brand: true),
+              const SizedBox(width: CloserSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      style: context.text.titleLarge?.copyWith(fontSize: 20),
+                    ),
+                    if (profile?.username != null)
+                      Text(
+                        '@${profile!.username}',
+                        style: context.text.bodyMedium?.copyWith(
+                          color: c.textPrimary,
+                        ),
+                      ),
+                    Text(user?.email ?? '', style: context.text.bodyMedium),
+                  ],
+                ),
+              ),
+            ],
           ),
           if (status is PreviewSession) ...[
             const SizedBox(height: CloserSpacing.md),
@@ -79,8 +119,8 @@ class ProfileScreen extends ConsumerWidget {
                   'Nothing is saved.',
             ),
           ],
-          const SizedBox(height: CloserSpacing.xl),
-          _Section(
+          const _Label('Your space'),
+          SectionCard(
             children: [
               _Tile(
                 icon: CloserIcons.edit,
@@ -89,23 +129,29 @@ class ProfileScreen extends ConsumerWidget {
               ),
               _Tile(
                 icon: CloserIcons.notifications,
-                label: 'Notification preferences',
+                label: 'Notifications',
+                value: pushOn == null ? null : (pushOn ? 'On' : 'Off'),
                 onTap: () => context.push(Routes.notificationPreferences),
-              ),
-              _Tile(
-                icon: CloserIcons.crown,
-                label: 'Purchased groups',
-                onTap: () => context.push(Routes.purchases),
               ),
               _Tile(
                 icon: CloserIcons.widgets,
                 label: 'Home screen widgets',
                 onTap: () => context.push(Routes.widgetSetup),
               ),
+              _Tile(
+                icon: CloserIcons.crown,
+                label: 'Keeploom Memories',
+                value: premium == 0
+                    ? 'None yet'
+                    : '$premium ${premium == 1 ? 'group' : 'groups'}',
+                onTap: () => context.push(Routes.purchases),
+              ),
             ],
           ),
-          const SizedBox(height: CloserSpacing.md),
-          _Section(
+          const SizedBox(height: CloserSpacing.xl),
+          const ThemeSettingsTile(),
+          const _Label('Help'),
+          SectionCard(
             children: [
               _Tile(
                 icon: CloserIcons.help,
@@ -125,21 +171,42 @@ class ProfileScreen extends ConsumerWidget {
                 label: 'Terms of use',
                 onTap: () => context.push('${Routes.legal}/terms'),
               ),
-              if (kDebugMode)
-                _Tile(
-                  icon: CloserIcons.widgets,
-                  label: 'Component gallery (debug)',
-                  onTap: () => context.push(Routes.componentGallery),
-                ),
             ],
           ),
-          const SizedBox(height: CloserSpacing.md),
-          _Section(
+        ],
+      ),
+    );
+  }
+}
+
+/// Profile → ⚙: appearance and account actions.
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(authControllerProvider);
+    final c = context.closerColors;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+        leading: IconButton(
+          tooltip: 'Back',
+          icon: const Icon(CloserIcons.back),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(Routes.profile),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(CloserSpacing.gutter),
+        children: [
+          const ThemeSettingsTile(),
+          const _Label('Account'),
+          SectionCard(
             children: [
               _Tile(
                 icon: CloserIcons.signOut,
                 label: 'Sign out',
-                color: c.danger,
                 onTap: () => _signOut(context, ref),
               ),
               if (status is SignedIn)
@@ -151,38 +218,19 @@ class ProfileScreen extends ConsumerWidget {
                 ),
             ],
           ),
-          const SizedBox(height: CloserSpacing.xl),
-        ],
-      ),
-    );
-  }
-}
-
-class _Section extends StatelessWidget {
-  const _Section({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.closerColors;
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        borderRadius: CloserRadii.lgAll,
-        boxShadow: CloserElevation.low,
-      ),
-      child: Material(
-        color: c.surface,
-        borderRadius: CloserRadii.lgAll,
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          children: [
-            for (var i = 0; i < children.length; i++) ...[
-              if (i > 0) const Divider(indent: 56),
-              children[i],
-            ],
+          if (kDebugMode) ...[
+            const SizedBox(height: CloserSpacing.md),
+            SectionCard(
+              children: [
+                _Tile(
+                  icon: CloserIcons.widgets,
+                  label: 'Component gallery (debug)',
+                  onTap: () => context.push(Routes.componentGallery),
+                ),
+              ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -195,6 +243,7 @@ class _Tile extends StatelessWidget {
     this.onTap,
     this.color,
     this.trailing,
+    this.value,
   });
 
   final IconData icon;
@@ -204,29 +253,41 @@ class _Tile extends StatelessWidget {
 
   final String? trailing;
 
+  /// Current setting shown on the right, e.g. "On".
+  final String? value;
+
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
     final enabled = onTap != null;
-    final fg = color ?? (enabled ? c.textPrimary : c.textTertiary);
+    final fg = color ?? c.textPrimary;
     final tag = trailing;
     return ListTile(
       enabled: enabled,
       onTap: enabled ? onTap : null,
-      minTileHeight: 56,
-      leading: Icon(icon, color: fg, size: 22),
-      title: Text(label, style: context.text.bodyLarge?.copyWith(color: fg)),
-      trailing: tag != null
+      minTileHeight: 54,
+      horizontalTitleGap: 14,
+      leading: Icon(icon, color: fg, size: 19),
+      title: Text(
+        label,
+        style: context.text.bodyLarge?.copyWith(color: fg, fontSize: 15),
+      ),
+      trailing: value != null
+          ? Text(value!, style: context.text.bodyMedium)
+          : tag != null
           ? Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: CloserSpacing.xs,
-                vertical: 2,
+                horizontal: CloserSpacing.sm,
+                vertical: CloserSpacing.xxs,
               ),
               decoration: BoxDecoration(
-                color: c.surfaceMuted,
+                color: c.accentSoft,
                 borderRadius: CloserRadii.pillAll,
               ),
-              child: Text(tag, style: context.text.labelSmall),
+              child: Text(
+                tag,
+                style: context.text.labelMedium?.copyWith(color: c.textPrimary),
+              ),
             )
           : (enabled && color == null
                 ? Icon(
@@ -235,6 +296,34 @@ class _Tile extends StatelessWidget {
                     size: 18,
                   )
                 : null),
+    );
+  }
+}
+
+/// A small section label above a grouped list.
+class _Label extends StatelessWidget {
+  const _Label(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        4,
+        CloserSpacing.xl,
+        4,
+        CloserSpacing.xs,
+      ),
+      child: Semantics(
+        header: true,
+        child: Text(
+          text,
+          style: context.text.labelMedium?.copyWith(
+            color: context.closerColors.textSecondary,
+          ),
+        ),
+      ),
     );
   }
 }

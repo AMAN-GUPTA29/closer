@@ -11,6 +11,8 @@ class MemberAvatar extends StatelessWidget {
     this.image,
     this.size = 40,
     this.ringColor,
+    this.colors,
+    this.serif = false,
   });
 
   final String name;
@@ -20,6 +22,12 @@ class MemberAvatar extends StatelessWidget {
   /// Optional ring (e.g. white ring when overlapping in a stack).
   final Color? ringColor;
 
+  /// (background, initials) overriding the name-based tint.
+  final (Color, Color)? colors;
+
+  /// Initials in the display serif (large profile avatars).
+  final bool serif;
+
   static const _tints = [
     Color(0xFFF36B7F),
     Color(0xFF8C6BC8),
@@ -28,6 +36,32 @@ class MemberAvatar extends StatelessWidget {
     Color(0xFFF5A04A),
     Color(0xFFC94F8A),
   ];
+
+  /// Pale identity tints (light / dark), one per person.
+  static const _pastels = [
+    Color(0xFFF8DCE3),
+    Color(0xFFDDEBDD),
+    Color(0xFFDCE5F2),
+    Color(0xFFEFE2F5),
+    Color(0xFFF5E7D3),
+    Color(0xFFD8EEEC),
+  ];
+  static const _nightPastels = [
+    Color(0xFF4A2A33),
+    Color(0xFF283A2C),
+    Color(0xFF26324A),
+    Color(0xFF3A2B44),
+    Color(0xFF45372A),
+    Color(0xFF1F3B39),
+  ];
+
+  static int _slot(String name) {
+    var hash = 0;
+    for (final unit in name.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+    return hash % _pastels.length;
+  }
 
   static String initialsOf(String name) {
     final parts = name
@@ -52,17 +86,28 @@ class MemberAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ring = ringColor;
-    final tint = tintFor(name);
+    final c = context.closerColors;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final slot = _slot(name);
+    final bg = colors?.$1 ?? (dark ? _nightPastels[slot] : _pastels[slot]);
+    final fg = colors?.$2 ?? c.textPrimary;
     Widget avatar = CircleAvatar(
       radius: size / 2,
-      backgroundColor: tint.withValues(alpha: 0.18),
+      backgroundColor: bg,
       foregroundImage: image,
       child: Text(
         initialsOf(name),
-        style: context.text.titleSmall?.copyWith(
-          color: tint,
-          fontSize: size * 0.36,
-        ),
+        style: serif
+            ? context.text.headlineMedium?.copyWith(
+                color: fg,
+                fontSize: size * 0.36,
+                height: 1,
+              )
+            : context.text.titleSmall?.copyWith(
+                color: fg,
+                fontSize: size * 0.39,
+                fontWeight: FontWeight.w600,
+              ),
       ),
     );
     if (ring != null) {
@@ -83,7 +128,8 @@ class AvatarStack extends StatelessWidget {
     required this.names,
     this.images = const {},
     this.size = 36,
-    this.max = 4,
+    this.max = 6,
+    this.showOverflow = true,
   });
 
   final List<String> names;
@@ -91,12 +137,18 @@ class AvatarStack extends StatelessWidget {
   final double size;
   final int max;
 
+  /// Shows a "+N" bubble after [max] faces; off where a count sits next
+  /// to the stack anyway.
+  final bool showOverflow;
+
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
     final shown = names.take(max).toList();
-    final extra = names.length - shown.length;
-    final step = size * 0.68;
+    final extra = showOverflow ? names.length - shown.length : 0;
+    // Photos can overlap tightly; initials need room to stay readable.
+    final allPhotos = shown.every((n) => images[n] != null);
+    final step = size * (!allPhotos ? 0.8 : (shown.length > 3 ? 0.58 : 0.68));
     final count = shown.length + (extra > 0 ? 1 : 0);
     return Semantics(
       label: '${names.length} members',

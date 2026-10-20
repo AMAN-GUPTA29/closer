@@ -142,7 +142,7 @@ Future<void> openPhotoViewer(
 
 /// "7 of 10 photos" / "Keeps every photo" line for a group.
 String photoHistoryLabel(Group group) => group.isPremium
-    ? 'Closer Memories · keeps every photo'
+    ? 'Keeploom Memories · keeps every photo'
     : 'Basic · ${group.photoCount} of ${Group.basicPhotoLimit} photos kept';
 
 /// Small retention notice shown before sharing into a full Basic group.
@@ -159,7 +159,7 @@ class RetentionNotice extends StatelessWidget {
       message:
           '${group.name} keeps its latest ${Group.basicPhotoLimit} photos. '
           'Sharing this one permanently deletes the oldest photo for '
-          'everyone. Upgrade to Closer Memories to keep them all.',
+          'everyone. Upgrade to Keeploom Memories to keep them all.',
     );
   }
 }

@@ -2,10 +2,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
 import 'core/config/app_config.dart';
+import 'core/theme/appearance.dart';
 import 'features/auth/application/auth_providers.dart';
 import 'features/notifications/push/push_service.dart';
 import 'features/widgets/background_refresh.dart';
@@ -20,6 +22,8 @@ Future<void> main() async {
     ),
   );
   final config = AppConfig.fromEnvironment();
+  // Read before the first frame so the chosen theme never flashes.
+  final prefs = await SharedPreferences.getInstance();
 
   if (config.isSupabaseConfigured) {
     await Supabase.initialize(
@@ -41,7 +45,10 @@ Future<void> main() async {
     ProviderScope(
       // Screens show explicit retry buttons; never retry silently.
       retry: (_, _) => null,
-      overrides: [appConfigProvider.overrideWithValue(config)],
+      overrides: [
+        appConfigProvider.overrideWithValue(config),
+        appearanceStoreProvider.overrideWithValue(PrefsAppearanceStore(prefs)),
+      ],
       child: const CloserApp(),
     ),
   );

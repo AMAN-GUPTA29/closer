@@ -133,7 +133,7 @@ class RevenueCatGateway implements StoreGateway {
   Future<void> restore() => rc.Purchases.restorePurchases();
 }
 
-/// Buys Closer Memories through RevenueCat and asks our server to verify the
+/// Buys Keeploom Memories through RevenueCat and asks our server to verify the
 /// transaction and unlock the group. The app never unlocks anything itself.
 class RevenueCatPurchaseService implements PurchaseService {
   RevenueCatPurchaseService({

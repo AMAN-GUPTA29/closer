@@ -5,8 +5,9 @@ import '../theme/closer_icons.dart';
 import '../theme/closer_theme.dart';
 import 'closer_photo.dart';
 
-/// A row card for the Home group list: cover photo, name, type and member
-/// count, and a latest-activity line.
+/// A row card for the Home group list, as on the Keeploom board: a large
+/// rounded cover, the group name with a chevron, member faces with a count,
+/// and a latest-activity line.
 class GroupCard extends StatelessWidget {
   const GroupCard({
     super.key,
@@ -16,9 +17,12 @@ class GroupCard extends StatelessWidget {
     required this.onTap,
     this.cover,
     this.coverWidget,
+    this.members,
     this.activity,
     this.isPremium = false,
     this.placeholderVariant = 0,
+    this.showCount = true,
+    this.badge,
   });
 
   final String name;
@@ -30,137 +34,134 @@ class GroupCard extends StatelessWidget {
   /// Custom cover (e.g. a lazily resolved private photo); wins over [cover].
   final Widget? coverWidget;
 
-  /// e.g. "182 days together", "3 new memories", "New photo 2h ago".
+  /// Overlapping member faces (an [AvatarStack]), shown before the count.
+  final Widget? members;
+
+  /// e.g. "182 days together", "Active 2h ago".
   final String? activity;
   final bool isPremium;
   final int placeholderVariant;
 
+  /// Writes out "N members" when there are no faces to show it.
+  final bool showCount;
+
+  /// A short coral note in place of the chevron, e.g. "2 new".
+  final String? badge;
+
+  static const double coverSize = 64;
+
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final tint = type.tint(c);
-    final members = '$memberCount ${memberCount == 1 ? 'member' : 'members'}';
+    final membersLabel =
+        '$memberCount ${memberCount == 1 ? 'member' : 'members'}';
+    final meta = context.text.bodyMedium?.copyWith(fontSize: 13.5);
 
+    // A list row, not a card: cover, name, faces and one line of activity
+    // (Impeccable redesign). Rows sit on the page ground between rules.
     return Semantics(
       button: true,
       label:
-          '$name, ${type.label} group, $members'
+          '$name, ${type.label} group, $membersLabel'
           '${activity != null ? ', $activity' : ''}'
-          '${isPremium ? ', Closer Memories' : ''}',
+          '${isPremium ? ', Keeploom Memories' : ''}',
       excludeSemantics: true,
-      // The shadow sits behind the opaque Material; a shadow on a transparent
-      // box inside it would tint the whole card grey.
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          borderRadius: CloserRadii.lgAll,
-          boxShadow: CloserElevation.low,
-        ),
-        child: Material(
-          color: c.surface,
-          borderRadius: CloserRadii.lgAll,
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(CloserSpacing.xs),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 96,
-                    height: 80,
-                    child: Stack(
-                      fit: StackFit.expand,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: CloserRadii.mdAll,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: CloserSpacing.sm),
+          child: Row(
+            children: [
+              SizedBox.square(
+                dimension: coverSize,
+                child: ClipRRect(
+                  borderRadius: CloserRadii.mdAll,
+                  child:
+                      coverWidget ??
+                      CloserPhoto(
+                        image: cover,
+                        placeholderVariant: placeholderVariant,
+                      ),
+                ),
+              ),
+              const SizedBox(width: CloserSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        ClipRRect(
-                          borderRadius: CloserRadii.mdAll,
-                          child:
-                              coverWidget ??
-                              CloserPhoto(
-                                image: cover,
-                                placeholderVariant: placeholderVariant,
-                              ),
-                        ),
-                        if (type == GroupType.couple)
-                          Positioned(
-                            right: 6,
-                            bottom: 6,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: c.surface,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                CloserIcons.heart,
-                                size: 14,
-                                color: c.accent,
-                              ),
-                            ),
+                        Flexible(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.text.titleMedium,
                           ),
+                        ),
+                        if (type == GroupType.couple) ...[
+                          const SizedBox(width: 6),
+                          Icon(
+                            CloserIcons.heart,
+                            size: 15,
+                            color: c.textPrimary,
+                          ),
+                        ],
+                        if (isPremium) ...[
+                          const SizedBox(width: CloserSpacing.xxs),
+                          Icon(CloserIcons.crown, size: 15, color: c.premium),
+                        ],
                       ],
                     ),
-                  ),
-                  const SizedBox(width: CloserSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: 4),
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.text.titleMedium,
-                              ),
+                        if (members != null) ...[
+                          members!,
+                          const SizedBox(width: CloserSpacing.xs),
+                        ],
+                        // Faces already show who is here; the count is
+                        // only written out when there are no faces yet.
+                        if (members == null && showCount)
+                          Flexible(
+                            child: Text(
+                              membersLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: meta,
                             ),
-                            if (isPremium) ...[
-                              const SizedBox(width: CloserSpacing.xxs),
-                              Icon(
-                                CloserIcons.crown,
-                                size: 16,
-                                color: c.premium,
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${type.label} · $members',
-                          style: context.text.bodySmall,
-                        ),
+                          ),
                         if (activity != null) ...[
-                          const SizedBox(height: CloserSpacing.xs),
-                          Row(
-                            children: [
-                              Icon(type.icon, size: 14, color: tint),
-                              const SizedBox(width: CloserSpacing.xxs),
-                              Flexible(
-                                child: Text(
-                                  activity!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: context.text.labelSmall?.copyWith(
-                                    color: c.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          if (members == null && showCount)
+                            Text(' · ', style: meta),
+                          Flexible(
+                            flex: 2,
+                            child: Text(
+                              activity!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: meta,
+                            ),
                           ),
                         ],
                       ],
                     ),
-                  ),
-                  Icon(
-                    CloserIcons.chevronRight,
-                    color: c.textTertiary,
-                    size: 18,
-                  ),
-                  const SizedBox(width: CloserSpacing.xs),
-                ],
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(width: CloserSpacing.xs),
+              if (badge != null)
+                Text(
+                  badge!,
+                  style: context.text.labelMedium?.copyWith(
+                    color: c.accentStrong,
+                    fontSize: 12,
+                  ),
+                )
+              else
+                Icon(CloserIcons.chevronRight, color: c.textPrimary, size: 20),
+            ],
           ),
         ),
       ),

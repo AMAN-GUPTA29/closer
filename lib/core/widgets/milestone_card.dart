@@ -23,18 +23,25 @@ class MilestoneCard extends StatefulWidget {
     this.cover,
     this.onTap,
     this.placeholderVariant = 0,
+    this.showChevron = false,
   });
 
   final String title;
   final String dateLabel;
   final String? highlight;
   final String? highlightCaption;
+
+  /// Not shown in the compact row; the detail sheet shows it.
   final String? description;
   final MilestoneTheme theme;
   final bool isPinned;
   final ImageProvider? cover;
   final VoidCallback? onTap;
   final int placeholderVariant;
+
+  /// A chevron on the right (lists that open details); otherwise a pin
+  /// marks pinned moments.
+  final bool showChevron;
 
   @override
   State<MilestoneCard> createState() => _MilestoneCardState();
@@ -72,19 +79,18 @@ class _MilestoneCardState extends State<MilestoneCard>
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final (bg, accent) = switch (widget.theme) {
-      MilestoneTheme.heart => (c.accentSoft, c.accentStrong),
-      MilestoneTheme.celebration => (
-        c.premium.withValues(alpha: 0.16),
-        const Color(0xFFD9822B),
-      ),
-      MilestoneTheme.neutral => (c.surfaceMuted, c.familyTint),
+    final accent = switch (widget.theme) {
+      MilestoneTheme.heart => c.accent,
+      MilestoneTheme.celebration => const Color(0xFFD9822B),
+      MilestoneTheme.neutral => c.textSecondary,
     };
-
     final scale = CurvedAnimation(
       parent: _intro,
       curve: CloserMotion.emphasized,
     );
+    final title = widget.highlight != null
+        ? '${widget.highlight} ${widget.highlightCaption ?? ''}'.trim()
+        : widget.title;
 
     return Semantics(
       button: widget.onTap != null,
@@ -94,69 +100,59 @@ class _MilestoneCardState extends State<MilestoneCard>
           '${widget.isPinned ? ', pinned' : ''}',
       excludeSemantics: true,
       child: Material(
-        color: bg,
-        borderRadius: CloserRadii.xlAll,
+        color: c.surfaceMuted,
+        borderRadius: CloserRadii.lgAll,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: widget.onTap,
           child: Padding(
-            padding: const EdgeInsets.all(CloserSpacing.xl),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   children: [
-                    const Spacer(),
-                    if (widget.isPinned)
-                      Icon(CloserIcons.pinFilled, color: accent, size: 18),
+                    ScaleTransition(
+                      scale: Tween(begin: 0.6, end: 1.0).animate(scale),
+                      child: Icon(_icon, color: accent, size: 20),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: context.text.headlineSmall?.copyWith(
+                              fontSize: 19,
+                              height: 1.25,
+                            ),
+                          ),
+                          Text(
+                            widget.isPinned
+                                ? '${widget.dateLabel} · pinned'
+                                : widget.dateLabel,
+                            style: context.text.bodySmall?.copyWith(
+                              fontSize: 13.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (widget.showChevron)
+                      Icon(
+                        CloserIcons.chevronRight,
+                        color: c.textPrimary,
+                        size: 18,
+                      )
+                    else if (widget.isPinned)
+                      Icon(CloserIcons.pin, color: c.textSecondary, size: 16),
                   ],
                 ),
-                ScaleTransition(
-                  scale: Tween(begin: 0.6, end: 1.0).animate(scale),
-                  child: Icon(_icon, color: accent, size: 36),
-                ),
-                const SizedBox(height: CloserSpacing.sm),
-                if (widget.highlight != null) ...[
-                  Text(
-                    widget.highlight!,
-                    style: context.text.displayLarge?.copyWith(color: accent),
-                  ),
-                  if (widget.highlightCaption != null)
-                    Text(
-                      widget.highlightCaption!,
-                      style: context.text.titleMedium?.copyWith(color: accent),
-                    ),
-                  const SizedBox(height: CloserSpacing.sm),
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.center,
-                    style: context.text.titleSmall,
-                  ),
-                ] else
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.center,
-                    style: context.text.displayMedium?.copyWith(
-                      fontSize: 30,
-                      color: c.textPrimary,
-                    ),
-                  ),
-                const SizedBox(height: CloserSpacing.xxs),
-                Text(
-                  widget.dateLabel,
-                  style: context.text.labelMedium?.copyWith(color: accent),
-                ),
-                if (widget.description != null) ...[
-                  const SizedBox(height: CloserSpacing.sm),
-                  Text(
-                    widget.description!,
-                    textAlign: TextAlign.center,
-                    style: context.text.bodyMedium,
-                  ),
-                ],
                 if (widget.cover != null) ...[
-                  const SizedBox(height: CloserSpacing.md),
+                  const SizedBox(height: CloserSpacing.sm),
                   ClipRRect(
-                    borderRadius: CloserRadii.lgAll,
+                    borderRadius: CloserRadii.mdAll,
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
                       child: CloserPhoto(

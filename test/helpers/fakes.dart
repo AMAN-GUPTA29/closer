@@ -87,13 +87,18 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Stream<AuthEvent> get events => _events.stream;
 
+  /// Username passed to the last sign-up.
+  String? lastUsername;
+
   @override
   Future<SignUpResult> signUp({
     required String email,
     required String password,
     required String displayName,
+    String? username,
   }) async {
     calls.add('signUp:$email');
+    lastUsername = username;
     await _maybeFail();
     if (!signUpNeedsConfirmation) {
       emit(
@@ -249,4 +254,12 @@ class FakeWidgetPlatform implements WidgetPlatform {
 
   @override
   Future<void> refresh({String? groupId}) async => refreshes.add(groupId);
+}
+
+/// Opens the group page's "Group options" menu and picks [item].
+Future<void> openGroupMenu(WidgetTester tester, String item) async {
+  await tester.tap(find.byTooltip('Group options'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(item).last);
+  await tester.pumpAndSettle();
 }

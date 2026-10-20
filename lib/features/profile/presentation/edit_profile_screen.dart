@@ -14,6 +14,7 @@ import '../../journal/application/content_providers.dart';
 import '../../notifications/domain/notification_models.dart';
 import '../../photos/application/photo_providers.dart';
 import 'profile_widgets.dart';
+import 'username_field.dart';
 
 class EditProfileScreen extends ConsumerWidget {
   const EditProfileScreen({super.key});
@@ -54,6 +55,9 @@ class _EditForm extends ConsumerStatefulWidget {
 class _EditFormState extends ConsumerState<_EditForm> {
   final _form = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.profile.displayName);
+  late final _username = TextEditingController(
+    text: widget.profile.username ?? '',
+  );
   bool _saving = false;
   bool _photoBusy = false;
   String? _error;
@@ -61,6 +65,7 @@ class _EditFormState extends ConsumerState<_EditForm> {
   @override
   void dispose() {
     _name.dispose();
+    _username.dispose();
     super.dispose();
   }
 
@@ -102,7 +107,12 @@ class _EditFormState extends ConsumerState<_EditForm> {
       _error = null;
     });
     try {
-      await ref.read(profileActionsProvider).rename(_name.text);
+      final actions = ref.read(profileActionsProvider);
+      final username = Validators.normalizeUsername(_username.text);
+      if (username != widget.profile.username) {
+        await actions.setUsername(username);
+      }
+      await actions.rename(_name.text);
       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Profile updated')));
@@ -119,52 +129,87 @@ class _EditFormState extends ConsumerState<_EditForm> {
     final hasPhoto = ref.watch(myProfileProvider).value?.avatarPath != null;
     return Form(
       key: _form,
-      child: ListView(
-        padding: const EdgeInsets.all(CloserSpacing.gutter),
+      child: Column(
         children: [
-          Center(
-            child: Stack(
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                CloserSpacing.gutter,
+                CloserSpacing.sm,
+                CloserSpacing.gutter,
+                CloserSpacing.lg,
+              ),
               children: [
-                MyAvatar(fallbackName: widget.profile.displayName, size: 104),
-                if (_photoBusy) const Positioned.fill(child: LoadingState()),
+                Center(
+                  child: Stack(
+                    children: [
+                      MyAvatar(
+                        fallbackName: widget.profile.displayName,
+                        size: 76,
+                        brand: true,
+                        serif: true,
+                      ),
+                      if (_photoBusy)
+                        const Positioned.fill(child: LoadingState()),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: CloserSpacing.xxs),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: _photoBusy ? null : _changePhoto,
+                      child: Text(hasPhoto ? 'Change photo' : 'Add a photo'),
+                    ),
+                    if (hasPhoto)
+                      TextButton(
+                        onPressed: _photoBusy ? null : _removePhoto,
+                        child: const Text('Remove photo'),
+                      ),
+                  ],
+                ),
+                Text(
+                  'Only people in your groups see your photo and name.',
+                  textAlign: TextAlign.center,
+                  style: context.text.bodySmall,
+                ),
+                const SizedBox(height: CloserSpacing.lg),
+                CloserTextField(
+                  controller: _name,
+                  hint: 'Display name',
+                  placeholder: 'Your name',
+                  validator: Validators.displayName,
+                  maxLength: Validators.maxDisplayNameLength,
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: CloserSpacing.md),
+                UsernameField(
+                  controller: _username,
+                  current: widget.profile.username,
+                ),
               ],
             ),
           ),
-          const SizedBox(height: CloserSpacing.sm),
-          Wrap(
-            alignment: WrapAlignment.center,
-            children: [
-              TextButton.icon(
-                onPressed: _photoBusy ? null : _changePhoto,
-                icon: const Icon(CloserIcons.camera, size: 18),
-                label: Text(hasPhoto ? 'Change photo' : 'Add a photo'),
-              ),
-              if (hasPhoto)
-                TextButton(
-                  onPressed: _photoBusy ? null : _removePhoto,
-                  child: const Text('Remove photo'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              CloserSpacing.gutter,
+              0,
+              CloserSpacing.gutter,
+              CloserSpacing.md,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FormErrorText(_error),
+                CloserButton(
+                  label: 'Save',
+                  isLoading: _saving,
+                  onPressed: _save,
                 ),
-            ],
+              ],
+            ),
           ),
-          Text(
-            'Your photo and name are visible only to people in your groups.',
-            textAlign: TextAlign.center,
-            style: context.text.bodySmall,
-          ),
-          const SizedBox(height: CloserSpacing.xl),
-          Text('Display name', style: context.text.titleMedium),
-          const SizedBox(height: CloserSpacing.sm),
-          CloserTextField(
-            controller: _name,
-            hint: 'Your name',
-            icon: CloserIcons.user,
-            validator: Validators.displayName,
-            maxLength: Validators.maxDisplayNameLength,
-            textCapitalization: TextCapitalization.words,
-          ),
-          const SizedBox(height: CloserSpacing.xl),
-          FormErrorText(_error),
-          CloserButton(label: 'Save', isLoading: _saving, onPressed: _save),
         ],
       ),
     );
