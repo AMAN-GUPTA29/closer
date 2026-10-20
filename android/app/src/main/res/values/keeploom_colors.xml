@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keeploom tokens for native surfaces (widget picker). Dark values live in
+     values-night/keeploom_colors.xml; keep both in sync with lib/core/theme. -->
+<resources>
+    <color name="kl_background">#FFF7F1</color>
+    <color name="kl_surface">#FFFFFF</color>
+    <color name="kl_text">#2E2A2A</color>
+    <color name="kl_text_secondary">#786B79</color>
+    <color name="kl_border">#F0E2E3</color>
+</resources>

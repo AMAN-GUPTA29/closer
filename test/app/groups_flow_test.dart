@@ -63,17 +63,17 @@ void main() {
     expect(find.byType(CreateGroupScreen), findsOneWidget);
 
     // Validation: type and name are required.
-    await tapButton(tester, 'Create Group');
+    await tapButton(tester, 'Create group');
     expect(find.text('Choose who this group is for.'), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel(RegExp('^Couple')));
     await tester.pumpAndSettle();
     expect(find.text('Together since (optional)'), findsOneWidget);
-    await tapButton(tester, 'Create Group');
+    await tapButton(tester, 'Create group');
     expect(find.text('Give your group a name.'), findsOneWidget);
 
     await tester.enterText(find.byType(TextFormField).first, 'My Love');
-    await tapButton(tester, 'Create Group');
+    await tapButton(tester, 'Create group');
 
     expect(find.byType(InviteScreen), findsOneWidget);
     expect(find.text('Invite to My Love'), findsOneWidget);
@@ -92,7 +92,7 @@ void main() {
     );
     expect(find.textContaining('••${created.codeHint}'), findsOneWidget);
     expect(find.text('Active'), findsOneWidget);
-    expect(find.text('Share Invite'), findsOneWidget);
+    expect(find.text('Share invite'), findsOneWidget);
 
     // Back to the group, then Home lists it.
     await tester.tap(find.byTooltip('Back'));
@@ -112,8 +112,7 @@ void main() {
     await pumpCloserApp(tester, repository: auth, groups: groups);
     await tester.tap(find.text('Crew'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Invite'));
-    await tester.pumpAndSettle();
+    await openGroupMenu(tester, 'Invite');
 
     await tapButton(tester, 'Cancel');
     expect(find.text('Cancel this invitation?'), findsOneWidget);
@@ -151,9 +150,8 @@ void main() {
     expect(find.byType(GroupHomeScreen), findsOneWidget);
     expect(find.text('182'), findsOneWidget);
     expect(find.text('days together'), findsOneWidget);
-    // Couple is now complete: Invite does nothing.
-    await tester.tap(find.text('Invite'));
-    await tester.pumpAndSettle();
+    // Couple is now complete: Invite is disabled and explains why.
+    await openGroupMenu(tester, 'Invite (this couple group is complete)');
     expect(find.byType(InviteScreen), findsNothing);
   });
 
@@ -261,8 +259,7 @@ void main() {
     await tester.tap(find.text('Crew'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Members'));
-    await tester.pumpAndSettle();
+    await openGroupMenu(tester, 'Members');
     expect(find.text('Alex Kim (you)'), findsOneWidget);
     expect(find.text('Owner'), findsOneWidget);
 
@@ -273,12 +270,11 @@ void main() {
     expect(find.text('Remove Bob Lee?'), findsOneWidget);
     await tapButton(tester, 'Remove');
     expect(find.text('Bob Lee'), findsNothing);
-    expect(find.text('2 members'), findsOneWidget);
+    expect(find.textContaining('· 2 people'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Group settings'));
-    await tester.pumpAndSettle();
+    await openGroupMenu(tester, 'Group settings');
     await tester.enterText(find.byType(TextFormField).first, 'Crew 2026');
     await tester.pumpAndSettle();
     await tapButton(tester, 'Save changes');
@@ -307,8 +303,7 @@ void main() {
     await pumpCloserApp(tester, repository: auth, groups: groups);
     await tester.tap(find.text('Family'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Group settings'));
-    await tester.pumpAndSettle();
+    await openGroupMenu(tester, 'Group settings');
     expect(
       find.text('Only the group owner can change these settings.'),
       findsOneWidget,

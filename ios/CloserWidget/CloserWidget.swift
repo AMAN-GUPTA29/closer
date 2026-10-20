@@ -1,4 +1,4 @@
-// Closer home-screen widget (iOS 17+, WidgetKit + App Intents).
+// Keeploom home-screen widget (iOS 17+, WidgetKit + App Intents).
 //
 // Each widget instance is configured with one group through "Edit Widget";
 // instances are independent. Data is written by the Flutter app (home_widget)
@@ -73,7 +73,7 @@ struct GroupQuery: EntityQuery {
 
 struct SelectGroupIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "Choose a group"
-    static var description = IntentDescription("Each widget shows one of your Closer groups.")
+    static var description = IntentDescription("Each widget shows one of your Keeploom groups.")
 
     @Parameter(title: "Group")
     var group: GroupEntity?
@@ -125,12 +125,12 @@ struct Provider: AppIntentTimelineProvider {
 struct CloserWidgetView: View {
     let entry: CloserEntry
 
-    private let coral = Color(red: 0.95, green: 0.42, blue: 0.50)
+    private let coral = Color(red: 0.96, green: 0.46, blue: 0.48) // Keeploom coral #F5767A
 
     var body: some View {
         switch entry.state {
         case .signedOut:
-            message("Sign in to Closer to see your groups")
+            message("Sign in to Keeploom to see your groups")
         case .unconfigured:
             message("Touch and hold, then Edit Widget to choose a group")
         case .unavailable:
@@ -188,7 +188,7 @@ struct CloserWidget: Widget {
         AppIntentConfiguration(kind: kind, intent: SelectGroupIntent.self, provider: Provider()) { entry in
             CloserWidgetView(entry: entry)
         }
-        .configurationDisplayName("Closer")
+        .configurationDisplayName("Keeploom")
         .description("The latest photo from one of your groups.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }

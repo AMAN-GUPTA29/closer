@@ -179,6 +179,15 @@ final myProfileProvider = FutureProvider.autoDispose<UserProfile>(
   (ref) => ref.watch(contentBackendProvider).myProfile(),
 );
 
+/// True when a signed-in, confirmed user still has to choose a username.
+/// False while the profile is loading or can't be read (never blocks offline).
+final needsUsernameProvider = Provider<bool>((ref) {
+  final status = ref.watch(authControllerProvider);
+  if (status is! SignedIn || !status.user.emailConfirmed) return false;
+  final profile = ref.watch(myProfileProvider).value;
+  return profile != null && profile.username == null;
+});
+
 final avatarImageProvider = FutureProvider.autoDispose
     .family<ImageProvider, String>(
       (ref, path) => ref.watch(contentBackendProvider).avatarImage(path),
@@ -198,6 +207,12 @@ class ProfileActions {
     _ref
       ..invalidate(myProfileProvider)
       ..invalidate(myGroupsProvider);
+  }
+
+  Future<String> setUsername(String username) async {
+    final v = await _backend.setUsername(username);
+    _ref.invalidate(myProfileProvider);
+    return v;
   }
 
   Future<void> setAvatar(Uint8List jpeg) async {

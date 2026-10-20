@@ -73,21 +73,22 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('couple counter and countdown on the Milestones tab', (
+  testWidgets('couple counter and countdown on the Moments tab', (
     tester,
   ) async {
     await pump(tester);
     await openGroup(tester, 'Us');
-    await tester.tap(find.text('Milestones'));
+    await tester.tap(find.text('Moments'));
     await tester.pumpAndSettle();
     expect(find.text('92'), findsWidgets);
-    expect(find.textContaining('100 days together in 8 days'), findsOneWidget);
+    expect(find.text('100 days together'), findsOneWidget);
+    expect(find.textContaining('in 8 days'), findsOneWidget);
   });
 
   testWidgets('create, pin, edit and delete a special moment', (tester) async {
     await pump(tester);
     await openGroup(tester, 'Us');
-    await tester.tap(find.text('Milestones'));
+    await tester.tap(find.text('Moments'));
     await tester.pumpAndSettle();
     await tapButton(tester, 'Create a special moment');
     expect(find.byType(SpecialMomentScreen), findsOneWidget);
@@ -102,7 +103,7 @@ void main() {
       find.byType(TextFormField).at(1),
       'Coffee that lasted all day',
     );
-    await tapButton(tester, 'Save Moment');
+    await tapButton(tester, 'Save moment');
     expect(find.text('Moment saved'), findsOneWidget);
 
     final saved = (await content.milestones(couple)).single;
@@ -121,7 +122,7 @@ void main() {
     await tester.pumpAndSettle();
     await tapButton(tester, 'Edit');
     await tester.enterText(find.byType(TextFormField).first, 'First date ever');
-    await tapButton(tester, 'Save Moment');
+    await tapButton(tester, 'Save moment');
     expect((await content.milestones(couple)).single.title, 'First date ever');
 
     // Delete with confirmation.
@@ -138,19 +139,24 @@ void main() {
   ) async {
     await pump(tester);
     await openGroup(tester, 'Us');
-    await tester.tap(find.text('Add'));
+    await tester.tap(find.byTooltip('Share a memory'));
     await tester.pumpAndSettle();
-    await tapButton(tester, 'Choose from gallery');
-    await tester.tap(find.text('Mark as special moment'));
+    await tester.tap(find.text('Add photo'));
     await tester.pumpAndSettle();
-    await tapButton(tester, 'Share Photo');
+    await tester.tap(find.text('Choose from gallery'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Make it a special moment'));
+    await tester.tap(find.text('Make it a special moment'));
+    await tester.pumpAndSettle();
+    expect(find.text('New special moment'), findsOneWidget);
+    await tapButton(tester, 'Share');
 
     expect(find.byType(SpecialMomentScreen), findsOneWidget);
     await tester.enterText(
       find.byType(TextFormField).first,
       'Sunset on the pier',
     );
-    await tapButton(tester, 'Save Moment');
+    await tapButton(tester, 'Save moment');
     final m = (await content.milestones(couple)).single;
     final photo = (await groups.photos(couple)).photos.single;
     expect(m.coverPhotoId, photo.id);
@@ -166,11 +172,15 @@ void main() {
     await seedPhotos(groups, couple, 1, caption: 'Beach');
     await seedPhotos(groups, friends, 1, caption: 'Hike');
     await pump(tester);
-    await tester.tap(find.text('Journal'));
+    await tester.tap(find.text('Journal').last);
     await tester.pumpAndSettle();
     expect(find.text('Beach 1'), findsOneWidget);
     expect(find.text('Hike 1'), findsOneWidget);
-    expect(find.text('Crew'), findsOneWidget, reason: 'cards name their group');
+    expect(
+      find.textContaining('· Crew', findRichText: true),
+      findsOneWidget,
+      reason: 'cards name their group',
+    );
   });
 
   testWidgets('notifications: badge, open, mark read, preferences', (
@@ -188,7 +198,7 @@ void main() {
     await pump(tester);
     expect(find.bySemanticsLabel('Notifications, 1 unread'), findsOneWidget);
 
-    await tester.tap(find.text('Notifications'));
+    await tester.tap(find.text('Alerts'));
     await tester.pumpAndSettle();
     expect(find.text('Emma shared a new photo in Us'), findsOneWidget);
     expect(find.text('Today'), findsOneWidget);
@@ -205,28 +215,88 @@ void main() {
     expect((await content.notificationPreferences()).photos, isFalse);
   });
 
+  testWidgets('phone notifications and reminders can be switched off', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Notifications'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('arrive in a later update'), findsNothing);
+    await tester.tap(find.text('Phone notifications'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reminders'));
+    await tester.pumpAndSettle();
+    final prefs = await content.notificationPreferences();
+    expect(prefs.push, isFalse);
+    expect(prefs.reminders, isFalse);
+    expect(prefs.toJson()['push'], isFalse, reason: 'saved to the server row');
+  });
+
   testWidgets('edit profile name', (tester) async {
     await pump(tester);
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Edit profile'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField), 'Alexandra');
+    await tester.enterText(find.byType(TextFormField).first, 'Alexandra');
     await tapButton(tester, 'Save');
     expect(find.text('Profile updated'), findsOneWidget);
     expect(find.text('Alexandra'), findsOneWidget);
+  });
+
+  testWidgets('edit username: taken names are refused, free ones saved', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('@alex.kim'), findsOneWidget);
+    await tester.tap(find.text('Edit profile'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).last, 'taken.name');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Taken: try another one'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).last, '@Alex_K');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Available'), findsOneWidget);
+    await tapButton(tester, 'Save');
+    expect(content.username, 'alex_k');
+  });
+
+  testWidgets('people without a username must choose one first', (
+    tester,
+  ) async {
+    content.username = null;
+    await pump(tester);
+    expect(find.text('Pick a username'), findsOneWidget);
+    expect(find.byType(HomeScreen), findsNothing);
+
+    await tester.enterText(find.byType(TextFormField), 'sam');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Taken: try another one'), findsOneWidget);
+    await tapButton(tester, 'Continue');
+    expect(find.byType(HomeScreen), findsNothing);
+
+    await tester.enterText(find.byType(TextFormField), 'alex.k');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    await tapButton(tester, 'Continue');
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(content.username, 'alex.k');
   });
 
   testWidgets('account deletion needs the typed confirmation', (tester) async {
     await pump(tester);
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('Delete account'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+    await tester.tap(find.byTooltip('Settings'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete account'));
     await tester.pumpAndSettle();
@@ -255,8 +325,7 @@ void main() {
     final ids = await seedPhotos(groups, couple, 2);
     await pump(tester);
     await openGroup(tester, 'Us');
-    await tester.tap(find.byTooltip('Group settings'));
-    await tester.pumpAndSettle();
+    await openGroupMenu(tester, 'Group settings');
     await tester.ensureVisible(find.bySemanticsLabel('Change cover photo'));
     await tester.tap(find.bySemanticsLabel('Change cover photo'));
     await tester.pumpAndSettle();

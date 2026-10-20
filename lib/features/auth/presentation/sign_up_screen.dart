@@ -8,6 +8,7 @@ import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../profile/presentation/username_field.dart';
 import '../application/auth_providers.dart';
 import 'auth_widgets.dart';
 
@@ -21,6 +22,7 @@ class SignUpScreen extends ConsumerStatefulWidget {
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _form = GlobalKey<FormState>();
   final _name = TextEditingController();
+  final _username = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _busy = false;
@@ -29,6 +31,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   void dispose() {
     _name.dispose();
+    _username.dispose();
     _email.dispose();
     _password.dispose();
     super.dispose();
@@ -45,6 +48,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             email: _email.text,
             password: _password.text,
             displayName: _name.text,
+            username: Validators.normalizeUsername(_username.text),
           );
       if (!mounted) return;
       if (result.needsEmailConfirmation) {
@@ -69,8 +73,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     return AuthScaffold(
       children: [
         const AuthHeader(
-          title: 'Welcome to Closer',
-          subtitle: 'Your people. Your moments. Always close.',
+          title: 'Welcome to Keeploom',
+          subtitle: KeeploomLogo.tagline,
         ),
         const BackendNotice(),
         SocialSignInButtons(onError: (f) => setState(() => _error = f.message)),
@@ -89,6 +93,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 autofillHints: const [AutofillHints.name],
                 maxLength: Validators.maxDisplayNameLength,
                 enabled: configured,
+              ),
+              const SizedBox(height: CloserSpacing.sm),
+              UsernameField(
+                controller: _username,
+                checkAvailability: false,
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: CloserSpacing.sm),
               CloserTextField(

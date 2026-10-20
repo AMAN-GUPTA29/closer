@@ -32,6 +32,10 @@ abstract interface class ContentBackend {
   Future<UserProfile> myProfile();
   Future<void> updateDisplayName(String name);
 
+  /// Saves a unique username; returns it normalised.
+  Future<String> setUsername(String username);
+  Future<bool> usernameAvailable(String username);
+
   /// Stores a JPEG avatar and points the profile at it.
   Future<void> setAvatar(Uint8List jpeg);
   Future<void> removeAvatar();
@@ -45,7 +49,7 @@ class UnconfiguredContentBackend implements ContentBackend {
   const UnconfiguredContentBackend();
 
   static const _f = NotConfiguredFailure(
-    'This needs the Closer backend, which is not configured in this build.',
+    'This needs the Keeploom backend, which is not configured in this build.',
   );
 
   @override
@@ -78,6 +82,10 @@ class UnconfiguredContentBackend implements ContentBackend {
   Future<UserProfile> myProfile() => Future.error(_f);
   @override
   Future<void> updateDisplayName(String name) => Future.error(_f);
+  @override
+  Future<String> setUsername(String username) => Future.error(_f);
+  @override
+  Future<bool> usernameAvailable(String username) => Future.error(_f);
   @override
   Future<void> setAvatar(Uint8List jpeg) => Future.error(_f);
   @override
@@ -231,6 +239,20 @@ class SupabaseContentBackend implements ContentBackend {
     final row = await _db.from('profiles').select().eq('id', _uid).single();
     return UserProfile.fromJson(row);
   });
+
+  @override
+  Future<String> setUsername(String username) => guardBackend(() async {
+    final v = await _db.rpc<String>(
+      'set_username',
+      params: {'p_username': username},
+    );
+    return v;
+  });
+
+  @override
+  Future<bool> usernameAvailable(String username) => guardBackend(
+    () => _db.rpc<bool>('username_available', params: {'p_username': username}),
+  );
 
   @override
   Future<void> updateDisplayName(String name) => guardBackend(() async {

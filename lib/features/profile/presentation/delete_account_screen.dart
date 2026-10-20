@@ -69,7 +69,6 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.closerColors;
     const points = [
       'Your profile, photo and notification settings are deleted.',
       'You leave all your groups. Where you were the owner, ownership passes '
@@ -77,7 +76,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       'Groups where you are the only member are deleted, with their photos.',
       'Photos you shared in groups with other people stay there for them, '
           'without your name.',
-      'Closer Memories purchases stay with their groups.',
+      'Keeploom Memories purchases stay with their groups.',
     ];
     return Scaffold(
       appBar: AppBar(
@@ -93,55 +92,56 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
         ),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(CloserSpacing.gutter),
+        child: Column(
           children: [
-            Icon(CloserIcons.warning, color: c.danger, size: 40),
-            const SizedBox(height: CloserSpacing.sm),
-            Text('What happens', style: context.text.headlineSmall),
-            const SizedBox(height: CloserSpacing.sm),
-            for (final p in points)
-              Padding(
-                padding: const EdgeInsets.only(bottom: CloserSpacing.xs),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 7),
-                      child: Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: c.textSecondary,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: CloserSpacing.sm),
-                    Expanded(child: Text(p, style: context.text.bodyMedium)),
-                  ],
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  CloserSpacing.gutter,
+                  CloserSpacing.xxs,
+                  CloserSpacing.gutter,
+                  CloserSpacing.lg,
                 ),
+                children: [
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      'What happens',
+                      style: context.text.headlineMedium,
+                    ),
+                  ),
+                  const SizedBox(height: CloserSpacing.sm),
+                  for (final p in points) DotPoint(p),
+                  const SizedBox(height: CloserSpacing.md),
+                  CloserTextField(
+                    controller: _confirm,
+                    hint: 'Type ${DeleteAccountScreen.phrase} to confirm',
+                    placeholder: DeleteAccountScreen.phrase,
+                    textCapitalization: TextCapitalization.characters,
+                    enabled: !_deleting,
+                  ),
+                ],
               ),
-            const SizedBox(height: CloserSpacing.xl),
-            Text(
-              'Type ${DeleteAccountScreen.phrase} to confirm',
-              style: context.text.titleMedium,
             ),
-            const SizedBox(height: CloserSpacing.sm),
-            CloserTextField(
-              controller: _confirm,
-              hint: DeleteAccountScreen.phrase,
-              textCapitalization: TextCapitalization.characters,
-              enabled: !_deleting,
-            ),
-            const SizedBox(height: CloserSpacing.lg),
-            FormErrorText(_error),
-            CloserButton(
-              label: 'Delete my account',
-              variant: CloserButtonVariant.danger,
-              icon: const Icon(CloserIcons.trash),
-              isLoading: _deleting,
-              onPressed: _confirmed ? _delete : null,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                CloserSpacing.gutter,
+                0,
+                CloserSpacing.gutter,
+                CloserSpacing.md,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FormErrorText(_error),
+                  CloserButton(
+                    label: 'Delete my account',
+                    variant: CloserButtonVariant.danger,
+                    isLoading: _deleting,
+                    onPressed: _confirmed ? _delete : null,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

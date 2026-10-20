@@ -196,13 +196,13 @@ class NoticeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(CloserSpacing.md),
       decoration: BoxDecoration(
-        color: c.accentSoft,
+        color: c.surfaceMuted,
         borderRadius: CloserRadii.mdAll,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: c.accentStrong, size: 22),
+          Icon(icon, color: c.textSecondary, size: 20),
           const SizedBox(width: CloserSpacing.sm),
           Expanded(
             child: Column(

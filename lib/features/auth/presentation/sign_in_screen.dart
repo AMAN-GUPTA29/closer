@@ -124,7 +124,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         ),
         const SizedBox(height: CloserSpacing.sm),
         AuthSwitchPrompt(
-          prompt: 'New to Closer?',
+          prompt: 'New to Keeploom?',
           action: 'Create an account',
           onTap: () => context.go(Routes.signUp),
         ),

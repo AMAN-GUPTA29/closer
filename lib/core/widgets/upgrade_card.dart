@@ -4,7 +4,7 @@ import '../theme/closer_icons.dart';
 import '../theme/closer_theme.dart';
 import 'closer_button.dart';
 
-/// Promotes Closer Memories (group-level Premium). When [unavailableReason]
+/// Promotes Keeploom Memories (group-level Premium). When [unavailableReason]
 /// is set the purchase button is disabled and the reason is shown, so the
 /// card never pretends a purchase is possible when billing is not set up.
 class UpgradeCard extends StatelessWidget {
@@ -31,14 +31,9 @@ class UpgradeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.closerColors;
     return Container(
-      padding: const EdgeInsets.all(CloserSpacing.xl),
+      padding: const EdgeInsets.all(CloserSpacing.lg),
       decoration: BoxDecoration(
-        borderRadius: CloserRadii.xlAll,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [c.accentSoft, c.surface],
-        ),
+        borderRadius: CloserRadii.lgAll,
         border: Border.all(color: c.line),
       ),
       child: Column(
@@ -46,12 +41,9 @@ class UpgradeCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(CloserIcons.crown, color: c.premium, size: 22),
+              Icon(CloserIcons.crown, color: c.accent, size: 18),
               const SizedBox(width: CloserSpacing.xs),
-              Text(
-                'Closer Memories',
-                style: context.text.labelLarge?.copyWith(color: c.accentStrong),
-              ),
+              Text('Keeploom Memories', style: context.text.titleSmall),
             ],
           ),
           const SizedBox(height: CloserSpacing.sm),

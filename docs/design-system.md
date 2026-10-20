@@ -1,80 +1,122 @@
-# Design system
+# Keeploom design system
 
-## Reference
+Keeploom (formerly Closer) is a private photo-sharing and shared-journal app.
+**Tagline:** *Keep what brings you closer.*
 
-- Original: `Closer App UI Concept Board.png` (repository root — preserved, never modified).
-- Copy: [`docs/design/closer-ui-concept-board.png`](design/closer-ui-concept-board.png) (byte-identical).
-- The board shows 14 screens: onboarding, sign up/login, home/groups, create group, invite
-  members, join group, group home, journal timeline, milestones, add a memory, special moment,
-  notifications, profile/settings and home-screen widgets for multiple groups.
-- It is a **reference**, not a screenshot to embed. All UI is built from real components.
+## References
 
-## Observations from the board
+- [`design/Keeploom Brand Identity Board.png`](design/Keeploom%20Brand%20Identity%20Board.png): logo, palette, tone.
+- [`design/Keeploom App Design Showcase.png`](design/Keeploom%20App%20Design%20Showcase.png): onboarding, Home,
+  Journal, share flow, notifications and profile in light **and** dark.
+- `Closer App UI Concept Board.png` (repo root): the original board, kept for history.
 
-- Warm ivory / blush backgrounds, white rounded cards, coral→rose pill buttons.
-- Deep plum headings, soft mauve secondary text, generous whitespace.
-- Photography-first: rounded photo cards, sunset/coastal imagery, heart accent on couple items.
-- Large display numerals for milestones ("100 days together", "182 days together").
-- Bottom navigation: Home, Journal, Add, Notifications, Profile.
+The boards are references, not assets: every screen uses real components and real user content.
+The only exception is the onboarding collage, which shows the owner's original sample photos
+(`docs/design/*Sunset*`, `*Romantic*`, `*Blooms*`; the multi-photo images are split into
+`assets/onboarding/*.jpg`, max 1200 px).
+
+## Brand
+
+- **Logo:** two rounded, slightly tilted shapes interlock (coral and plum). Where they overlap, an
+  ivory "seed" shows through: the moment that's kept. The geometry lives once, in
+  [`tool/keeploom_logo.py`](../tool/keeploom_logo.py), and is mirrored by
+  `KeeploomMarkPainter` (`lib/core/widgets/keeploom_logo.dart`).
+- **In app:** `KeeploomLogo(size:, showWordmark:, showTagline:)` draws the mark as vectors.
+- **Never** put the wordmark inside the launcher icon.
+
+### Generated assets
+
+```bash
+python tool/make_icons.py            # needs Pillow
+dart run flutter_launcher_icons      # Android (adaptive + monochrome) and iOS icons
+dart run flutter_native_splash:create
+```
+
+| Output | Use |
+|---|---|
+| `assets/brand/keeploom_mark.svg` / `.png` | standalone mark (transparent) |
+| `assets/icon/icon.png` | iOS and legacy Android icon (ivory tile) |
+| `assets/icon/foreground.png` + background `#FFF7F1` | Android adaptive icon |
+| `assets/icon/monochrome.png` | Android 13 themed icon |
+| `assets/icon/splash*.png` | launch screen (ivory light / `#0E0810` dark) |
+| `android/.../drawable/ic_stat_keeploom.xml` | white status-bar notification icon |
 
 ## Tokens (`lib/core/theme/`)
 
-### Colour (`closer_colors.dart`)
-| Role | Light | Dark |
-|---|---|---|
-| background | `#FFF8F5` ivory | `#1A1119` |
-| surface | `#FFFFFF` | `#261A25` |
-| surfaceMuted | `#FBEFEA` | `#33232F` |
-| textPrimary | `#2B1A2E` plum | `#F7ECEE` |
-| textSecondary | `#5B4A5C` | `#C9B8C4` |
-| textTertiary | `#8E7D8C` | `#9C8B98` |
-| accent / accentStrong | `#F36B7F` coral / `#E84F6D` rose | `#F67F91` / `#F36B7F` |
-| accentSoft | `#FDE8EC` blush | `#4A2733` |
-| line | `#EFE3E3` | `#433340` |
-| tints | couple coral · family `#8C6BC8` · friends `#5B8DEF` · premium gold `#F5B54A` |
-| gradients | `accentGradient` (coral→rose, buttons) · `heroScrim` (photo text legibility) |
+Widgets use **semantic roles** (`context.closerColors.<role>`), never raw hex. Internal class names
+keep the `Closer*` prefix (`CloserColors`, `CloserSpacing`, …) to avoid churn; only user-facing
+names changed.
 
-Use `context.closerColors.<role>`, never raw hex in widgets.
+### Colour (`closer_colors.dart`)
+
+| Role | Light | Dark | Notes |
+|---|---|---|---|
+| background | `#FFF7F1` ivory | `#0E0810` | |
+| surface | `#FFFFFF` | `#1A1620` | cards, sheets, inputs |
+| surfaceMuted | `#F8EDE7` | `#241D2A` | elevated card / dock (dark) |
+| textPrimary | `#2E2A2A` charcoal | `#FFF7F4` | |
+| textSecondary | `#786B79` | `#C2B5C5` | ≥ 4.5:1 for small text |
+| textTertiary | `#8A7D8B` | `#9D8FA0` | hints and icons only (≥ 3:1) |
+| accent | `#F5767A` coral | `#FF687B` | fills, borders, focus |
+| accentStrong | `#B8304F` | `#FF687B` | coral **text** (AA on ivory and blush) |
+| accentSoft | `#FCE8EC` blush | `#3A2230` | selected highlights |
+| line | `#F0E2E3` | `#3B303F` | |
+| brandPlum / peach | `#6B3F55` / `#FDCABA` | `#B982A6` / `#FDCABA` | logo, decoration |
+| accentGradient | `#EE5F70 → #E23A5E` | same | primary buttons, dock Add |
+
+Contrast adjustments versus the brand board (only where WCAG required them): coral text uses
+`#B8304F`, and the button gradient is slightly deeper than `#F5767A → #F04468`, so white labels
+keep at least 3:1.
 
 ### Typography (`closer_typography.dart`)
-- **Plus Jakarta Sans** (variable) for UI; **Fraunces** (variable) for display numerals/moments.
-- Scale: display 56/40/32 · headline 28/24/20 · title 18/16/14 · body 16/14/13 · label 16/13/12.
-- Minimum body text 13–14 pt; weights set via both `fontWeight` and the `wght` axis.
+
+One family, **Plus Jakarta Sans** (variable, bundled, OFL), from 12 px labels to 56 px display.
+Display sizes use weight 800. Minimum body size 14. Text scales with the system setting; layouts are
+tested at 200 %.
 
 ### Spacing, radii, elevation, motion (`closer_tokens.dart`)
-- Spacing 4-pt scale: 4, 8, 12, 16, 20, 24, 32, 48; page gutter 20.
-- Radii: 10, 14, 20, 28, pill.
-- Elevation: `low`, `medium` soft plum shadows; `accentGlow` under primary buttons.
-- Motion: 150/250/400 ms, `easeOutCubic`; `CloserMotion.of(context, d)` returns zero when the OS
-  "reduce motion" setting is on.
 
-### Icons (`closer_icons.dart`)
-Lucide outline glyphs plus Material rounded fills for solid accents (heart, pin, star, check).
-Emoji are never used as icons.
+4-pt grid (`xxs 4 … xxxl 48`, page gutter 20), radii `10 / 14 / 20 / 28 / pill`, two soft shadows
+(`low`, `medium`) and motion tokens that respect "reduce motion".
 
-## Components (`lib/core/widgets/`)
+## Appearance (light / dark / system)
 
-| Component | Notes |
+- `appearanceProvider` (Riverpod) holds `ThemeMode`; **Profile → Appearance** offers Light, Dark and
+  System (default).
+- Saved with `shared_preferences` (`keeploom.appearance`). `main.dart` reads it **before the first
+  frame**, so the theme never flashes.
+- Changes apply instantly. Status- and navigation-bar icons follow the theme (`systemBarsFor`,
+  edge to edge).
+- Every component theme (app bar, inputs, buttons, chips, segmented buttons, switches, cards,
+  dialogs, sheets, snack bars, date picker) is derived from the same tokens, so new screens follow
+  both themes automatically.
+- Native surfaces follow the system theme: the widget group picker uses `@color/kl_*` with
+  `values-night` variants. The splash has light and dark variants.
+
+## Components (`lib/core/widgets`, feature folders)
+
+| Component | Where |
 |---|---|
-| `CloserButton` | primary (gradient), secondary, ghost, danger; loading state; disabled when `onPressed` null |
-| `CloserIconButton` | round, mandatory semantic label + tooltip, ≥48 dp target, optional badge, filled variant |
-| `CloserTextField` | leading icon, password show/hide |
-| `GroupCard` | cover, name, type · member count, activity, premium crown, couple heart |
-| `MemoryCard` | 4:3 photo, caption, location, uploader, date, pinned badge, Hero tag |
-| `MilestoneCard` | display numeral or title, date, description, cover; heart / celebration / neutral themes; reduced-motion aware intro |
-| `MemberAvatar`, `AvatarStack` | photo or deterministic initials tint; "+N" overflow |
-| `PhotoViewer` | full screen, swipe, pinch-zoom, caption overlay, tap to hide chrome |
-| `InviteCodeCard` | spaced code, copy to clipboard + snackbar |
-| `UpgradeCard` | "Keep every memory from this group"; disabled with reason when billing unavailable |
-| `WidgetPreviewCard` | small / wide preview of a native widget |
-| `LoadingState`, `EmptyState`, `ErrorState` (+ `.offline`), `OfflineBanner`, `NoticeCard` | state views |
-| `ConfirmationDialog` / `showConfirmationDialog` | resolves `true` only on explicit confirm; destructive variant |
-| `CloserPhoto`, `SunsetArt` | photo with fade-in and painted placeholder; vector sunset scene used for the hero and missing photos |
-| `CloserLogo` | heart mark + wordmark |
+| `KeeploomLogo` / `KeeploomMarkPainter` | `core/widgets/keeploom_logo.dart` |
+| `KeeploomBottomNav` (floating dock, raised Add, unread dot) | `features/shell/keeploom_bottom_nav.dart` |
+| `ThemeSettingsTile` (Appearance) | `features/profile/presentation/theme_settings_tile.dart` |
+| `CloserButton` (primary gradient / secondary) | `core/widgets/closer_button.dart` |
+| `GroupCard`, `MemoryCard`, `MilestoneCard`, `UpgradeCard` | `core/widgets/` |
+| `EmptyState`, `LoadingState`, `ErrorState`, `NoticeCard`, `OfflineBanner` | `core/widgets/state_views.dart` |
+| `InAppNotificationBanner` | `features/notifications/presentation/in_app_banner.dart` |
 
-A debug-only **Component gallery** (Profile → Component gallery) shows every component with sample data.
+### Navigation dock
 
-## Accessibility
+- Floating rounded surface (white in light mode, `surfaceMuted` in dark), thin border, one soft
+  shadow (none in dark).
+- Four outline icons (Home, Journal, Alerts, Profile) with a small blush pill behind the selected
+  one; active colour `accentStrong`, inactive `textSecondary` (12–13 px labels must reach 4.5:1).
+- A raised 56 px gradient **Add** button opens the existing share flow. It's an action, not a tab.
+- An unread dot on Alerts. The dock respects safe areas and gesture navigation.
 
-Semantic labels on cards and icon buttons, live regions for errors, 48 dp touch targets,
-text that wraps instead of overflowing (tests run with real font metrics), reduced-motion support.
+## Accessibility rules
+
+- Tap targets ≥ 48 dp; semantic labels on icon-only buttons.
+- Text contrast is checked by tests (`test/app/accessibility_test.dart`,
+  `test/app/keeploom_theme_nav_test.dart`) on main screens in **light and dark**.
+- 200 % text size must not overflow on any main screen.

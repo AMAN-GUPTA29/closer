@@ -1,4 +1,4 @@
-// Verifies a Closer Memories purchase with RevenueCat and grants it to a group.
+// Verifies a Keeploom Memories purchase with RevenueCat and grants it to a group.
 
 export type Store = "app_store" | "play_store";
 

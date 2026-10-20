@@ -52,7 +52,7 @@ class UnconfiguredPhotosBackend implements PhotosBackend {
   const UnconfiguredPhotosBackend();
 
   static const _failure = NotConfiguredFailure(
-    'Photo sharing needs the Closer backend, which is not configured in this build.',
+    'Photo sharing needs the Keeploom backend, which is not configured in this build.',
   );
 
   @override

@@ -1,8 +1,8 @@
-# Closer
+# Keeploom
 
-> Your people. Your moments. Always close.
+> Keep what brings you closer.
 
-Closer is a private photo-sharing app and shared journal for couples, friends and families,
+Keeploom (formerly Closer) is a private photo-sharing app and shared journal for couples, friends and families,
 built with Flutter (Android + iOS) and Supabase. The full build is split into six phases;
 progress is tracked in [TRACKER.md](TRACKER.md).
 
@@ -45,12 +45,12 @@ Every push runs the **CI** workflow. Open the repo on GitHub → **Actions** →
 | [CLAUDE.md](CLAUDE.md) | Working rules for Claude sessions (local, cloud, GitHub) |
 | [TRACKER.md](TRACKER.md) | Step-by-step progress tracker |
 | [ISSUES.md](ISSUES.md) | Open issues: credentials, owner actions, unverified items, decisions |
-| [docs/product-requirements.md](docs/product-requirements.md) | What Closer does |
+| [docs/product-requirements.md](docs/product-requirements.md) | What Keeploom does |
 | [docs/architecture.md](docs/architecture.md) | Code structure and decisions |
 | [docs/design-system.md](docs/design-system.md) | Tokens, components, reference image |
 | [docs/database.md](docs/database.md) | Schema and migrations |
 | [docs/security.md](docs/security.md) | RLS, storage, secrets |
-| [docs/purchases-and-retention.md](docs/purchases-and-retention.md) | Basic vs Closer Memories |
+| [docs/purchases-and-retention.md](docs/purchases-and-retention.md) | Basic vs Keeploom Memories |
 | [docs/widget-implementation.md](docs/widget-implementation.md) | Native home-screen widgets |
 | [docs/notifications.md](docs/notifications.md) | Push, reminders, realtime sync |
 | [docs/release-readiness.md](docs/release-readiness.md) | Release report and launch checklist |

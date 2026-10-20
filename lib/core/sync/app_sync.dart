@@ -10,6 +10,7 @@ import '../../features/auth/domain/auth_models.dart';
 import '../../features/groups/application/group_providers.dart';
 import '../../features/groups/domain/group_models.dart';
 import '../../features/journal/application/content_providers.dart';
+import '../../features/notifications/presentation/in_app_banner.dart';
 import '../../features/notifications/push/push_service.dart';
 import '../../features/photos/application/photo_providers.dart';
 import '../../features/widgets/widget_sync.dart';
@@ -57,6 +58,8 @@ class AppSync extends ConsumerStatefulWidget {
 class _AppSyncState extends ConsumerState<AppSync> with WidgetsBindingObserver {
   final _subs = <StreamSubscription<Object?>>[];
   String? _activeUser;
+  BannerContent? _banner;
+  Timer? _bannerTimer;
 
   @override
   void initState() {
@@ -70,6 +73,7 @@ class _AppSyncState extends ConsumerState<AppSync> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _bannerTimer?.cancel();
     _stopStreams();
     super.dispose();
   }
@@ -100,6 +104,7 @@ class _AppSyncState extends ConsumerState<AppSync> with WidgetsBindingObserver {
     _stopStreams();
     if (userId == null) {
       _activeUser = null;
+      _hideBanner();
       unawaited(ref.read(pushServiceProvider).stop());
       unawaited(ref.read(realtimeFeedProvider).stop());
       unawaited(_guard(() => ref.read(widgetSyncProvider).clear()));
@@ -111,14 +116,62 @@ class _AppSyncState extends ConsumerState<AppSync> with WidgetsBindingObserver {
       ..add(push.foreground.listen((e) => _refresh(e.groupId, notify: true)))
       ..add(push.opened.listen(_openGroup))
       ..add(
-        ref
-            .read(realtimeFeedProvider)
-            .start(userId)
-            .listen(
-              (c) => _refresh(c.groupId, notify: c.table == 'notifications'),
-            ),
+        ref.read(realtimeFeedProvider).start(userId).listen((c) {
+          _refresh(c.groupId, notify: c.table == 'notifications');
+          if (c.table == 'notifications') unawaited(_announce(c.rowId));
+        }),
       );
     if (status is SignedIn) unawaited(push.start());
+  }
+
+  /// Shows a new notification as an in-app banner. Driven by realtime, so it
+  /// works without push and never shows twice when a push arrives as well.
+  Future<void> _announce(int? id) async {
+    try {
+      final latest = await ref
+          .read(contentBackendProvider)
+          .notifications(limit: 5);
+      final n = id == null
+          ? latest.where((n) => n.isUnread).firstOrNull
+          : latest.where((n) => n.id == id).firstOrNull;
+      if (n == null || !mounted || _activeUser == null) return;
+      final groups = await ref.read(myGroupsProvider.future);
+      final name = groups
+          .where((g) => g.id == n.groupId)
+          .map((g) => g.name)
+          .firstOrNull;
+      if (!mounted) return;
+      _bannerTimer?.cancel();
+      setState(
+        () => _banner = BannerContent(
+          id: n.id,
+          message: n.message(name ?? 'your group'),
+          groupId: n.groupId,
+        ),
+      );
+      _bannerTimer = Timer(const Duration(seconds: 5), _hideBanner);
+    } catch (_) {
+      // The Notifications tab still shows it; a banner is a bonus.
+    }
+  }
+
+  void _hideBanner() {
+    _bannerTimer?.cancel();
+    if (mounted && _banner != null) setState(() => _banner = null);
+  }
+
+  void _openBanner() {
+    final b = _banner;
+    _hideBanner();
+    if (b == null) return;
+    unawaited(
+      ref
+          .read(contentBackendProvider)
+          .markNotificationsRead([b.id])
+          .then((_) => ref.invalidate(notificationsProvider))
+          .catchError((Object _) {}),
+    );
+    ref.read(routerProvider).push(Routes.group(b.groupId));
   }
 
   void _openGroup(PushEvent e) {
@@ -171,6 +224,20 @@ class _AppSyncState extends ConsumerState<AppSync> with WidgetsBindingObserver {
         unawaited(_guard(() => _syncWidgets(groups)));
       }
     });
-    return widget.child;
+    return Stack(
+      children: [
+        widget.child,
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: InAppNotificationBanner(
+            content: _banner,
+            onTap: _openBanner,
+            onDismiss: _hideBanner,
+          ),
+        ),
+      ],
+    );
   }
 }

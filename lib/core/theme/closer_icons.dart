@@ -2,7 +2,7 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// The single icon vocabulary for Closer.
+/// The single icon vocabulary for Keeploom.
 ///
 /// Lucide (ISC licence) supplies the outline UI glyphs. Lucide has no filled
 /// glyphs, so the few solid accents (heart, pin, star, check) use Material's
@@ -27,6 +27,7 @@ abstract final class CloserIcons {
   static const IconData chevronRight = LucideIcons.chevronRight;
   static const IconData close = LucideIcons.x;
   static const IconData plus = LucideIcons.plus;
+  static const IconData more = LucideIcons.ellipsis;
   static const IconData copy = LucideIcons.copy;
   static const IconData share = LucideIcons.share2;
   static const IconData link = LucideIcons.link;
@@ -46,6 +47,7 @@ abstract final class CloserIcons {
   static const IconData email = LucideIcons.mail;
   static const IconData lock = LucideIcons.lock;
   static const IconData user = LucideIcons.user;
+  static const IconData atSign = LucideIcons.atSign;
   static const IconData eye = LucideIcons.eye;
   static const IconData eyeOff = LucideIcons.eyeOff;
 
@@ -63,8 +65,12 @@ abstract final class CloserIcons {
   static const IconData trip = LucideIcons.plane;
   static const IconData graduation = LucideIcons.graduationCap;
   static const IconData star = Icons.star_rounded;
+  static const IconData starOutline = LucideIcons.star;
   static const IconData widgets = LucideIcons.layoutGrid;
   static const IconData phone = LucideIcons.smartphone;
+  static const IconData appearance = LucideIcons.palette;
+  static const IconData sun = LucideIcons.sun;
+  static const IconData moon = LucideIcons.moon;
 
   // Status
   static const IconData success = Icons.check_circle_rounded;

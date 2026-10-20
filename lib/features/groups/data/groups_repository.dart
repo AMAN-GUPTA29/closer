@@ -55,7 +55,7 @@ abstract interface class GroupsBackend
     implements GroupsRepository, InvitationsRepository {}
 
 const _notConfigured = NotConfiguredFailure(
-  'Groups need the Closer backend, which is not configured in this build.',
+  'Groups need the Keeploom backend, which is not configured in this build.',
 );
 
 class UnconfiguredGroupsRepository implements GroupsBackend {

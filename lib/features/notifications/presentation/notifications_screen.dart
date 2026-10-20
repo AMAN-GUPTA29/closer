@@ -50,15 +50,25 @@ class NotificationsScreen extends ConsumerWidget {
       for (final g in ref.watch(myGroupsProvider).value ?? const <Group>[])
         g.id: g,
     };
+    final welcomeAt = ref.watch(myProfileProvider).value?.createdAt;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        centerTitle: false,
+        automaticallyImplyLeading: false,
+        titleSpacing: CloserSpacing.gutter,
+        toolbarHeight: 64,
+        title: Semantics(
+          header: true,
+          child: Text('Alerts', style: context.text.headlineLarge),
+        ),
         actions: [
-          if (unread > 0)
-            TextButton(
-              onPressed: () => _markAll(context, ref),
-              child: const Text('Mark all read'),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: context.closerColors.textSecondary,
             ),
+            onPressed: unread > 0 ? () => _markAll(context, ref) : null,
+            child: const Text('Mark all read'),
+          ),
           IconButton(
             tooltip: 'Notification preferences',
             icon: const Icon(CloserIcons.settings),
@@ -70,25 +80,12 @@ class NotificationsScreen extends ConsumerWidget {
         value: items,
         onRetry: () => ref.invalidate(notificationsProvider),
         builder: (list) {
-          if (list.isEmpty) {
-            return const EmptyState(
-              icon: CloserIcons.notifications,
-              title: 'You are all caught up',
-              message:
-                  'New photos, members and special moments from your groups '
-                  'will show up here.',
-            );
-          }
           final now = DateTime.now();
           final today = DateTime(now.year, now.month, now.day);
           String section(DateTime t) {
             final l = t.toLocal();
             final d = DateTime(l.year, l.month, l.day);
-            if (d == today) return 'Today';
-            if (d == today.subtract(const Duration(days: 1))) {
-              return 'Yesterday';
-            }
-            return 'Earlier';
+            return d == today ? 'Today' : 'Earlier';
           }
 
           final rows = <Widget>[];
@@ -100,13 +97,18 @@ class NotificationsScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
                     CloserSpacing.gutter,
-                    CloserSpacing.lg,
+                    CloserSpacing.md,
                     CloserSpacing.gutter,
-                    CloserSpacing.xs,
+                    CloserSpacing.xxs,
                   ),
                   child: Semantics(
                     header: true,
-                    child: Text(s, style: context.text.titleMedium),
+                    child: Text(
+                      s,
+                      style: context.text.labelMedium?.copyWith(
+                        color: context.closerColors.textSecondary,
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -125,8 +127,25 @@ class NotificationsScreen extends ConsumerWidget {
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
+                if (list.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: CloserSpacing.xl),
+                    child: EmptyState(
+                      icon: CloserIcons.notifications,
+                      title: 'You are all caught up',
+                      message:
+                          'New photos, members and special moments from your '
+                          'groups will show up here.',
+                    ),
+                  ),
                 ...rows,
-                const SizedBox(height: CloserSpacing.xxl),
+                const SizedBox(height: CloserSpacing.md),
+                _WelcomeTile(at: welcomeAt),
+                SizedBox(
+                  height:
+                      CloserSpacing.xxxl * 2 +
+                      MediaQuery.paddingOf(context).bottom,
+                ),
               ],
             ),
           );
@@ -153,22 +172,23 @@ class _NotificationTile extends StatelessWidget {
     final text = n.message(group?.name ?? 'a group');
     final leading = switch (n.kind) {
       NotificationKind.milestoneAdded => Container(
-        width: 44,
-        height: 44,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(color: c.accentSoft, shape: BoxShape.circle),
         child: Icon(CloserIcons.heart, color: c.accentStrong, size: 22),
       ),
-      _ => MemberAvatar(name: n.actorName ?? '?', size: 44),
+      _ => MemberAvatar(name: n.actorName ?? '?', size: 40),
     };
+    final time = relativeTime(n.createdAt, DateTime.now());
+    // A plain row on the page ground: avatar, sentence, time, the photo when
+    // there is one, and a coral dot while unread.
     return Semantics(
       button: true,
-      label:
-          '${n.isUnread ? 'Unread. ' : ''}$text, ${relativeTime(n.createdAt, DateTime.now())}',
+      label: '${n.isUnread ? 'Unread. ' : ''}$text, $time',
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
-        child: Container(
-          color: n.isUnread ? c.accentSoft.withValues(alpha: 0.45) : null,
+        child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: CloserSpacing.gutter,
             vertical: CloserSpacing.sm,
@@ -176,24 +196,17 @@ class _NotificationTile extends StatelessWidget {
           child: Row(
             children: [
               leading,
-              const SizedBox(width: CloserSpacing.sm),
+              const SizedBox(width: CloserSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      text,
-                      style: context.text.bodyMedium?.copyWith(
-                        color: c.textPrimary,
-                      ),
+                    Text.rich(
+                      _emphasise(text, [?n.actorName, ?group?.name]),
+                      style: context.text.bodyLarge?.copyWith(fontSize: 15),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      relativeTime(n.createdAt, DateTime.now()),
-                      style: context.text.labelSmall?.copyWith(
-                        color: c.textTertiary,
-                      ),
-                    ),
+                    Text(time, style: context.text.bodyMedium),
                   ],
                 ),
               ),
@@ -201,9 +214,8 @@ class _NotificationTile extends StatelessWidget {
                 const SizedBox(width: CloserSpacing.sm),
                 ClipRRect(
                   borderRadius: CloserRadii.smAll,
-                  child: SizedBox(
-                    width: 48,
-                    height: 48,
+                  child: SizedBox.square(
+                    dimension: 48,
                     child: ThumbByPath(
                       groupId: group!.id,
                       path: n.photoThumbPath!,
@@ -211,21 +223,114 @@ class _NotificationTile extends StatelessWidget {
                   ),
                 ),
               ],
-              if (n.isUnread) ...[
-                const SizedBox(width: CloserSpacing.xs),
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: c.accentStrong,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
+              SizedBox(
+                width: 18,
+                child: n.isUnread
+                    ? Align(
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: c.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+/// The first message everyone gets: a welcome from Keeploom.
+class _WelcomeTile extends StatelessWidget {
+  const _WelcomeTile({required this.at});
+
+  final DateTime? at;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.closerColors;
+    final when = at;
+    return Semantics(
+      label:
+          'System. Welcome to ${KeeploomLogo.name}!'
+          '${when == null ? '' : ' ${relativeTime(when, DateTime.now())}'}',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: CloserSpacing.gutter,
+          vertical: CloserSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: c.surfaceMuted,
+                shape: BoxShape.circle,
+              ),
+              child: const KeeploomLogo(size: 24),
+            ),
+            const SizedBox(width: CloserSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome to ${KeeploomLogo.name}!',
+                    style: context.text.bodyLarge?.copyWith(fontSize: 15),
+                  ),
+                  Text(
+                    when == null
+                        ? 'System'
+                        : 'System · ${relativeTime(when, DateTime.now())}',
+                    style: context.text.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The sentence with people and group names in semibold (Keeploom concept).
+TextSpan _emphasise(String text, List<String> names) {
+  final spans = <TextSpan>[];
+  var rest = text;
+  while (rest.isNotEmpty) {
+    var at = -1;
+    var hit = '';
+    for (final n in names) {
+      if (n.isEmpty) continue;
+      final i = rest.indexOf(n);
+      if (i >= 0 && (at < 0 || i < at)) {
+        at = i;
+        hit = n;
+      }
+    }
+    if (at < 0) {
+      spans.add(TextSpan(text: rest));
+      break;
+    }
+    if (at > 0) spans.add(TextSpan(text: rest.substring(0, at)));
+    spans.add(
+      TextSpan(
+        text: hit,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+    );
+    rest = rest.substring(at + hit.length);
+  }
+  return TextSpan(children: spans);
 }

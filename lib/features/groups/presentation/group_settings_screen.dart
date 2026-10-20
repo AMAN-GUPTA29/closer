@@ -162,8 +162,6 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
             ),
             const SizedBox(height: CloserSpacing.lg),
           ],
-          Text('Group name', style: context.text.titleMedium),
-          const SizedBox(height: CloserSpacing.sm),
           CloserTextField(
             controller: _name,
             hint: 'Group name',
@@ -174,9 +172,8 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 (v?.trim() ?? '').isEmpty ? 'Give your group a name.' : null,
           ),
           if (g.type == GroupType.couple) ...[
-            const SizedBox(height: CloserSpacing.lg),
-            Text('Together since', style: context.text.titleMedium),
-            const SizedBox(height: CloserSpacing.sm),
+            const SizedBox(height: CloserSpacing.xs),
+            const _Label('Together since'),
             IgnorePointer(
               ignoring: !owner,
               child: RelationshipDateField(
@@ -184,43 +181,51 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 onChanged: (d) => setState(() => _start = d),
               ),
             ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _showCounter,
-              onChanged: owner ? (v) => setState(() => _showCounter = v) : null,
-              title: Text(
-                'Show days-together counter',
-                style: context.text.bodyLarge,
-              ),
+            const SizedBox(height: CloserSpacing.sm),
+            SectionCard(
+              children: [
+                SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: CloserSpacing.md,
+                  ),
+                  value: _showCounter,
+                  onChanged: owner
+                      ? (v) => setState(() => _showCounter = v)
+                      : null,
+                  title: Text(
+                    'Show days-together counter',
+                    style: context.text.bodyLarge?.copyWith(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'On the group and its widget',
+                    style: context.text.bodySmall,
+                  ),
+                ),
+              ],
             ),
           ],
-          if (owner) ...[
-            const SizedBox(height: CloserSpacing.lg),
+          if (owner && _dirty) ...[
+            const SizedBox(height: CloserSpacing.md),
             CloserButton(
               label: 'Save changes',
               isLoading: _saving,
-              onPressed: _dirty ? _save : null,
+              onPressed: _save,
             ),
           ],
           if (owner) ...[
-            const SizedBox(height: CloserSpacing.lg),
-            Text('Cover photo', style: context.text.titleMedium),
-            const SizedBox(height: CloserSpacing.sm),
+            const SizedBox(height: CloserSpacing.xs),
+            const _Label('Cover photo'),
             _CoverTile(group: g),
           ],
-          const SizedBox(height: CloserSpacing.xxl),
-          const Divider(),
           const SizedBox(height: CloserSpacing.lg),
-          CloserButton.secondary(
-            label: 'Leave group',
-            icon: const Icon(CloserIcons.signOut),
-            onPressed: _leave,
-          ),
+          CloserButton.secondary(label: 'Leave group', onPressed: _leave),
           if (owner) ...[
             const SizedBox(height: CloserSpacing.sm),
             CloserButton(
               label: 'Delete group',
-              icon: const Icon(CloserIcons.trash),
               variant: CloserButtonVariant.danger,
               onPressed: _delete,
             ),
@@ -269,7 +274,7 @@ class _CoverTile extends ConsumerWidget {
         child: ClipRRect(
           borderRadius: CloserRadii.lgAll,
           child: SizedBox(
-            height: 120,
+            height: 150,
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -298,4 +303,17 @@ class _CoverTile extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Small label above a field.
+class _Label extends StatelessWidget {
+  const _Label(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: CloserSpacing.sm, bottom: 6),
+    child: Text(text, style: context.text.titleSmall?.copyWith(fontSize: 13.5)),
+  );
 }

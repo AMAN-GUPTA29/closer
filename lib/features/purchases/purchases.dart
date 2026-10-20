@@ -9,7 +9,7 @@ import 'revenuecat_purchase_service.dart';
 /// Store product identifiers. Prices come from the store at runtime, never
 /// from code. Override with --dart-define for other environments.
 abstract final class ProductIds {
-  /// Repeatable ("consumable") store product: one purchase unlocks Closer
+  /// Repeatable ("consumable") store product: one purchase unlocks Keeploom
   /// Memories for one group. See docs/purchases-and-retention.md for why it
   /// is not a non-consumable.
   static const memoriesGroup = String.fromEnvironment(
@@ -66,7 +66,7 @@ class UnassignedPurchase {
   final DateTime purchasedAt;
 }
 
-/// Client side of buying Closer Memories. The client never decides
+/// Client side of buying Keeploom Memories. The client never decides
 /// entitlement: a purchase only counts after the server verifies it.
 abstract interface class PurchaseService {
   /// Null when purchases can be made; otherwise a user-facing reason.
@@ -92,7 +92,7 @@ class UnavailablePurchaseService implements PurchaseService {
 
   @override
   String? get unavailableReason =>
-      'Purchases aren’t available in this build yet. Closer Memories '
+      'Purchases aren’t available in this build yet. Keeploom Memories '
       'will be available once store billing is set up.';
 
   @override

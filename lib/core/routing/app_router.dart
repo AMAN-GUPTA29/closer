@@ -29,10 +29,13 @@ import '../../features/widgets/widget_setup_screen.dart';
 import '../../features/photos/application/photo_providers.dart';
 import '../../features/photos/presentation/add_memory_screen.dart';
 import '../../features/purchases/upgrade_screen.dart';
+import '../../features/home/presentation/all_groups_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/legal/legal_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/journal/application/content_providers.dart';
+import '../../features/profile/presentation/choose_username_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/shell/app_shell.dart';
 import 'routes.dart';
@@ -50,15 +53,19 @@ final routerProvider = Provider<GoRouter>((ref) {
     (_, next) => pendingInvite.value = next != null,
   );
 
+  final needsUsername = ValueNotifier<bool>(ref.read(needsUsernameProvider));
+  ref.listen(needsUsernameProvider, (_, next) => needsUsername.value = next);
+
   final router = GoRouter(
     navigatorKey: _rootKey,
     initialLocation: Routes.welcome,
-    refreshListenable: Listenable.merge([status, pendingInvite]),
+    refreshListenable: Listenable.merge([status, pendingInvite, needsUsername]),
     debugLogDiagnostics: false,
     redirect: (context, state) => resolveRedirect(
       status.value,
       state.matchedLocation,
       hasPendingInvite: pendingInvite.value,
+      needsUsername: needsUsername.value,
     ),
     routes: [
       GoRoute(
@@ -83,6 +90,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: Routes.verifyEmail,
         builder: (context, state) =>
             VerifyEmailScreen(email: state.uri.queryParameters['email']),
+      ),
+      GoRoute(
+        path: Routes.share,
+        pageBuilder: (context, state) => MaterialPage(
+          fullscreenDialog: true,
+          child: AddMemoryScreen(
+            source: switch (state.uri.queryParameters['source']) {
+              'camera' => PhotoSource.camera,
+              'gallery' => PhotoSource.gallery,
+              _ => null,
+            },
+          ),
+        ),
+      ),
+      GoRoute(
+        path: Routes.chooseUsername,
+        builder: (context, state) => const ChooseUsernameScreen(),
       ),
       GoRoute(
         path: Routes.updatePassword,
@@ -120,6 +144,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                           state.uri.queryParameters['t'] ??
                           state.uri.queryParameters['code'],
                     ),
+                  ),
+                  GoRoute(
+                    path: 'groups',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => const AllGroupsScreen(),
                   ),
                   GoRoute(
                     path: 'groups/:groupId',
@@ -236,6 +265,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'purchases',
                     parentNavigatorKey: _rootKey,
                     builder: (context, state) => const PurchasedGroupsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'settings',
+                    parentNavigatorKey: _rootKey,
+                    builder: (context, state) => const SettingsScreen(),
                   ),
                   GoRoute(
                     path: 'widgets',

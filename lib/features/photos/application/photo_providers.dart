@@ -159,8 +159,15 @@ class PhotoActions {
     _refresh(photo.groupId);
   }
 
-  Future<void> setPinned(Photo photo, bool pinned) async {
-    await _backend.setPinned(photo.id, pinned);
-    _refresh(photo.groupId);
+  Future<void> setPinned(Photo photo, bool pinned) =>
+      setPinnedById(photo.groupId, photo.id, pinned);
+
+  Future<void> setPinnedById(
+    String groupId,
+    String photoId,
+    bool pinned,
+  ) async {
+    await _backend.setPinned(photoId, pinned);
+    _refresh(groupId);
   }
 }
