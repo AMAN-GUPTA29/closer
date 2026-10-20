@@ -54,16 +54,18 @@ class NotificationsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
-        titleSpacing: 0,
-        leading: IconButton(
-          tooltip: 'Back',
-          icon: const Icon(CloserIcons.back),
-          onPressed: () =>
-              context.canPop() ? context.pop() : context.go(Routes.home),
+        automaticallyImplyLeading: false,
+        titleSpacing: CloserSpacing.gutter,
+        toolbarHeight: 64,
+        title: Semantics(
+          header: true,
+          child: Text('Alerts', style: context.text.headlineLarge),
         ),
-        title: const Text('Notifications'),
         actions: [
           TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: context.closerColors.textSecondary,
+            ),
             onPressed: unread > 0 ? () => _markAll(context, ref) : null,
             child: const Text('Mark all read'),
           ),
@@ -95,13 +97,18 @@ class NotificationsScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
                     CloserSpacing.gutter,
-                    CloserSpacing.lg,
+                    CloserSpacing.md,
                     CloserSpacing.gutter,
-                    CloserSpacing.sm,
+                    CloserSpacing.xxs,
                   ),
                   child: Semantics(
                     header: true,
-                    child: Text(s, style: context.text.titleLarge),
+                    child: Text(
+                      s,
+                      style: context.text.labelMedium?.copyWith(
+                        color: context.closerColors.textSecondary,
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -165,94 +172,79 @@ class _NotificationTile extends StatelessWidget {
     final text = n.message(group?.name ?? 'a group');
     final leading = switch (n.kind) {
       NotificationKind.milestoneAdded => Container(
-        width: 44,
-        height: 44,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(color: c.accentSoft, shape: BoxShape.circle),
         child: Icon(CloserIcons.heart, color: c.accentStrong, size: 22),
       ),
-      _ => MemberAvatar(name: n.actorName ?? '?', size: 44),
+      _ => MemberAvatar(name: n.actorName ?? '?', size: 40),
     };
     final time = relativeTime(n.createdAt, DateTime.now());
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: CloserSpacing.md,
-        vertical: CloserSpacing.xxs,
-      ),
-      child: Semantics(
-        button: true,
-        label: '${n.isUnread ? 'Unread. ' : ''}$text, $time',
-        excludeSemantics: true,
-        child: Material(
-          color: n.isUnread ? c.accentSoft : Colors.transparent,
-          borderRadius: CloserRadii.xlAll,
-          child: InkWell(
-            borderRadius: CloserRadii.xlAll,
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(CloserSpacing.md),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  leading,
-                  const SizedBox(width: CloserSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          text,
-                          style: context.text.bodyMedium?.copyWith(
-                            color: c.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: CloserSpacing.xxs),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Text(time, style: context.text.bodyMedium),
-                            ),
-                            if (n.photoThumbPath != null && group != null)
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  top: CloserSpacing.xxs,
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: CloserRadii.mdAll,
-                                  child: SizedBox.square(
-                                    dimension: 56,
-                                    child: ThumbByPath(
-                                      groupId: group!.id,
-                                      path: n.photoThumbPath!,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
+    // A plain row on the page ground: avatar, sentence, time, the photo when
+    // there is one, and a coral dot while unread.
+    return Semantics(
+      button: true,
+      label: '${n.isUnread ? 'Unread. ' : ''}$text, $time',
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: CloserSpacing.gutter,
+            vertical: CloserSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              leading,
+              const SizedBox(width: CloserSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      text,
+                      style: context.text.bodyLarge?.copyWith(
+                        fontSize: 15,
+                        fontWeight: n.isUnread
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(time, style: context.text.bodyMedium),
+                  ],
+                ),
+              ),
+              if (n.photoThumbPath != null && group != null) ...[
+                const SizedBox(width: CloserSpacing.sm),
+                ClipRRect(
+                  borderRadius: CloserRadii.smAll,
+                  child: SizedBox.square(
+                    dimension: 48,
+                    child: ThumbByPath(
+                      groupId: group!.id,
+                      path: n.photoThumbPath!,
                     ),
                   ),
-                  SizedBox(
-                    width: 20,
-                    height: 72,
-                    child: n.isUnread
-                        ? Align(
-                            alignment: Alignment.centerRight,
-                            child: Container(
-                              width: 9,
-                              height: 9,
-                              decoration: BoxDecoration(
-                                color: c.accent,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-                ],
+                ),
+              ],
+              SizedBox(
+                width: 18,
+                child: n.isUnread
+                    ? Align(
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: c.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      )
+                    : null,
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -270,59 +262,47 @@ class _WelcomeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.closerColors;
     final when = at;
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: CloserSpacing.md,
-        vertical: CloserSpacing.xxs,
-      ),
-      child: Semantics(
-        label:
-            'System. Welcome to ${KeeploomLogo.name}!'
-            '${when == null ? '' : ' ${relativeTime(when, DateTime.now())}'}',
-        excludeSemantics: true,
-        child: Container(
-          padding: const EdgeInsets.all(CloserSpacing.md),
-          decoration: BoxDecoration(
-            // Dark: a lifted card, as on the board; light: plain.
-            color: Theme.of(context).brightness == Brightness.dark
-                ? c.surfaceMuted
-                : null,
-            borderRadius: CloserRadii.xlAll,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  color: c.surface,
-                  shape: BoxShape.circle,
-                  boxShadow: CloserElevation.low,
-                ),
-                child: const KeeploomLogo(size: 34),
+    return Semantics(
+      label:
+          'System. Welcome to ${KeeploomLogo.name}!'
+          '${when == null ? '' : ' ${relativeTime(when, DateTime.now())}'}',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: CloserSpacing.gutter,
+          vertical: CloserSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: c.surfaceMuted,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: CloserSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('System', style: context.text.titleMedium),
-                    Text(
-                      'Welcome to ${KeeploomLogo.name}!',
-                      style: context.text.bodyLarge,
-                    ),
-                    if (when != null)
-                      Text(
-                        relativeTime(when, DateTime.now()),
-                        style: context.text.bodyMedium,
-                      ),
-                  ],
-                ),
+              child: const KeeploomLogo(size: 24),
+            ),
+            const SizedBox(width: CloserSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome to ${KeeploomLogo.name}!',
+                    style: context.text.bodyLarge?.copyWith(fontSize: 15),
+                  ),
+                  Text(
+                    when == null
+                        ? 'System'
+                        : 'System · ${relativeTime(when, DateTime.now())}',
+                    style: context.text.bodyMedium,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -18,6 +18,23 @@ abstract final class CloserPalette {
   static const border = Color(0xFFF0E2E3);
   static const white = Color(0xFFFFFFFF);
 
+  // Impeccable redesign (2026-10-20): flat plum actions, tonal panels,
+  // coral only for small signals.
+  static const panel = Color(0xFFF6ECE6);
+  static const rule = Color(0xFFEADCD6);
+  static const ink = Color(0xFF2E2A2A);
+  static const muted = Color(0xFF6E616F);
+  static const deepPlum = Color(0xFF4A2340);
+  static const signal = Color(0xFFD9365A);
+  static const signalText = Color(0xFFC92F52);
+  static const night = Color(0xFF0F0C0E);
+  static const nightPanel = Color(0xFF1B1719);
+  static const nightRaised = Color(0xFF221D20);
+  static const nightRule = Color(0xFF2E282B);
+  static const nightInk = Color(0xFFF4ECE8);
+  static const nightMuted = Color(0xFFB3A6AE);
+  static const nightSignal = Color(0xFFFF7B8C);
+
   /// Coral text on light surfaces: >= 4.5:1 on ivory and blush (WCAG AA);
   /// the brand coral itself is only used for fills and large marks.
   static const coralText = Color(0xFFB8304F);
@@ -72,6 +89,8 @@ class CloserColors extends ThemeExtension<CloserColors> {
     required this.peach,
     required this.accentGradient,
     required this.heroScrim,
+    required this.primary,
+    required this.onPrimary,
   });
 
   final Color background;
@@ -112,31 +131,38 @@ class CloserColors extends ThemeExtension<CloserColors> {
   /// Dark gradient laid over photos so white text stays legible.
   final LinearGradient heroScrim;
 
+  /// The one primary action colour (flat plum; ivory in dark mode).
+  final Color primary;
+  final Color onPrimary;
+
+  // Primary actions are flat; kept as a gradient type so existing
+  // decorations keep working.
   static const _button = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [CloserPalette.buttonStart, CloserPalette.buttonEnd],
+    colors: [CloserPalette.deepPlum, CloserPalette.deepPlum],
+  );
+  static const _buttonDark = LinearGradient(
+    colors: [CloserPalette.nightInk, CloserPalette.nightInk],
   );
 
   static const light = CloserColors(
     background: CloserPalette.ivory,
     surface: CloserPalette.white,
-    surfaceMuted: CloserPalette.ivoryDeep,
-    textPrimary: CloserPalette.charcoal,
-    textSecondary: CloserPalette.mauve,
+    surfaceMuted: CloserPalette.panel,
+    textPrimary: CloserPalette.ink,
+    textSecondary: CloserPalette.muted,
     textTertiary: CloserPalette.mauveSoft,
-    accent: CloserPalette.coral,
-    accentStrong: CloserPalette.coralText,
+    accent: CloserPalette.signal,
+    accentStrong: CloserPalette.signalText,
     accentSoft: CloserPalette.blush,
     onAccent: CloserPalette.white,
-    line: CloserPalette.border,
+    line: CloserPalette.rule,
     danger: Color(0xFFC53030),
     success: Color(0xFF2E8A5E),
     premium: CloserPalette.gold,
-    coupleTint: CloserPalette.coral,
+    coupleTint: CloserPalette.signal,
     familyTint: CloserPalette.lavenderDeep,
     friendsTint: CloserPalette.sky,
-    brandPlum: CloserPalette.plum,
+    brandPlum: CloserPalette.deepPlum,
     peach: CloserPalette.peach,
     accentGradient: _button,
     heroScrim: LinearGradient(
@@ -145,35 +171,39 @@ class CloserColors extends ThemeExtension<CloserColors> {
       colors: [Color(0x00000000), Color(0x33000000), Color(0xB3000000)],
       stops: [0.35, 0.6, 1],
     ),
+    primary: CloserPalette.deepPlum,
+    onPrimary: CloserPalette.ivory,
   );
 
   static const dark = CloserColors(
-    background: CloserPalette.nightBg,
-    surface: CloserPalette.nightSurface,
-    surfaceMuted: CloserPalette.nightCard,
-    textPrimary: CloserPalette.nightText,
-    textSecondary: CloserPalette.nightTextSoft,
+    background: CloserPalette.night,
+    surface: CloserPalette.nightPanel,
+    surfaceMuted: CloserPalette.nightRaised,
+    textPrimary: CloserPalette.nightInk,
+    textSecondary: CloserPalette.nightMuted,
     textTertiary: CloserPalette.nightTextMuted,
-    accent: CloserPalette.nightCoral,
-    accentStrong: CloserPalette.nightCoral,
+    accent: CloserPalette.nightSignal,
+    accentStrong: CloserPalette.nightSignal,
     accentSoft: CloserPalette.nightBlush,
-    onAccent: CloserPalette.white,
-    line: CloserPalette.nightLine,
+    onAccent: CloserPalette.night,
+    line: CloserPalette.nightRule,
     danger: Color(0xFFFF8A80),
     success: Color(0xFF6CC497),
     premium: CloserPalette.gold,
-    coupleTint: CloserPalette.nightCoral,
+    coupleTint: CloserPalette.nightSignal,
     familyTint: Color(0xFFB79BE6),
     friendsTint: Color(0xFF86AAF3),
-    brandPlum: CloserPalette.nightPlum,
+    brandPlum: CloserPalette.nightInk,
     peach: CloserPalette.peach,
-    accentGradient: _button,
+    accentGradient: _buttonDark,
     heroScrim: LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [Color(0x00000000), Color(0x40000000), Color(0xCC000000)],
       stops: [0.35, 0.6, 1],
     ),
+    primary: CloserPalette.nightInk,
+    onPrimary: CloserPalette.night,
   );
 
   @override
@@ -199,6 +229,8 @@ class CloserColors extends ThemeExtension<CloserColors> {
     Color? peach,
     LinearGradient? accentGradient,
     LinearGradient? heroScrim,
+    Color? primary,
+    Color? onPrimary,
   }) {
     return CloserColors(
       background: background ?? this.background,
@@ -222,6 +254,8 @@ class CloserColors extends ThemeExtension<CloserColors> {
       peach: peach ?? this.peach,
       accentGradient: accentGradient ?? this.accentGradient,
       heroScrim: heroScrim ?? this.heroScrim,
+      primary: primary ?? this.primary,
+      onPrimary: onPrimary ?? this.onPrimary,
     );
   }
 
@@ -254,6 +288,8 @@ class CloserColors extends ThemeExtension<CloserColors> {
         t,
       )!,
       heroScrim: LinearGradient.lerp(heroScrim, other.heroScrim, t)!,
+      primary: Color.lerp(primary, other.primary, t)!,
+      onPrimary: Color.lerp(onPrimary, other.onPrimary, t)!,
     );
   }
 }

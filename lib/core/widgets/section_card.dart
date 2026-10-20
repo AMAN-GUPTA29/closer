@@ -19,15 +19,12 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    // A flat tonal panel one step off the page (no shadow, no outline).
     return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: CloserRadii.xlAll,
-        boxShadow: dark ? CloserElevation.none : CloserElevation.low,
-      ),
+      decoration: const BoxDecoration(borderRadius: CloserRadii.lgAll),
       child: Material(
-        color: dark ? c.surfaceMuted : c.surface,
-        shape: const RoundedRectangleBorder(borderRadius: CloserRadii.xlAll),
+        color: c.surfaceMuted,
+        shape: const RoundedRectangleBorder(borderRadius: CloserRadii.lgAll),
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [

@@ -39,7 +39,6 @@ class MemoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final dark = Theme.of(context).brightness == Brightness.dark;
     Widget photo = CloserPhoto(
       image: image,
       placeholderVariant: placeholderVariant,
@@ -56,8 +55,8 @@ class MemoryCard extends StatelessWidget {
           '${isPinned ? ', pinned' : ''}',
       excludeSemantics: true,
       child: Material(
-        color: dark ? c.surfaceMuted : c.surface,
-        borderRadius: CloserRadii.xlAll,
+        color: Colors.transparent,
+        borderRadius: CloserRadii.lgAll,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
@@ -67,8 +66,8 @@ class MemoryCard extends StatelessWidget {
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: CloserRadii.xlAll,
-                    child: AspectRatio(aspectRatio: 6 / 5, child: photo),
+                    borderRadius: CloserRadii.lgAll,
+                    child: AspectRatio(aspectRatio: 4 / 3.2, child: photo),
                   ),
                   if (isPinned)
                     Positioned(
@@ -91,17 +90,17 @@ class MemoryCard extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                  CloserSpacing.md,
-                  CloserSpacing.md,
-                  CloserSpacing.md,
-                  CloserSpacing.md,
+                  2,
+                  CloserSpacing.sm,
+                  2,
+                  CloserSpacing.xs,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (caption != null && caption!.isNotEmpty) ...[
-                      Text(caption!, style: context.text.bodyLarge),
-                      const SizedBox(height: CloserSpacing.xs),
+                      Text(caption!, style: context.text.titleMedium),
+                      const SizedBox(height: 2),
                     ],
                     Row(
                       children: [
@@ -111,13 +110,14 @@ class MemoryCard extends StatelessWidget {
                               children: [
                                 TextSpan(
                                   text: uploaderName,
-                                  style: context.text.titleMedium,
+                                  style: context.text.bodyMedium?.copyWith(
+                                    color: c.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 TextSpan(
                                   text: ' · $meta',
-                                  style: context.text.bodyLarge?.copyWith(
-                                    color: c.textSecondary,
-                                  ),
+                                  style: context.text.bodyMedium,
                                 ),
                               ],
                             ),
@@ -126,7 +126,7 @@ class MemoryCard extends StatelessWidget {
                           ),
                         ),
                         if (showHeart)
-                          Icon(CloserIcons.heart, color: c.accent, size: 24),
+                          Icon(CloserIcons.heart, color: c.accent, size: 20),
                       ],
                     ),
                   ],

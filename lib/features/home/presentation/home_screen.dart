@@ -7,6 +7,7 @@ import '../../../core/models/group_type.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
+import '../../../core/utils/dates.dart';
 import '../../../core/utils/greeting.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../auth/application/auth_providers.dart';
@@ -46,15 +47,27 @@ class HomeScreen extends ConsumerWidget {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(
                   CloserSpacing.gutter,
-                  CloserSpacing.lg,
+                  CloserSpacing.xs,
                   CloserSpacing.gutter,
-                  CloserSpacing.md,
+                  0,
                 ),
                 sliver: SliverToBoxAdapter(child: _Header(name: name)),
               ),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: CloserSpacing.gutter,
+                padding: const EdgeInsets.fromLTRB(
+                  CloserSpacing.gutter,
+                  CloserSpacing.md,
+                  CloserSpacing.gutter,
+                  0,
+                ),
+                sliver: SliverToBoxAdapter(child: _Greeting(name: name)),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  CloserSpacing.gutter,
+                  CloserSpacing.xl,
+                  CloserSpacing.xs,
+                  0,
                 ),
                 sliver: SliverToBoxAdapter(
                   child: Row(
@@ -63,25 +76,30 @@ class HomeScreen extends ConsumerWidget {
                         child: Semantics(
                           header: true,
                           child: Text(
-                            'Your groups',
-                            style: context.text.titleLarge,
+                            'Your people',
+                            style: context.text.titleMedium?.copyWith(
+                              fontSize: 17,
+                            ),
                           ),
                         ),
                       ),
                       if (groups.value?.isNotEmpty ?? false)
                         TextButton(
                           style: TextButton.styleFrom(
-                            foregroundColor: context.closerColors.textSecondary,
+                            foregroundColor: context.closerColors.textPrimary,
+                            textStyle: context.text.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           onPressed: () => context.push(Routes.allGroups),
-                          child: const Text('See all'),
+                          child: Text(
+                            'See all ${groups.value!.length}',
+                            semanticsLabel: 'See all',
+                          ),
                         ),
-                      const SizedBox(width: CloserSpacing.xxs),
-                      CloserIconButton(
-                        icon: CloserIcons.plus,
-                        semanticLabel: 'Create a group',
-                        filled: true,
-                        size: 48,
+                      IconButton(
+                        tooltip: 'Create a group',
+                        icon: const Icon(CloserIcons.plus),
                         onPressed: () => context.push(Routes.createGroup),
                       ),
                     ],
@@ -99,29 +117,34 @@ class HomeScreen extends ConsumerWidget {
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
                       CloserSpacing.gutter,
-                      CloserSpacing.md,
+                      CloserSpacing.xxs,
                       CloserSpacing.gutter,
-                      CloserSpacing.md,
+                      0,
                     ),
                     sliver: SliverList.separated(
                       itemCount: value.length.clamp(0, homeGroupLimit),
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: CloserSpacing.sm),
+                      separatorBuilder: (_, _) => const Divider(),
                       itemBuilder: (context, i) => GroupListTile(value[i]),
                     ),
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
-                      CloserSpacing.gutter,
+                      CloserSpacing.xs,
                       0,
                       CloserSpacing.gutter,
-                      CloserSpacing.xl,
+                      CloserSpacing.xs,
                     ),
                     sliver: SliverToBoxAdapter(
-                      child: CloserButton.secondary(
-                        label: 'Join a group with a code',
-                        icon: const Icon(CloserIcons.invite),
-                        onPressed: () => context.push(Routes.joinGroup),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          style: TextButton.styleFrom(
+                            foregroundColor: context.closerColors.textPrimary,
+                          ),
+                          icon: const Icon(CloserIcons.invite, size: 18),
+                          label: const Text('Join a group with a code'),
+                          onPressed: () => context.push(Routes.joinGroup),
+                        ),
                       ),
                     ),
                   ),
@@ -156,40 +179,54 @@ class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unread = ref.watch(unreadCountProvider);
+    final c = context.closerColors;
     return Row(
       children: [
+        const KeeploomLogo(size: 26),
+        const SizedBox(width: CloserSpacing.xs),
         Expanded(
-          child: Semantics(
-            header: true,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  greetingFor(DateTime.now()),
-                  style: context.text.bodyLarge?.copyWith(
-                    color: context.closerColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  name,
-                  style: context.text.headlineMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          child: Text(
+            KeeploomLogo.name,
+            style: context.text.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
-        CloserIconButton(
-          icon: CloserIcons.notifications,
-          semanticLabel: unread > 0
-              ? 'Notifications, $unread unread'
-              : 'Notifications',
-          showBadge: unread > 0,
-          tonal: true,
-          onPressed: () => context.go(Routes.notifications),
+        Semantics(
+          button: true,
+          label: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
+          excludeSemantics: true,
+          child: Tooltip(
+            message: 'Notifications',
+            child: InkResponse(
+              radius: 24,
+              onTap: () => context.go(Routes.notifications),
+              child: SizedBox.square(
+                dimension: 48,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(CloserIcons.notifications, color: c.textPrimary),
+                    if (unread > 0)
+                      Positioned(
+                        top: 12,
+                        right: 13,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: c.accent,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: c.background, width: 1.5),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-        const SizedBox(width: CloserSpacing.xs),
         Semantics(
           button: true,
           label: 'Profile',
@@ -197,10 +234,78 @@ class _Header extends ConsumerWidget {
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: () => context.go(Routes.profile),
-            child: MyAvatar(fallbackName: name, size: 48),
+            child: MyAvatar(fallbackName: name, size: 36, brand: true),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// "Evening, Alex." in the serif, with one fact from the user's own data
+/// underneath (the newest photo, and the couple counter when there is one).
+class _Greeting extends ConsumerWidget {
+  const _Greeting({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.closerColors;
+    final groups = ref.watch(myGroupsProvider).value ?? const [];
+    final latest = [
+      for (final e in ref.watch(journalProvider(null)).value?.entries ?? [])
+        if (e is PhotoEntry) e.photo,
+    ].firstOrNull;
+    final couple = groups.where((g) => g.hasCounter).firstOrNull;
+    final strong = context.text.bodyLarge?.copyWith(
+      color: c.textPrimary,
+      fontWeight: FontWeight.w600,
+      fontSize: 15,
+    );
+    final spans = <InlineSpan>[];
+    if (latest != null) {
+      final group = groups.where((g) => g.id == latest.groupId).firstOrNull;
+      spans.addAll([
+        TextSpan(text: latest.uploaderName ?? 'Someone', style: strong),
+        TextSpan(
+          text: ' shared a photo${group == null ? '' : ' in ${group.name}'}. ',
+        ),
+      ]);
+    }
+    if (couple != null) {
+      final days = daysTogether(couple.relationshipStartDate!, DateTime.now());
+      spans.addAll([
+        const TextSpan(text: 'Together '),
+        TextSpan(text: '$days ${days == 1 ? 'day' : 'days'}', style: strong),
+        const TextSpan(text: ' today.'),
+      ]);
+    }
+    if (spans.isEmpty) {
+      spans.add(const TextSpan(text: 'Your people, your moments.'));
+    }
+    final first = name.split(' ').first;
+    return Semantics(
+      header: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            first.isEmpty
+                ? '${shortGreetingFor(DateTime.now())}.'
+                : '${shortGreetingFor(DateTime.now())}, $first.',
+            style: context.text.displaySmall,
+          ),
+          const SizedBox(height: CloserSpacing.xs),
+          Text.rich(
+            TextSpan(children: spans),
+            style: context.text.bodyLarge?.copyWith(
+              color: c.textSecondary,
+              fontSize: 15,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -256,8 +361,8 @@ class _GroupsError extends ConsumerWidget {
   }
 }
 
-/// The newest photos across all groups, as on the Keeploom board. Before
-/// the first photo it shows a "share a moment" tile instead of an empty gap.
+/// "Kept this week": the newest photos across all groups as tall tiles
+/// labelled by day. Before the first photo it offers to share one.
 class _RecentMoments extends ConsumerWidget {
   const _RecentMoments();
 
@@ -267,124 +372,127 @@ class _RecentMoments extends ConsumerWidget {
     final photos = [
       for (final e in ref.watch(journalProvider(null)).value?.entries ?? [])
         if (e is PhotoEntry) e.photo,
-    ].take(8).toList();
+    ].take(4).toList();
     void openJournal() => StatefulNavigationShell.of(context).goBranch(1);
-    // Three tiles across, the next one peeking in.
-    final tile =
-        (MediaQuery.sizeOf(context).width - CloserSpacing.gutter * 2 - 24) / 3;
-    Widget frame(Widget child, VoidCallback onTap, {String? label}) => SizedBox(
-      width: tile,
-      child: Semantics(
-        button: true,
-        label: label,
-        child: ClipRRect(
-          borderRadius: CloserRadii.lgAll,
-          child: Material(
-            color: c.accentSoft,
-            child: InkWell(onTap: onTap, child: child),
-          ),
-        ),
-      ),
-    );
-    final tiles = photos.isNotEmpty
-        ? [for (final p in photos) frame(PhotoImage(photo: p), openJournal)]
-        : [
-            frame(
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      gradient: c.accentGradient,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(CloserIcons.plus, color: c.onAccent),
-                  ),
-                  const SizedBox(height: CloserSpacing.xs),
-                  Text(
-                    'Share a\nmoment',
-                    textAlign: TextAlign.center,
-                    style: context.text.labelMedium?.copyWith(
-                      color: c.accentStrong,
-                    ),
-                  ),
-                ],
-              ),
-              () => showAddMemorySheet(context),
-              label: 'Share a moment',
-            ),
-            for (var i = 0; i < 2; i++)
-              ExcludeSemantics(
-                child: SizedBox(
-                  width: tile,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: CloserRadii.lgAll,
-                      border: Border.all(color: c.line, width: 1.5),
-                    ),
-                    child: Icon(
-                      CloserIcons.gallery,
-                      color: c.textTertiary.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-              ),
-          ];
+    final now = DateTime.now();
+    String day(DateTime t) {
+      final d = DateTime(t.year, t.month, t.day);
+      final today = DateTime(now.year, now.month, now.day);
+      if (d == today) return 'Today';
+      if (today.difference(d).inDays == 1) return 'Yesterday';
+      return weekdayShort(t);
+    }
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: CloserSpacing.xxl),
+      padding: const EdgeInsets.fromLTRB(
+        CloserSpacing.gutter,
+        CloserSpacing.md,
+        CloserSpacing.gutter,
+        CloserSpacing.xxl,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: CloserSpacing.gutter,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Semantics(
-                    header: true,
-                    child: Text(
-                      'Recent moments',
-                      style: context.text.titleLarge,
-                    ),
+          Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    'Kept this week',
+                    style: context.text.titleMedium?.copyWith(fontSize: 17),
                   ),
                 ),
-                TextButton(
-                  onPressed: openJournal,
-                  child: const Text('See all'),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: c.textPrimary,
+                  textStyle: context.text.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                onPressed: openJournal,
+                child: const Text('See all'),
+              ),
+            ],
+          ),
+          const SizedBox(height: CloserSpacing.xxs),
+          if (photos.isEmpty)
+            Semantics(
+              button: true,
+              label: 'Share a moment',
+              excludeSemantics: true,
+              child: InkWell(
+                onTap: () => showAddMemorySheet(context),
+                borderRadius: CloserRadii.lgAll,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: CloserSpacing.md,
+                    vertical: CloserSpacing.lg,
+                  ),
+                  decoration: BoxDecoration(
+                    color: c.surfaceMuted,
+                    borderRadius: CloserRadii.lgAll,
+                  ),
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(CloserIcons.plus, color: c.textPrimary),
+                      const SizedBox(height: CloserSpacing.xs),
+                      Text('Share a moment', style: context.text.titleSmall),
+                      Text(
+                        'New photos from all your groups show up here.',
+                        textAlign: TextAlign.center,
+                        style: context.text.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < 4; i++) ...[
+                  if (i > 0) const SizedBox(width: CloserSpacing.xs),
+                  Expanded(
+                    child: i < photos.length
+                        ? Semantics(
+                            button: true,
+                            label: 'Photo, ${day(photos[i].uploadedAt)}',
+                            excludeSemantics: true,
+                            child: InkWell(
+                              onTap: openJournal,
+                              borderRadius: CloserRadii.mdAll,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AspectRatio(
+                                    aspectRatio: 3 / 4,
+                                    child: ClipRRect(
+                                      borderRadius: CloserRadii.mdAll,
+                                      child: PhotoImage(photo: photos[i]),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    day(photos[i].uploadedAt.toLocal()),
+                                    style: context.text.bodySmall?.copyWith(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
               ],
             ),
-          ),
-          if (photos.isEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                CloserSpacing.gutter,
-                0,
-                CloserSpacing.gutter,
-                CloserSpacing.sm,
-              ),
-              child: Text(
-                'New photos from all your groups will show up here.',
-                style: context.text.bodySmall,
-              ),
-            ),
-          SizedBox(
-            height: tile * 1.12,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                horizontal: CloserSpacing.gutter,
-              ),
-              itemCount: tiles.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(width: CloserSpacing.sm),
-              itemBuilder: (context, i) => tiles[i],
-            ),
-          ),
         ],
       ),
     );

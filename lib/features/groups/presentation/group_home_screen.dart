@@ -78,45 +78,47 @@ class _GroupHome extends ConsumerWidget {
         headerSliverBuilder: (context, _) => [
           SliverAppBar(
             pinned: true,
-            expandedHeight: 340,
             backgroundColor: c.background,
-            foregroundColor: Colors.white,
-            leading: _RoundIconButton(
-              icon: CloserIcons.back,
+            foregroundColor: c.textPrimary,
+            titleSpacing: 0,
+            leading: IconButton(
               tooltip: 'Back',
+              icon: const Icon(CloserIcons.back),
               onPressed: () =>
                   context.canPop() ? context.pop() : context.go(Routes.home),
             ),
+            title: Text(group.name, overflow: TextOverflow.ellipsis),
             actions: [
-              _RoundIconButton(
-                icon: CloserIcons.settings,
-                tooltip: 'Group settings',
-                onPressed: () => context.push(Routes.groupSettings(group.id)),
-              ),
-              const SizedBox(width: CloserSpacing.xs),
+              _GroupMenu(group: group),
+              const SizedBox(width: CloserSpacing.xxs),
             ],
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.parallax,
-              background: _Hero(
-                group: group,
-                memberNames: names,
-                memberImages: images,
-              ),
+          ),
+          SliverToBoxAdapter(
+            child: _Header(
+              group: group,
+              memberNames: names,
+              memberImages: images,
             ),
           ),
-          SliverToBoxAdapter(child: _ActionRow(group: group)),
           SliverPersistentHeader(
             pinned: true,
             delegate: _TabBarDelegate(
               TabBar(
-                labelStyle: context.text.titleSmall,
-                labelColor: c.accentStrong,
-                unselectedLabelColor: c.textTertiary,
-                indicatorColor: c.accentStrong,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: CloserSpacing.gutter - 12,
+                ),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+                labelStyle: context.text.titleSmall?.copyWith(fontSize: 15),
+                labelColor: c.textPrimary,
+                unselectedLabelColor: c.textSecondary,
+                indicatorColor: c.textPrimary,
+                indicatorSize: TabBarIndicatorSize.label,
                 dividerColor: c.line,
                 tabs: const [
                   Tab(text: 'Journal'),
-                  Tab(text: 'Milestones'),
+                  Tab(text: 'Moments'),
                   Tab(text: 'Details'),
                 ],
               ),
@@ -178,8 +180,10 @@ class _GroupHome extends ConsumerWidget {
                   child: FloatingActionButton(
                     heroTag: 'share-${group.id}',
                     tooltip: 'Share a memory',
-                    backgroundColor: c.accentStrong,
-                    foregroundColor: Colors.white,
+                    backgroundColor: c.primary,
+                    foregroundColor: c.onPrimary,
+                    elevation: 2,
+                    shape: const CircleBorder(),
                     onPressed: () => context.push(Routes.addMemory(group.id)),
                     child: const Icon(CloserIcons.plus),
                   ),
@@ -195,8 +199,10 @@ class _GroupHome extends ConsumerWidget {
   }
 }
 
-class _Hero extends StatelessWidget {
-  const _Hero({
+/// The group's typeset header: the couple counter in the serif, or the
+/// group type and its people for friends and family.
+class _Header extends StatelessWidget {
+  const _Header({
     required this.group,
     required this.memberNames,
     this.memberImages = const {},
@@ -209,184 +215,114 @@ class _Hero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
+    final now = DateTime.now();
     final days = group.hasCounter
-        ? daysTogether(group.relationshipStartDate!, DateTime.now())
+        ? daysTogether(group.relationshipStartDate!, now)
         : null;
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        GroupCover(group: group),
-        DecoratedBox(decoration: BoxDecoration(gradient: c.heroScrim)),
-        Positioned(
-          left: CloserSpacing.gutter,
-          right: CloserSpacing.gutter,
-          bottom: CloserSpacing.lg,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                group.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: context.text.headlineLarge?.copyWith(
-                  color: Colors.white,
-                ),
-              ),
-              Text(
-                '${group.type.label} · ${group.memberCount} '
-                '${group.memberCount == 1 ? 'member' : 'members'}',
-                style: context.text.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-              ),
-              if (days != null) ...[
-                const SizedBox(height: CloserSpacing.sm),
-                Semantics(
-                  label: daysTogetherLabel(days),
-                  excludeSemantics: true,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Icon(CloserIcons.heart, color: c.accent, size: 30),
-                      const SizedBox(width: CloserSpacing.xs),
-                      Text(
-                        '$days',
-                        style: context.text.displayMedium?.copyWith(
-                          color: Colors.white,
-                          height: 1,
-                        ),
-                      ),
-                      const SizedBox(width: CloserSpacing.xs),
-                      Flexible(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(
-                            days == 1 ? 'day together' : 'days together',
-                            style: context.text.titleMedium?.copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              if (memberNames.isNotEmpty) ...[
-                const SizedBox(height: CloserSpacing.md),
-                AvatarStack(names: memberNames, images: memberImages, size: 34),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({required this.group});
-
-  final Group group;
-
-  @override
-  Widget build(BuildContext context) {
+    final membersLabel =
+        '${group.type.label} · ${group.memberCount} '
+        '${group.memberCount == 1 ? 'member' : 'members'}';
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: CloserSpacing.gutter,
-        vertical: CloserSpacing.md,
+      padding: const EdgeInsets.fromLTRB(
+        CloserSpacing.gutter,
+        CloserSpacing.xxs,
+        CloserSpacing.gutter,
+        CloserSpacing.md,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Action(
-            icon: CloserIcons.camera,
-            label: 'Camera',
-            onTap: () =>
-                context.push(Routes.addMemory(group.id, source: 'camera')),
-          ),
-          _Action(
-            icon: CloserIcons.plus,
-            label: 'Add',
-            onTap: () => context.push(Routes.addMemory(group.id)),
-          ),
-          _Action(
-            icon: CloserIcons.invite,
-            label: 'Invite',
-            hint: group.isFull ? 'This couple group is complete' : null,
-            onTap: group.isFull
-                ? null
-                : () => context.push(Routes.invite(group.id)),
-          ),
-          _Action(
-            icon: CloserIcons.members,
-            label: 'Members',
-            onTap: () => context.push(Routes.members(group.id)),
-          ),
+          if (days != null) ...[
+            Semantics(
+              label: daysTogetherLabel(days),
+              excludeSemantics: true,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text('$days', style: context.text.displayLarge),
+                  const SizedBox(width: CloserSpacing.sm),
+                  Flexible(
+                    child: Text(
+                      days == 1 ? 'day together' : 'days together',
+                      style: context.text.headlineSmall?.copyWith(
+                        color: c.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: CloserSpacing.xxs),
+            Text(
+              'Since ${formatMediumDate(group.relationshipStartDate!)}'
+              ' · $membersLabel',
+              style: context.text.bodyMedium,
+            ),
+          ] else
+            Row(
+              children: [
+                if (memberNames.isNotEmpty) ...[
+                  AvatarStack(
+                    names: memberNames,
+                    images: memberImages,
+                    size: 30,
+                  ),
+                  const SizedBox(width: CloserSpacing.sm),
+                ],
+                Flexible(
+                  child: Text(membersLabel, style: context.text.bodyMedium),
+                ),
+              ],
+            ),
         ],
       ),
     );
   }
 }
 
-class _Action extends StatelessWidget {
-  const _Action({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.hint,
-  });
+enum _GroupAction { camera, invite, members, settings }
 
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final String? hint;
+/// Everything the old action row offered, in one overflow menu.
+class _GroupMenu extends StatelessWidget {
+  const _GroupMenu({required this.group});
+
+  final Group group;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.closerColors;
-    final enabled = onTap != null;
-    final color = enabled ? c.textPrimary : c.textTertiary;
-    return Flexible(
-      child: Tooltip(
-        message: hint ?? label,
-        child: Semantics(
-          button: true,
-          enabled: enabled,
-          label: hint == null ? label : '$label. $hint',
-          excludeSemantics: true,
-          child: InkWell(
-            borderRadius: CloserRadii.mdAll,
-            onTap: onTap,
-            child: Opacity(
-              opacity: enabled ? 1 : 0.5,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 72, minHeight: 64),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: CloserSpacing.xxs,
-                    vertical: CloserSpacing.xs,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(icon, color: color, size: 24),
-                      const SizedBox(height: CloserSpacing.xxs),
-                      Text(
-                        label,
-                        textAlign: TextAlign.center,
-                        style: context.text.labelMedium?.copyWith(color: color),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+    return PopupMenuButton<_GroupAction>(
+      tooltip: 'Group options',
+      icon: const Icon(CloserIcons.more),
+      onSelected: (a) => switch (a) {
+        _GroupAction.camera => context.push(
+          Routes.addMemory(group.id, source: 'camera'),
+        ),
+        _GroupAction.invite => context.push(Routes.invite(group.id)),
+        _GroupAction.members => context.push(Routes.members(group.id)),
+        _GroupAction.settings => context.push(Routes.groupSettings(group.id)),
+      },
+      itemBuilder: (_) => [
+        const PopupMenuItem(
+          value: _GroupAction.camera,
+          child: Text('Take a photo'),
+        ),
+        PopupMenuItem(
+          value: _GroupAction.invite,
+          enabled: !group.isFull,
+          child: Text(
+            group.isFull ? 'Invite (this couple group is complete)' : 'Invite',
           ),
         ),
-      ),
+        const PopupMenuItem(
+          value: _GroupAction.members,
+          child: Text('Members'),
+        ),
+        const PopupMenuItem(
+          value: _GroupAction.settings,
+          child: Text('Group settings'),
+        ),
+      ],
     );
   }
 }
@@ -458,35 +394,6 @@ class _DetailsTab extends StatelessWidget {
           ),
         SizedBox(height: MediaQuery.paddingOf(context).bottom),
       ],
-    );
-  }
-}
-
-class _RoundIconButton extends StatelessWidget {
-  const _RoundIconButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(4),
-      child: Material(
-        color: Colors.black.withValues(alpha: 0.25),
-        shape: const CircleBorder(),
-        child: IconButton(
-          constraints: const BoxConstraints.tightFor(width: 48, height: 48),
-          tooltip: tooltip,
-          icon: Icon(icon, color: Colors.white, size: 20),
-          onPressed: onPressed,
-        ),
-      ),
     );
   }
 }

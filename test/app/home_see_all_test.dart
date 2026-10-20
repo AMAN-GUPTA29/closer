@@ -26,7 +26,7 @@ void main() {
         findsNWidgets(homeGroupLimit),
       );
 
-      await tester.tap(find.text('See all').first);
+      await tester.tap(find.bySemanticsLabel('See all').first);
       await tester.pumpAndSettle();
       expect(find.byType(AllGroupsScreen), findsOneWidget);
       await tester.scrollUntilVisible(
@@ -38,19 +38,19 @@ void main() {
     },
   );
 
-  testWidgets('Recent moments invites the first share', (tester) async {
+  testWidgets('Kept this week invites the first share', (tester) async {
     final auth = FakeAuthRepository(initialUser: testUser);
     addTearDown(auth.dispose);
     final groups = memoryGroups(userId: testUser.id);
     await groups.createGroup(name: 'Us', type: GroupType.couple);
     await pumpCloserApp(tester, repository: auth, groups: groups);
     await tester.scrollUntilVisible(
-      find.text('Recent moments'),
+      find.text('Kept this week'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('Recent moments'), findsOneWidget);
-    await tester.tap(find.text('Share a\nmoment'));
+    expect(find.text('Kept this week'), findsOneWidget);
+    await tester.tap(find.text('Share a moment'));
     await tester.pumpAndSettle();
     expect(find.text('Choose a group'), findsOneWidget);
   });

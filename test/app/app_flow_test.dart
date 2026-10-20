@@ -21,7 +21,7 @@ void main() {
   testWidgets('onboarding leads to sign up and sign in', (tester) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
     expect(find.byType(OnboardingScreen), findsOneWidget);
-    expect(find.text('Share little\nmoments.\nStay close.'), findsOneWidget);
+    expect(find.text('Keep what brings\nyou closer.'), findsOneWidget);
 
     await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
@@ -48,7 +48,7 @@ void main() {
     tester,
   ) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Sign in'));
+    await tester.tap(find.text('I already have an account'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(InkWell, 'Sign In').last);
@@ -60,7 +60,7 @@ void main() {
 
   testWidgets('wrong credentials show a friendly error', (tester) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Sign in'));
+    await tester.tap(find.text('I already have an account'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -78,7 +78,7 @@ void main() {
     tester,
   ) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Sign in'));
+    await tester.tap(find.text('I already have an account'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -90,7 +90,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Alex'), findsOneWidget);
+    expect(find.textContaining(', Alex.'), findsOneWidget);
     expect(find.text('Start your first group'), findsOneWidget);
     expect(find.text('Create a group'), findsOneWidget);
 
@@ -159,7 +159,7 @@ void main() {
   testWidgets('network failures are shown, not swallowed', (tester) async {
     repo.nextFailure = const NetworkFailure();
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
-    await tester.tap(find.text('Sign in'));
+    await tester.tap(find.text('I already have an account'));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byType(TextFormField).at(0),

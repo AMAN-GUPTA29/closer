@@ -252,7 +252,10 @@ class MilestonesTab extends ConsumerWidget {
             ),
             if (upcoming.isNotEmpty) ...[
               const SizedBox(height: CloserSpacing.xl),
-              Text('Coming up', style: context.text.titleLarge),
+              Text(
+                group.hasCounter ? 'Also coming up' : 'Coming up',
+                style: context.text.titleMedium,
+              ),
               const SizedBox(height: CloserSpacing.sm),
               for (final m in upcoming)
                 ListTile(
@@ -280,11 +283,11 @@ class MilestonesTab extends ConsumerWidget {
                     : 'Mark birthdays, reunions, trips and the moments that matter.',
               )
             else ...[
-              Text('Moments', style: context.text.titleLarge),
+              Text('Kept', style: context.text.titleMedium),
               const SizedBox(height: CloserSpacing.sm),
               for (final m in past)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: CloserSpacing.md),
+                  padding: const EdgeInsets.only(bottom: CloserSpacing.sm),
                   child: MilestoneView(milestone: m, group: group),
                 ),
             ],
@@ -301,6 +304,8 @@ class MilestonesTab extends ConsumerWidget {
   ).difference(DateTime.utc(now.year, now.month, now.day)).inDays;
 }
 
+/// Countdowns to the couple's next round-number day and anniversary, as
+/// plain rows (the counter itself sits in the group header).
 class _CounterCard extends StatelessWidget {
   const _CounterCard({required this.group});
 
@@ -310,43 +315,40 @@ class _CounterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final start = group.relationshipStartDate!;
-    final days = daysTogether(start, now);
     final countdowns = coupleCountdowns(start, now);
     final c = context.closerColors;
-    return Container(
-      padding: const EdgeInsets.all(CloserSpacing.xl),
-      decoration: BoxDecoration(
-        color: c.accentSoft,
-        borderRadius: CloserRadii.xlAll,
-      ),
-      child: Column(
-        children: [
-          Icon(CloserIcons.heart, color: c.accentStrong, size: 32),
-          Text(
-            '$days',
-            style: context.text.displayLarge?.copyWith(color: c.accentStrong),
-          ),
-          Text(
-            days == 1 ? 'day together' : 'days together',
-            style: context.text.titleMedium?.copyWith(color: c.accentStrong),
-          ),
-          Text(
-            'Since ${formatMediumDate(start)}',
-            style: context.text.bodySmall,
-          ),
-          const SizedBox(height: CloserSpacing.md),
-          for (final cd in countdowns)
-            Padding(
-              padding: const EdgeInsets.only(top: CloserSpacing.xxs),
-              child: Text(
-                '${cd.label} in ${cd.daysLeft} '
-                '${cd.daysLeft == 1 ? 'day' : 'days'} · ${formatMediumDate(cd.date)}',
-                textAlign: TextAlign.center,
-                style: context.text.bodyMedium,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Coming up', style: context.text.titleMedium),
+        const SizedBox(height: CloserSpacing.xs),
+        for (var i = 0; i < countdowns.length; i++) ...[
+          if (i > 0) const Divider(),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: CloserSpacing.sm),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    countdowns[i].label,
+                    style: context.text.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Text(
+                  'in ${countdowns[i].daysLeft} '
+                  '${countdowns[i].daysLeft == 1 ? 'day' : 'days'}'
+                  ' · ${formatMediumDate(countdowns[i].date)}',
+                  style: context.text.bodyMedium?.copyWith(
+                    color: c.textSecondary,
+                  ),
+                ),
+              ],
             ),
+          ),
         ],
-      ),
+      ],
     );
   }
 }

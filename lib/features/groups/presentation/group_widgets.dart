@@ -40,7 +40,7 @@ class GroupTypeOption extends StatelessWidget {
       child: Opacity(
         opacity: disabled ? 0.55 : 1,
         child: Material(
-          color: selected ? c.accentSoft : c.surface,
+          color: selected ? c.surface : c.surfaceMuted,
           borderRadius: CloserRadii.lgAll,
           child: InkWell(
             borderRadius: CloserRadii.lgAll,

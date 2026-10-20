@@ -260,28 +260,12 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.closerColors;
     final groups = ref.watch(myGroupsProvider);
     return PopScope(
       canPop: !_sharing,
       child: Scaffold(
         body: Stack(
           children: [
-            // Soft blush circle, top right (decorative, as on the board).
-            Positioned(
-              top: -40,
-              right: -70,
-              child: ExcludeSemantics(
-                child: Container(
-                  width: 210,
-                  height: 210,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: c.accentSoft.withValues(alpha: 0.9),
-                  ),
-                ),
-              ),
-            ),
             SafeArea(
               child: switch (groups) {
                 AsyncData(:final value) => _body(value),
@@ -336,11 +320,9 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
           ),
         ),
         const SizedBox(height: CloserSpacing.md),
-        Text(
-          'Share a memory',
-          style: context.text.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+        Semantics(
+          header: true,
+          child: Text('Share a memory', style: context.text.headlineLarge),
         ),
         const SizedBox(height: CloserSpacing.xxs),
         Text('Choose a group', style: context.text.bodyLarge),
@@ -659,18 +641,14 @@ class _GroupOption extends StatelessWidget {
                 height: 28,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: selected ? c.accent : Colors.transparent,
+                  color: selected ? c.primary : Colors.transparent,
                   border: Border.all(
-                    color: selected ? c.accent : c.textTertiary,
+                    color: selected ? c.primary : c.textTertiary,
                     width: 1.5,
                   ),
                 ),
                 child: selected
-                    ? const Icon(
-                        Icons.check_rounded,
-                        color: Colors.white,
-                        size: 18,
-                      )
+                    ? Icon(Icons.check_rounded, color: c.onPrimary, size: 18)
                     : null,
               ),
               const SizedBox(width: CloserSpacing.xs),

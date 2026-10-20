@@ -59,7 +59,7 @@ class MemberFaces extends ConsumerWidget {
     return AvatarStack(
       names: [for (final m in members) m.displayName],
       images: images,
-      size: 26,
+      size: 22,
       showOverflow: false,
     );
   }

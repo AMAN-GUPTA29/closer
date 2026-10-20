@@ -5,9 +5,10 @@ abstract final class CloserFonts {
   /// UI font: Plus Jakarta Sans (variable weight).
   static const sans = 'PlusJakartaSans';
 
-  /// Display sizes use the same family at heavier weights (Keeploom boards
-  /// use a single geometric sans).
-  static const display = sans;
+  /// Editorial serif for greetings, page titles and counters: Fraunces
+  /// (variable; Impeccable redesign).
+  static const serif = 'Fraunces';
+  static const display = serif;
 }
 
 /// Builds a style for a bundled variable font. Both [FontWeight] and the
@@ -34,55 +35,59 @@ abstract final class CloserTypography {
   static TextTheme textTheme(Color primary, Color secondary) {
     return TextTheme(
       displayLarge: closerStyle(
-        size: 56,
-        weight: FontWeight.w800,
+        size: 64,
+        weight: FontWeight.w400,
         height: 1.0,
         family: CloserFonts.display,
-        letterSpacing: -1,
+        letterSpacing: -1.9,
       ).copyWith(color: primary),
       displayMedium: closerStyle(
         size: 40,
-        weight: FontWeight.w800,
+        weight: FontWeight.w400,
         height: 1.05,
         family: CloserFonts.display,
-        letterSpacing: -0.5,
+        letterSpacing: -1,
       ).copyWith(color: primary),
       displaySmall: closerStyle(
-        size: 32,
-        weight: FontWeight.w800,
+        size: 34,
+        weight: FontWeight.w400,
         height: 1.1,
-        letterSpacing: -0.6,
+        family: CloserFonts.display,
+        letterSpacing: -0.7,
       ).copyWith(color: primary),
       headlineLarge: closerStyle(
-        size: 28,
-        weight: FontWeight.w800,
+        size: 30,
+        weight: FontWeight.w400,
         height: 1.15,
-        letterSpacing: -0.4,
+        family: CloserFonts.display,
+        letterSpacing: -0.6,
       ).copyWith(color: primary),
       headlineMedium: closerStyle(
-        size: 24,
-        weight: FontWeight.w700,
+        size: 26,
+        weight: FontWeight.w400,
         height: 1.2,
-        letterSpacing: -0.3,
+        family: CloserFonts.display,
+        letterSpacing: -0.4,
       ).copyWith(color: primary),
       headlineSmall: closerStyle(
         size: 20,
-        weight: FontWeight.w700,
+        weight: FontWeight.w400,
         height: 1.25,
+        family: CloserFonts.display,
       ).copyWith(color: primary),
       titleLarge: closerStyle(
         size: 18,
-        weight: FontWeight.w700,
+        weight: FontWeight.w600,
         height: 1.3,
       ).copyWith(color: primary),
       titleMedium: closerStyle(
         size: 16,
-        weight: FontWeight.w700,
+        weight: FontWeight.w600,
         height: 1.35,
       ).copyWith(color: primary),
       titleSmall: closerStyle(
         size: 14,
-        weight: FontWeight.w700,
+        weight: FontWeight.w600,
         height: 1.35,
       ).copyWith(color: primary),
       bodyLarge: closerStyle(
@@ -102,7 +107,7 @@ abstract final class CloserTypography {
       ).copyWith(color: secondary),
       labelLarge: closerStyle(
         size: 16,
-        weight: FontWeight.w700,
+        weight: FontWeight.w600,
         height: 1.2,
       ).copyWith(color: primary),
       labelMedium: closerStyle(

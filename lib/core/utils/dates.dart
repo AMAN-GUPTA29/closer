@@ -48,3 +48,6 @@ String expiryLabel(DateTime? expiresAt, DateTime now) {
 /// "expires in 6 days" → "Expires in 6 days".
 String sentenceCase(String text) =>
     text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);
+
+/// "Mon", "Tue", … in the device locale.
+String weekdayShort(DateTime date) => DateFormat.E().format(date);

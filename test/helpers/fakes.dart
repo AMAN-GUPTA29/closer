@@ -255,3 +255,11 @@ class FakeWidgetPlatform implements WidgetPlatform {
   @override
   Future<void> refresh({String? groupId}) async => refreshes.add(groupId);
 }
+
+/// Opens the group page's "Group options" menu and picks [item].
+Future<void> openGroupMenu(WidgetTester tester, String item) async {
+  await tester.tap(find.byTooltip('Group options'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(item).last);
+  await tester.pumpAndSettle();
+}

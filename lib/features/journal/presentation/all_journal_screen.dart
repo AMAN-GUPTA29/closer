@@ -73,7 +73,13 @@ class AllJournalScreen extends ConsumerWidget {
     final hasGroups = ref.watch(myGroupsProvider).value?.isNotEmpty ?? false;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Journal'),
+        automaticallyImplyLeading: false,
+        titleSpacing: CloserSpacing.gutter,
+        toolbarHeight: 64,
+        title: Semantics(
+          header: true,
+          child: Text('Journal', style: context.text.headlineLarge),
+        ),
         actions: [
           IconButton(
             tooltip: 'Journal settings',

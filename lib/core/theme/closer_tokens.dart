@@ -41,9 +41,8 @@ abstract final class CloserElevation {
     BoxShadow(color: Color(0x142E2A2A), blurRadius: 24, offset: Offset(0, 8)),
   ];
 
-  static const List<BoxShadow> accentGlow = [
-    BoxShadow(color: Color(0x40E23A5E), blurRadius: 18, offset: Offset(0, 8)),
-  ];
+  /// Primary actions are flat in the Impeccable redesign (no glow).
+  static const List<BoxShadow> accentGlow = none;
 }
 
 /// Motion tokens. Always resolve durations through [CloserMotion.of] so the

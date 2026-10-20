@@ -40,19 +40,17 @@ class GroupCard extends StatelessWidget {
   final bool isPremium;
   final int placeholderVariant;
 
-  static const double coverSize = 120;
+  static const double coverSize = 64;
 
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final dark = Theme.of(context).brightness == Brightness.dark;
     final membersLabel =
         '$memberCount ${memberCount == 1 ? 'member' : 'members'}';
-    final activityColor = type == GroupType.couple ? c.accent : type.tint(c);
-    final activityIcon = type == GroupType.couple
-        ? CloserIcons.heart
-        : type.icon;
+    final meta = context.text.bodyMedium?.copyWith(fontSize: 13.5);
 
+    // A list row, not a card: cover, name, faces and one line of activity
+    // (Impeccable redesign). Rows sit on the page ground between rules.
     return Semantics(
       button: true,
       label:
@@ -60,140 +58,88 @@ class GroupCard extends StatelessWidget {
           '${activity != null ? ', $activity' : ''}'
           '${isPremium ? ', Keeploom Memories' : ''}',
       excludeSemantics: true,
-      // The shadow sits behind the opaque Material; a shadow on a transparent
-      // box inside it would tint the whole card grey.
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: CloserRadii.xlAll,
-          boxShadow: dark ? CloserElevation.none : CloserElevation.low,
-        ),
-        child: Material(
-          // Dark: the lifted card tone, no outline (as on the board).
-          color: dark ? c.surfaceMuted : c.surface,
-          shape: const RoundedRectangleBorder(borderRadius: CloserRadii.xlAll),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(CloserSpacing.xs),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox.square(
-                    dimension: coverSize,
-                    child: Stack(
-                      fit: StackFit.expand,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: CloserRadii.mdAll,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: CloserSpacing.sm),
+          child: Row(
+            children: [
+              SizedBox.square(
+                dimension: coverSize,
+                child: ClipRRect(
+                  borderRadius: CloserRadii.mdAll,
+                  child:
+                      coverWidget ??
+                      CloserPhoto(
+                        image: cover,
+                        placeholderVariant: placeholderVariant,
+                      ),
+                ),
+              ),
+              const SizedBox(width: CloserSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        ClipRRect(
-                          borderRadius: CloserRadii.lgAll,
-                          child:
-                              coverWidget ??
-                              CloserPhoto(
-                                image: cover,
-                                placeholderVariant: placeholderVariant,
-                              ),
-                        ),
-                        if (type == GroupType.couple)
-                          Positioned(
-                            left: 8,
-                            bottom: 8,
-                            child: Icon(
-                              CloserIcons.heart,
-                              size: 16,
-                              color: Colors.white,
-                              shadows: const [
-                                Shadow(color: Color(0x66000000), blurRadius: 6),
-                              ],
-                            ),
+                        Flexible(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.text.titleMedium,
                           ),
+                        ),
+                        if (type == GroupType.couple) ...[
+                          const SizedBox(width: 6),
+                          Icon(CloserIcons.heart, size: 15, color: c.accent),
+                        ],
+                        if (isPremium) ...[
+                          const SizedBox(width: CloserSpacing.xxs),
+                          Icon(CloserIcons.crown, size: 15, color: c.premium),
+                        ],
                       ],
                     ),
-                  ),
-                  const SizedBox(width: CloserSpacing.md),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: CloserSpacing.xs,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        name,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: context.text.titleLarge,
-                                      ),
-                                    ),
-                                    if (isPremium) ...[
-                                      const SizedBox(width: CloserSpacing.xxs),
-                                      Icon(
-                                        CloserIcons.crown,
-                                        size: 16,
-                                        color: c.premium,
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                CloserIcons.chevronRight,
-                                color: c.textTertiary,
-                                size: 20,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: CloserSpacing.xs),
-                          Row(
-                            children: [
-                              if (members != null) ...[
-                                members!,
-                                const SizedBox(width: CloserSpacing.xs),
-                              ],
-                              Flexible(
-                                child: Text(
-                                  membersLabel,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: context.text.bodyMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (activity != null) ...[
-                            const SizedBox(height: CloserSpacing.xs),
-                            Row(
-                              children: [
-                                Icon(
-                                  activityIcon,
-                                  size: 16,
-                                  color: activityColor,
-                                ),
-                                const SizedBox(width: CloserSpacing.xs),
-                                Flexible(
-                                  child: Text(
-                                    activity!,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: context.text.bodyMedium,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (members != null) ...[
+                          members!,
+                          const SizedBox(width: CloserSpacing.xs),
                         ],
-                      ),
+                        // Faces already show who is here; the count is
+                        // only written out when there are no faces yet.
+                        if (members == null)
+                          Flexible(
+                            child: Text(
+                              membersLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: meta,
+                            ),
+                          ),
+                        if (activity != null) ...[
+                          if (members == null) Text(' · ', style: meta),
+                          Flexible(
+                            flex: 2,
+                            child: Text(
+                              activity!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: meta,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(width: CloserSpacing.xs),
+              Icon(CloserIcons.chevronRight, color: c.textTertiary, size: 20),
+            ],
           ),
         ),
       ),

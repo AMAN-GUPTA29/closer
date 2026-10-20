@@ -300,11 +300,12 @@ class _ChoiceChips<T> extends StatelessWidget {
             selected: v == selected,
             onSelected: (_) => onSelected(v),
             showCheckmark: false,
-            selectedColor: c.accentSoft,
-            backgroundColor: c.surface,
-            side: BorderSide(color: v == selected ? c.accent : c.line),
-            labelStyle: context.text.labelMedium?.copyWith(
-              color: v == selected ? c.accentStrong : c.textSecondary,
+            selectedColor: c.primary,
+            backgroundColor: c.background,
+            side: BorderSide(color: v == selected ? c.primary : c.line),
+            labelStyle: context.text.labelLarge?.copyWith(
+              fontSize: 14,
+              color: v == selected ? c.onPrimary : c.textPrimary,
             ),
             shape: const StadiumBorder(),
           ),

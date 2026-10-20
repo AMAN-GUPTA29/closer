@@ -72,19 +72,18 @@ class _MilestoneCardState extends State<MilestoneCard>
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final (bg, accent) = switch (widget.theme) {
-      MilestoneTheme.heart => (c.accentSoft, c.accentStrong),
-      MilestoneTheme.celebration => (
-        c.premium.withValues(alpha: 0.16),
-        const Color(0xFFD9822B),
-      ),
-      MilestoneTheme.neutral => (c.surfaceMuted, c.familyTint),
+    final accent = switch (widget.theme) {
+      MilestoneTheme.heart => c.accent,
+      MilestoneTheme.celebration => const Color(0xFFD9822B),
+      MilestoneTheme.neutral => c.textSecondary,
     };
-
     final scale = CurvedAnimation(
       parent: _intro,
       curve: CloserMotion.emphasized,
     );
+    final title = widget.highlight != null
+        ? '${widget.highlight} ${widget.highlightCaption ?? ''}'.trim()
+        : widget.title;
 
     return Semantics(
       button: widget.onTap != null,
@@ -94,79 +93,70 @@ class _MilestoneCardState extends State<MilestoneCard>
           '${widget.isPinned ? ', pinned' : ''}',
       excludeSemantics: true,
       child: Material(
-        color: bg,
-        borderRadius: CloserRadii.xlAll,
+        color: c.surfaceMuted,
+        borderRadius: CloserRadii.lgAll,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: widget.onTap,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
-              CloserSpacing.xl,
-              CloserSpacing.xxl,
-              CloserSpacing.xl,
-              CloserSpacing.xxl,
+              CloserSpacing.md,
+              CloserSpacing.md,
+              CloserSpacing.md,
+              CloserSpacing.md,
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (widget.isPinned)
-                  Align(
-                    alignment: Alignment.topRight,
-                    heightFactor: 0,
-                    child: Icon(CloserIcons.pinFilled, color: accent, size: 18),
-                  ),
-                ScaleTransition(
-                  scale: Tween(begin: 0.6, end: 1.0).animate(scale),
-                  child: Icon(_icon, color: accent, size: 36),
-                ),
-                const SizedBox(height: CloserSpacing.sm),
-                if (widget.highlight != null) ...[
-                  Text(
-                    widget.highlight!,
-                    style: context.text.displayLarge?.copyWith(color: accent),
-                  ),
-                  if (widget.highlightCaption != null)
-                    Text(
-                      widget.highlightCaption!,
-                      style: context.text.titleMedium?.copyWith(color: accent),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: ScaleTransition(
+                        scale: Tween(begin: 0.6, end: 1.0).animate(scale),
+                        child: Icon(_icon, color: accent, size: 22),
+                      ),
                     ),
-                  const SizedBox(height: CloserSpacing.sm),
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.center,
-                    style: context.text.titleSmall,
-                  ),
-                ] else
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.center,
-                    style: context.text.headlineLarge?.copyWith(
-                      fontSize: 27,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.4,
-                      color: c.textPrimary,
+                    const SizedBox(width: CloserSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(title, style: context.text.headlineSmall),
+                          if (widget.highlight != null)
+                            Text(widget.title, style: context.text.bodyMedium),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.isPinned
+                                ? '${widget.dateLabel} · pinned'
+                                : widget.dateLabel,
+                            style: context.text.bodyMedium,
+                          ),
+                          if (widget.description != null) ...[
+                            const SizedBox(height: CloserSpacing.xs),
+                            Text(
+                              widget.description!,
+                              style: context.text.bodyMedium?.copyWith(
+                                color: c.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-                const SizedBox(height: CloserSpacing.xs),
-                Text(
-                  widget.dateLabel,
-                  textAlign: TextAlign.center,
-                  style: context.text.bodyLarge?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w600,
-                  ),
+                    if (widget.isPinned)
+                      Icon(
+                        CloserIcons.pinFilled,
+                        color: c.textSecondary,
+                        size: 16,
+                      ),
+                  ],
                 ),
-                if (widget.description != null) ...[
-                  const SizedBox(height: CloserSpacing.sm),
-                  Text(
-                    widget.description!,
-                    textAlign: TextAlign.center,
-                    style: context.text.bodyMedium,
-                  ),
-                ],
                 if (widget.cover != null) ...[
                   const SizedBox(height: CloserSpacing.md),
                   ClipRRect(
-                    borderRadius: CloserRadii.lgAll,
+                    borderRadius: CloserRadii.mdAll,
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
                       child: CloserPhoto(

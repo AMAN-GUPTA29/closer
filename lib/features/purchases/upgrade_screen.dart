@@ -203,9 +203,12 @@ class _Compare extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(CloserSpacing.md),
       decoration: BoxDecoration(
-        color: highlight ? c.accentSoft : c.surface,
+        color: highlight ? c.background : c.surfaceMuted,
         borderRadius: CloserRadii.lgAll,
-        border: Border.all(color: highlight ? c.accent : c.line),
+        border: Border.all(
+          color: highlight ? c.primary : Colors.transparent,
+          width: 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

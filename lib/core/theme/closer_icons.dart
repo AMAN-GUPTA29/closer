@@ -27,6 +27,7 @@ abstract final class CloserIcons {
   static const IconData chevronRight = LucideIcons.chevronRight;
   static const IconData close = LucideIcons.x;
   static const IconData plus = LucideIcons.plus;
+  static const IconData more = LucideIcons.ellipsis;
   static const IconData copy = LucideIcons.copy;
   static const IconData share = LucideIcons.share2;
   static const IconData link = LucideIcons.link;

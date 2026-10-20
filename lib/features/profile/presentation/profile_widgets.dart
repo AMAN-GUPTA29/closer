@@ -31,7 +31,9 @@ class MyAvatar extends ConsumerWidget {
       name: profile?.displayName ?? fallbackName,
       image: image,
       size: size,
-      colors: brand ? (CloserPalette.blush, CloserPalette.buttonEnd) : null,
+      colors: brand
+          ? (context.closerColors.accentSoft, context.closerColors.accentStrong)
+          : null,
     );
   }
 }

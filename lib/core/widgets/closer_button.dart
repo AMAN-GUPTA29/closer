@@ -54,13 +54,13 @@ class CloserButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.closerColors;
     final isPrimary = variant == CloserButtonVariant.primary;
-    final isDanger = variant == CloserButtonVariant.danger;
     final isGhost = variant == CloserButtonVariant.ghost;
 
     final foreground = switch (variant) {
-      CloserButtonVariant.primary || CloserButtonVariant.danger => c.onAccent,
+      CloserButtonVariant.primary => c.onPrimary,
+      CloserButtonVariant.danger => Colors.white,
       CloserButtonVariant.secondary => c.textPrimary,
-      CloserButtonVariant.ghost => c.accentStrong,
+      CloserButtonVariant.ghost => c.textPrimary,
     };
 
     final content = AnimatedSwitcher(
@@ -104,18 +104,15 @@ class CloserButton extends StatelessWidget {
         CloserButtonVariant.primary => null,
         // Dark mode's danger red is light (for text); white labels need a
         // deep red fill in both themes (5.4:1).
-        CloserButtonVariant.danger => const Color(0xFFC53030),
+        CloserButtonVariant.danger => const Color(0xFFB4232F),
         CloserButtonVariant.secondary => c.surface,
         CloserButtonVariant.ghost => Colors.transparent,
       },
       border: variant == CloserButtonVariant.secondary
           ? Border.all(color: c.line)
           : null,
-      boxShadow: (isPrimary || isDanger) && _enabled
-          ? CloserElevation.accentGlow
-          : (variant == CloserButtonVariant.secondary
-                ? CloserElevation.low
-                : null),
+      // Flat buttons: no glow and no shadow.
+      boxShadow: null,
     );
 
     final button = Semantics(
@@ -134,7 +131,7 @@ class CloserButton extends StatelessWidget {
               borderRadius: CloserRadii.pillAll,
               onTap: _enabled ? onPressed : null,
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: isGhost ? 48 : 56),
+                constraints: BoxConstraints(minHeight: isGhost ? 48 : 52),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: CloserSpacing.xl,

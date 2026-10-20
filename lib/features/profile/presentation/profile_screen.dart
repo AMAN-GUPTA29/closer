@@ -56,7 +56,13 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        automaticallyImplyLeading: false,
+        titleSpacing: CloserSpacing.gutter,
+        toolbarHeight: 64,
+        title: Semantics(
+          header: true,
+          child: Text('Profile', style: context.text.headlineLarge),
+        ),
         actions: [
           IconButton(
             tooltip: 'Settings',
@@ -74,28 +80,30 @@ class ProfileScreen extends ConsumerWidget {
           CloserSpacing.xxxl * 2 + MediaQuery.paddingOf(context).bottom,
         ),
         children: [
-          Center(
-            child: MyAvatar(fallbackName: displayName, size: 104, brand: true),
-          ),
-          const SizedBox(height: CloserSpacing.md),
-          Text(
-            displayName,
-            textAlign: TextAlign.center,
-            style: context.text.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          if (profile?.username != null)
-            Text(
-              '@${profile!.username}',
-              textAlign: TextAlign.center,
-              style: context.text.titleSmall?.copyWith(color: c.accentStrong),
-            ),
-          const SizedBox(height: 2),
-          Text(
-            user?.email ?? '',
-            textAlign: TextAlign.center,
-            style: context.text.bodyMedium,
+          Row(
+            children: [
+              MyAvatar(fallbackName: displayName, size: 72, brand: true),
+              const SizedBox(width: CloserSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      style: context.text.titleLarge?.copyWith(fontSize: 20),
+                    ),
+                    if (profile?.username != null)
+                      Text(
+                        '@${profile!.username}',
+                        style: context.text.bodyMedium?.copyWith(
+                          color: c.textPrimary,
+                        ),
+                      ),
+                    Text(user?.email ?? '', style: context.text.bodyMedium),
+                  ],
+                ),
+              ),
+            ],
           ),
           if (status is PreviewSession) ...[
             const SizedBox(height: CloserSpacing.md),
@@ -106,7 +114,7 @@ class ProfileScreen extends ConsumerWidget {
                   'Nothing is saved.',
             ),
           ],
-          const SizedBox(height: CloserSpacing.xl),
+          const _Label('Your space'),
           SectionCard(
             children: [
               _Tile(
@@ -131,7 +139,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: CloserSpacing.md),
+          const _Label('Help'),
           SectionCard(
             children: [
               _Tile(
@@ -268,6 +276,34 @@ class _Tile extends StatelessWidget {
                     size: 18,
                   )
                 : null),
+    );
+  }
+}
+
+/// A small section label above a grouped list.
+class _Label extends StatelessWidget {
+  const _Label(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        4,
+        CloserSpacing.xl,
+        4,
+        CloserSpacing.xs,
+      ),
+      child: Semantics(
+        header: true,
+        child: Text(
+          text,
+          style: context.text.labelMedium?.copyWith(
+            color: context.closerColors.textSecondary,
+          ),
+        ),
+      ),
     );
   }
 }

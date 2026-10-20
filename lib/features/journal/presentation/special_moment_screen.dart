@@ -466,16 +466,16 @@ class _Choice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.closerColors;
-    final fg = selected ? c.accentStrong : c.textPrimary;
+    final fg = selected ? c.onPrimary : c.textPrimary;
     return ChoiceChip(
       label: Text(label),
-      avatar: Icon(icon, size: 18, color: c.accentStrong),
+      avatar: Icon(icon, size: 16, color: selected ? c.onPrimary : c.accent),
       selected: selected,
       onSelected: (_) => onSelected(),
       showCheckmark: false,
-      backgroundColor: c.surface,
-      selectedColor: c.accentSoft,
-      side: BorderSide(color: selected ? c.accent : c.line),
+      backgroundColor: c.background,
+      selectedColor: c.primary,
+      side: BorderSide(color: selected ? c.primary : c.line),
       labelStyle: context.text.labelLarge?.copyWith(color: fg),
     );
   }

@@ -73,21 +73,22 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('couple counter and countdown on the Milestones tab', (
+  testWidgets('couple counter and countdown on the Moments tab', (
     tester,
   ) async {
     await pump(tester);
     await openGroup(tester, 'Us');
-    await tester.tap(find.text('Milestones'));
+    await tester.tap(find.text('Moments'));
     await tester.pumpAndSettle();
     expect(find.text('92'), findsWidgets);
-    expect(find.textContaining('100 days together in 8 days'), findsOneWidget);
+    expect(find.text('100 days together'), findsOneWidget);
+    expect(find.textContaining('in 8 days'), findsOneWidget);
   });
 
   testWidgets('create, pin, edit and delete a special moment', (tester) async {
     await pump(tester);
     await openGroup(tester, 'Us');
-    await tester.tap(find.text('Milestones'));
+    await tester.tap(find.text('Moments'));
     await tester.pumpAndSettle();
     await tapButton(tester, 'Create a special moment');
     expect(find.byType(SpecialMomentScreen), findsOneWidget);
@@ -324,8 +325,7 @@ void main() {
     final ids = await seedPhotos(groups, couple, 2);
     await pump(tester);
     await openGroup(tester, 'Us');
-    await tester.tap(find.byTooltip('Group settings'));
-    await tester.pumpAndSettle();
+    await openGroupMenu(tester, 'Group settings');
     await tester.ensureVisible(find.bySemanticsLabel('Change cover photo'));
     await tester.tap(find.bySemanticsLabel('Change cover photo'));
     await tester.pumpAndSettle();

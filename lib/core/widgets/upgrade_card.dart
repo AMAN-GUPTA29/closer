@@ -31,14 +31,9 @@ class UpgradeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.closerColors;
     return Container(
-      padding: const EdgeInsets.all(CloserSpacing.xl),
+      padding: const EdgeInsets.all(CloserSpacing.lg),
       decoration: BoxDecoration(
-        borderRadius: CloserRadii.xlAll,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [c.accentSoft, c.surface],
-        ),
+        borderRadius: CloserRadii.lgAll,
         border: Border.all(color: c.line),
       ),
       child: Column(
@@ -46,12 +41,9 @@ class UpgradeCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(CloserIcons.crown, color: c.premium, size: 22),
+              Icon(CloserIcons.crown, color: c.accent, size: 18),
               const SizedBox(width: CloserSpacing.xs),
-              Text(
-                'Keeploom Memories',
-                style: context.text.labelLarge?.copyWith(color: c.accentStrong),
-              ),
+              Text('Keeploom Memories', style: context.text.titleSmall),
             ],
           ),
           const SizedBox(height: CloserSpacing.sm),

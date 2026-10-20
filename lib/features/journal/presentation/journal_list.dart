@@ -320,7 +320,7 @@ class _PinnedChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: CloserSpacing.sm),
       child: Material(
-        color: c.accentSoft,
+        color: c.surfaceMuted,
         borderRadius: CloserRadii.mdAll,
         child: InkWell(
           borderRadius: CloserRadii.mdAll,
