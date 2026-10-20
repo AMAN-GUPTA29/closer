@@ -41,6 +41,9 @@ environment. No open high-severity findings.
 - Retention runs on the server at upload time (newest 10 for Basic, pinned photos last). Refunds
   get a 30-day grace period, and no photos are deleted when a purchase is revoked.
 - Purchases whose group is unknown are kept as "unassigned" rather than lost.
+- **Resolved 2026-10-20:** Keeploom Memories is now a one-year pass per group, sold as an Apple
+  *non-renewing subscription* (time-limited access, repeatable), which fits guideline 3.1.1
+  better than the earlier permanent consumable. Earlier note, kept for history:
 - **Risk:** Apple may question a *consumable* that unlocks a permanent feature (guideline
   3.1.1). This model is the only way to sell one unlock per group under one Apple ID. Explain it
   in the App Review notes, and keep a fallback ready (e.g. a per-group subscription) (ISSUES D8).
@@ -90,7 +93,7 @@ environment. No open high-severity findings.
    - Play *Data safety* and App Store *privacy labels*, matching `PrivacyInfo.xcprivacy`
      (account data, photos, user content, purchases; no tracking, no ads);
    - content rating;
-   - App Review notes: a demo account, how invites work, what the consumable unlocks.
+   - App Review notes: a demo account, how invites work, what the yearly pass unlocks (one group, one year, not auto-renewing).
 9. **Go:** staged rollout on Play, phased release on the App Store.
 
 ## 4. Store policy checklist

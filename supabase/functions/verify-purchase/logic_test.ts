@@ -2,7 +2,7 @@ import { assertEquals } from "jsr:@std/assert@1.0.13";
 import { mapStore, type VerifyDeps, verifyPurchase } from "./logic.ts";
 
 const GROUP = "5f0c6d2e-1a2b-4c3d-8e9f-0a1b2c3d4e5f";
-const PRODUCT = "closer_memories_group";
+const PRODUCT = "keeploom_memories_year";
 
 function deps(over: Partial<VerifyDeps> = {}) {
   const grants: unknown[] = [];

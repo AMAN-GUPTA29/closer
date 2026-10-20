@@ -29,6 +29,7 @@ class Group {
     this.isPremium = false,
     this.latestThumbPath,
     this.coverPhotoId,
+    this.premiumExpiresAt,
   });
 
   factory Group.fromJson(Map<String, dynamic> json) {
@@ -50,8 +51,15 @@ class Group {
       isPremium: json['is_premium'] as bool? ?? false,
       latestThumbPath: json['latest_thumb_path'] as String?,
       coverPhotoId: json['cover_photo_id'] as String?,
+      premiumExpiresAt: json['premium_expires_at'] == null
+          ? null
+          : DateTime.parse(json['premium_expires_at'] as String).toLocal(),
     );
   }
+
+  /// Days a group stays Premium after its yearly pass ends, so anyone in
+  /// it can renew (mirrors `premium_grace_days()` on the server).
+  static const premiumGraceDays = 30;
 
   /// Photos kept by a Basic group (mirrors `basic_photo_limit()` on the
   /// server, which is authoritative).
@@ -82,6 +90,26 @@ class Group {
 
   /// Photo explicitly chosen as cover by the owner (null = newest photo).
   final String? coverPhotoId;
+
+  /// When the group's yearly Keeploom Memories pass ends (null = no pass,
+  /// or a permanent one bought before passes existed).
+  final DateTime? premiumExpiresAt;
+
+  /// The pass has ended but the group is still inside the grace period.
+  bool get premiumLapsed =>
+      isPremium &&
+      premiumExpiresAt != null &&
+      premiumExpiresAt!.isBefore(DateTime.now());
+
+  /// The pass ends within 30 days (or already has): time to renew.
+  bool get premiumEndsSoon =>
+      isPremium &&
+      premiumExpiresAt != null &&
+      premiumExpiresAt!.difference(DateTime.now()).inDays < 30;
+
+  /// Last day of the grace period after the pass ends.
+  DateTime? get premiumGraceEnds =>
+      premiumExpiresAt?.add(const Duration(days: premiumGraceDays));
 
   /// True when the next upload will remove the oldest photo.
   bool get nextUploadRemovesOldest =>
@@ -130,6 +158,7 @@ class Group {
       isPremium: isPremium ?? this.isPremium,
       latestThumbPath: latestThumbPath,
       coverPhotoId: coverPhotoId,
+      premiumExpiresAt: premiumExpiresAt,
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/routing/routes.dart';
 import '../../core/theme/closer_icons.dart';
 import '../../core/theme/closer_theme.dart';
+import '../../core/utils/dates.dart';
 import '../../core/widgets/widgets.dart';
 import '../groups/application/group_providers.dart';
 import '../groups/domain/group_models.dart';
@@ -98,44 +99,63 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
   Widget _body(Group group) {
     final service = ref.watch(purchaseServiceProvider);
     final product = ref.watch(_productProvider);
-    if (group.isPremium) {
+    final until = group.premiumExpiresAt;
+    if (group.isPremium && !group.premiumEndsSoon) {
       return EmptyState(
         icon: CloserIcons.crown,
         title: '${group.name} keeps every memory',
-        message:
-            'Keeploom Memories is active for everyone in this group, including '
-            'people who join later.',
+        message: until == null
+            ? 'Keeploom Memories is active for everyone in this group, '
+                  'including people who join later.'
+            : 'Keeploom Memories is active for everyone in this group until '
+                  '${formatLongDate(until)}. We’ll remind you before it ends.',
       );
+    }
+    final renewing = group.isPremium;
+    final price = product.value?.priceLabel;
+    final String title;
+    final String lede;
+    if (!renewing) {
+      title = 'Keep every memory from ${group.name}';
+      lede =
+          'Basic lets you share the moment. Keeploom Memories lets you keep '
+          'the story.';
+    } else if (group.premiumLapsed) {
+      title = 'Keeploom Memories ended on ${formatDayMonth(until!)}';
+      lede =
+          '${group.name} keeps every photo until '
+          '${formatLongDate(group.premiumGraceEnds!)}. Renew by then, or only '
+          'the latest ${Group.basicPhotoLimit} photos stay.';
+    } else {
+      title = 'Keeploom Memories ends on ${formatDayMonth(until!)}';
+      lede =
+          'Renew now and ${group.name} gets another year from that date. '
+          'Nothing changes for anyone in the group.';
     }
     return ListView(
       padding: const EdgeInsets.all(CloserSpacing.gutter),
       children: [
-        Text(
-          'Keep every memory from ${group.name}',
-          style: context.text.headlineMedium,
-        ),
+        Text(title, style: context.text.headlineMedium),
         const SizedBox(height: CloserSpacing.xs),
-        Text(
-          'Basic lets you share the moment. Keeploom Memories lets you keep the '
-          'story.',
-          style: context.text.bodyMedium?.copyWith(fontSize: 14.5),
-        ),
+        Text(lede, style: context.text.bodyMedium?.copyWith(fontSize: 14.5)),
         const SizedBox(height: CloserSpacing.md),
-        _Compare(
-          label: 'Basic, what you have',
-          points: [
-            'The latest ${Group.basicPhotoLimit} photos',
-            'The oldest is replaced when a new one arrives',
-          ],
-        ),
-        const SizedBox(height: CloserSpacing.sm),
+        if (!renewing) ...[
+          _Compare(
+            label: 'Basic, what you have',
+            points: [
+              'The latest ${Group.basicPhotoLimit} photos',
+              'The oldest is replaced when a new one arrives',
+            ],
+          ),
+          const SizedBox(height: CloserSpacing.sm),
+        ],
         const _Compare(
           label: 'Keeploom Memories',
           highlight: true,
           points: [
             'Every photo, kept for the whole group',
             'Pin favourites to the top',
-            'One purchase: everyone in the group gets it',
+            'One yearly pass: everyone in the group gets it',
           ],
         ),
         const SizedBox(height: CloserSpacing.md),
@@ -151,9 +171,11 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
           const SizedBox(height: CloserSpacing.md),
         ],
         CloserButton(
-          label: product.value == null
-              ? 'Upgrade ${group.name}'
-              : 'Upgrade for ${product.value!.priceLabel}',
+          label: price != null
+              ? '${renewing ? 'Renew' : 'Upgrade'} for $price / year'
+              : renewing
+              ? 'Renew ${group.name}'
+              : 'Upgrade ${group.name}',
           isLoading: _buying,
           onPressed: service.unavailableReason == null
               ? () => _buy(group)
@@ -168,9 +190,10 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
         ),
         const SizedBox(height: CloserSpacing.md),
         Text(
-          'One-time purchase for this group only. Other groups stay as they '
-          'are. If a purchase is refunded, the group keeps its photos for '
-          '30 days before Basic limits apply again.',
+          'A pass lasts one year for this group and doesn’t renew on its '
+          'own — we remind you before it ends, and anyone in the group can '
+          'renew. If it ends, the group keeps every photo for '
+          '${Group.premiumGraceDays} more days. Other groups stay as they are.',
           style: context.text.bodySmall,
         ),
       ],
