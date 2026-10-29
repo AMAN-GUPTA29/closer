@@ -9,11 +9,38 @@ button is disabled with an explanation and no purchase is ever simulated.
 
 | Plan | What it is | Photos |
 |---|---|---|
-| Closer Basic | Pricing hypothesis: $2 one-time | Each group keeps its latest **10** active photos |
-| Closer Memories | Pricing hypothesis: +$10 one-time **per group** | The group keeps every photo; pinning |
+| Basic | **Free** (owner decision 2026-10-20: the app itself is free) | Each group keeps its latest **10** active photos |
+| Keeploom Memories | **Yearly pass per group: $5 / year, ₹449 / year in India** (owner decision 2026-10-20) | The group keeps every photo; pinning |
 
-Prices are shown from the store at runtime (`StoreProduct.priceLabel`), never hard-coded.
-Product id is configurable: `--dart-define=MEMORIES_PRODUCT_ID=...` (default `closer_memories_group`).
+Prices are set in the stores and shown from the store at runtime (`StoreProduct.priceLabel`),
+never hard-coded. Product id is configurable: `--dart-define=MEMORIES_PRODUCT_ID=...`
+(default `keeploom_memories_year`; the Edge Functions read the same secret).
+
+## Yearly pass (since 2026-10-20, migration `20261020000008_yearly_memories.sql`)
+
+Store subscriptions belong to one store account, and an account can hold only one active copy
+of a subscription, so an auto-renewing subscription cannot be bought once per group. The pass
+is therefore sold as a **repeatable one-year product**:
+
+- **Apple:** a *non-renewing subscription* (`keeploom_memories_year`). Apple allows buying it
+  again at any time; it does not auto-renew.
+- **Google Play:** a one-time *consumable* product with the same id, consumed after the grant.
+- RevenueCat reports both as non-subscription purchases (`NON_RENEWING_PURCHASE`), so the
+  verify/webhook pipeline below is unchanged.
+
+Server rules (all tested in `supabase/tests/database/011_yearly_memories.test.sql`):
+- Each verified purchase adds **one year** to the group's pass (`group_entitlements.expires_at`,
+  `premium_period()`). Buying again before it ends extends it from the current end date.
+- When the pass ends, the group stays Premium for **30 days** (`premium_grace_days()`) so anyone
+  in it can renew. Nothing is deleted. After that, Basic retention applies on the next upload.
+- A refund takes back the year that purchase added; if no paid time is left, the refund grace
+  applies (see below).
+- Entitlements granted before the migration keep `expires_at = null` (permanent).
+- `group_summaries.premium_expires_at` lets the app show "Memories until …", a renew prompt in
+  the last 30 days, and "ended on … · renew by …" during the grace period.
+
+Renewal reminder push notifications (before the pass ends) are a follow-up (ISSUES E13); the
+app already shows the renew prompt in the group's Details tab and on the upgrade screen.
 
 ## Billing decision (researched 2026-10-14)
 
@@ -29,12 +56,11 @@ Product id is configurable: `--dart-define=MEMORIES_PRODUCT_ID=...` (default `cl
 - **Restore:** stores don't restore consumables, but entitlements live on the server and
   belong to the group, so reinstalling or signing in on a new device restores access
   automatically. "Restore purchases" re-syncs any transactions the server hasn't seen.
-- **Basic $2:** still an open decision (ISSUES D1). A paid app needs no code; a non-consumable
-  unlock would add a second product. Phase 5 implements only Closer Memories.
+- **Basic:** free (ISSUES D1 resolved 2026-10-20). Keeploom Memories is the only charge.
 
 ## Store integration (Phase 5)
 
-Product: one consumable, `closer_memories_group` (override with `MEMORIES_PRODUCT_ID`), sold
+Product: one repeatable yearly pass, `keeploom_memories_year` (override with `MEMORIES_PRODUCT_ID`), sold
 through RevenueCat (`purchases_flutter`). The app's public SDK keys come from dart-defines
 `REVENUECAT_ANDROID_KEY` / `REVENUECAT_IOS_KEY`. Without them the purchase buttons stay
 disabled, with the label "Purchases aren't available in this build yet". Nothing is ever simulated.
@@ -86,7 +112,8 @@ Apple developer forums on consumables (https://developer.apple.com/forums/thread
 - `grant_group_entitlement(group, user, store, product, transaction)` — **service role only**.
   The purchaser must be a member. Idempotent: the same transaction returns `already_granted`;
   a transaction cannot unlock a second group.
-- `is_group_premium(group)` = active entitlement, or revoked but still inside the grace period.
+- `is_group_premium(group)` = active pass (or ended less than 30 days ago), or revoked but
+  still inside the refund grace period.
   All retention decisions read this; there is no client-writable Premium flag (tested).
 - Premium belongs to the group: every member, including people who join later, gets it; other
   groups are unaffected (tested).
