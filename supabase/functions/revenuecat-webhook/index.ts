@@ -9,7 +9,7 @@ const url = Deno.env.get("SUPABASE_URL");
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const expectedAuth = Deno.env.get("REVENUECAT_WEBHOOK_AUTH");
 const productId = Deno.env.get("MEMORIES_PRODUCT_ID") ??
-  "closer_memories_group";
+  "keeploom_memories_year";
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") {

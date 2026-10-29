@@ -9,12 +9,13 @@ import 'revenuecat_purchase_service.dart';
 /// Store product identifiers. Prices come from the store at runtime, never
 /// from code. Override with --dart-define for other environments.
 abstract final class ProductIds {
-  /// Repeatable ("consumable") store product: one purchase unlocks Keeploom
-  /// Memories for one group. See docs/purchases-and-retention.md for why it
-  /// is not a non-consumable.
+  /// Yearly pass for one group: an Apple non-renewing subscription and a
+  /// repeatable Google Play product. Each purchase adds a year of Keeploom
+  /// Memories to one group ($5, ₹449 in India; prices live in the stores).
+  /// See docs/purchases-and-retention.md.
   static const memoriesGroup = String.fromEnvironment(
     'MEMORIES_PRODUCT_ID',
-    defaultValue: 'closer_memories_group',
+    defaultValue: 'keeploom_memories_year',
   );
 }
 

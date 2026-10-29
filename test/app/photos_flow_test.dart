@@ -195,7 +195,44 @@ void main() {
     await tester.tap(find.text('Details'));
     await tester.pumpAndSettle();
     expect(find.text('Every photo'), findsOneWidget);
+    expect(find.text('Memories until'), findsOneWidget);
     expect(find.text('See Keeploom Memories'), findsNothing);
+    expect(find.text('Renew Keeploom Memories'), findsNothing);
+  });
+
+  testWidgets('a yearly pass that ends soon asks for a renewal', (
+    tester,
+  ) async {
+    repo.grantPremium(
+      groupId,
+      until: DateTime.now().add(const Duration(days: 10)),
+    );
+    await pump(tester);
+    await openGroup(tester);
+    await tester.tap(find.text('Details'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Your pass ends on'), findsOneWidget);
+    await tapButton(tester, 'Renew Keeploom Memories');
+    expect(find.byType(UpgradeScreen), findsOneWidget);
+    expect(find.textContaining('Keeploom Memories ends on'), findsOneWidget);
+  });
+
+  testWidgets('a lapsed pass keeps every photo during the grace period', (
+    tester,
+  ) async {
+    repo.grantPremium(
+      groupId,
+      until: DateTime.now().subtract(const Duration(days: 5)),
+    );
+    await pump(tester);
+    await openGroup(tester);
+    await tester.tap(find.text('Details'));
+    await tester.pumpAndSettle();
+    expect(find.text('Every photo'), findsOneWidget);
+    expect(find.text('Memories ended'), findsOneWidget);
+    await tapButton(tester, 'Renew Keeploom Memories');
+    expect(find.textContaining('Keeploom Memories ended on'), findsOneWidget);
+    expect(find.textContaining('keeps every photo until'), findsOneWidget);
   });
 
   testWidgets('the + button shares into a chosen group', (tester) async {
