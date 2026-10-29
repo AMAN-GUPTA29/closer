@@ -33,7 +33,7 @@ dependencies:
   connectivity_plus: ^7.3.2
   exif: ^3.3.0
   firebase_core: ^4.15.0
-  firebase_messaging: ^16.7.0
+  firebase_messaging: ^16.7.1
   flutter:
     sdk: flutter
   flutter_image_compress: ^2.5.1
