@@ -32,13 +32,13 @@ _Last updated: 2026-10-15 (backend live). Release order: docs/release-readiness.
 
 | # | Item | Details | Status |
 |---|---|---|---|
-| B1 | Apply migrations | `npx supabase@2.120.0 db push` (4 migrations so far) | ✅ 2026-10-15 (5 migrations applied) |
+| B1 | Apply migrations | `npx supabase@2.120.0 db push` (4 migrations so far) | ✅ 2026-10-15 (5 migrations); 2026-10-30 verified all 8 applied on the hosted project (`migration list --linked`) |
 | B2 | Deploy Edge Functions | `npx supabase@2.120.0 functions deploy` for `cleanup-storage`, `delete-account`, `dispatch-push`, `verify-purchase`, and `revenuecat-webhook --no-verify-jwt` | ✅ 2026-10-15 (all 5 deployed; cleanup/dispatch/webhook without gateway JWT check) |
 | B3 | Schedule cleanup every 10 min | Enable `pg_cron` + `pg_net`, then the SQL in `docs/purchases-and-retention.md` | ✅ 2026-10-15 (`closer-storage-cleanup` every 10 min; test call 200) |
 | B5 | Schedule push dispatch (every minute) + milestone reminders (daily) | SQL in `docs/notifications.md` (`pg_cron` + `pg_net`, Vault secret) | ✅ 2026-10-17 (push dispatch every minute + daily reminders) |
 | B6 | Enable Realtime for the app tables | The migration adds them to `supabase_realtime`; check Dashboard → Database → Publications after `db push` | ✅ 2026-10-15 (photos, milestones, notifications, group_members in `supabase_realtime`) |
 | B7 | Review Supabase Auth settings | Dashboard → Authentication: keep email confirmation on, enable leaked-password protection, check rate limits and the minimum password length (8), set the site URL | 🟡 |
-| B8 | Apply the yearly-pass migration and redeploy purchase functions | After merging `launch/yearly-memories`: `npx supabase@2.120.0 db push` (migration 8), then `functions deploy verify-purchase` and `functions deploy revenuecat-webhook --no-verify-jwt` (new default product id) | 🟡 👤 |
+| B8 | Apply the yearly-pass migration and redeploy purchase functions | After merging `launch/yearly-memories`: `npx supabase@2.120.0 db push` (migration 8), then `functions deploy verify-purchase` and `functions deploy revenuecat-webhook --no-verify-jwt` (new default product id) | ✅ 2026-10-30 (migration 8 already live; `verify-purchase` and `revenuecat-webhook` redeployed from `main`; no `MEMORIES_PRODUCT_ID` override set, so `keeploom_memories_year` is used) |
 | B4 | Verify live flows once connected | Sign-up + email confirm, create/join group, upload photo, retention on the 11th photo, cleanup deletes files, milestones, notifications, avatar upload, account deletion | 🟡 🤝 |
 
 ## C. Unverified features (built and tested in code, not yet proven in the real world)
@@ -83,6 +83,7 @@ _Last updated: 2026-10-15 (backend live). Release order: docs/release-readiness.
 |---|---|---|---|
 | E1 | Byte-level upload progress (currently step-based) | Later / optional | 🟡 |
 | E11 | Old remote branches `phase-1..4/*` (already merged via PR #5): delete? | Owner decision 👤 | 🟡 |
+| E14 | Dependabot #17: firebase_core 5 / firebase_messaging major update deprecates `getToken`, `onTokenRefresh`, `deleteToken` (use `register()` / `onRegistered` / `unregister()`). Migrate `push_service.dart`, then re-check push on a real phone | After launch-critical work; needs a device test | 🟡 |
 | E13 | Push reminder before a yearly pass ends (e.g. 14 days and 1 day before) and when the grace period is about to end | Before launch, after A9 | 🟡 |
 | E12 | Android emulator `Pixel_8_API_34` is almost full (~0.9 GB free); full debug APK no longer installs, so use `--split-per-abi` | Any time | 🟡 |
 
