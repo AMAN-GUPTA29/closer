@@ -31,7 +31,7 @@ class AppConfig {
   }
 
   /// Custom-scheme callback registered in AndroidManifest.xml and Info.plist.
-  static const defaultAuthRedirectUrl = 'com.closerapp.closer://auth-callback';
+  static const defaultAuthRedirectUrl = 'com.keeploom.app://auth-callback';
 
   final String supabaseUrl;
   final String supabaseAnonKey;

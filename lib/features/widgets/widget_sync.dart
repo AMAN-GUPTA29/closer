@@ -11,7 +11,7 @@ import '../../core/utils/dates.dart';
 import '../groups/domain/group_models.dart';
 
 /// App Group shared by the iOS app and its widget extension.
-const iosAppGroupId = 'group.com.closerapp.closer';
+const iosAppGroupId = 'group.com.keeploom.app';
 
 /// Keys shared with the native widgets (Android `CloserWidgetProvider`,
 /// iOS `CloserWidget`). Keep in sync with docs/widget-implementation.md.
@@ -92,7 +92,7 @@ abstract interface class WidgetPlatform {
 class HomeWidgetPlatform implements WidgetPlatform {
   HomeWidgetPlatform();
 
-  static const _channel = MethodChannel('com.closerapp.closer/widgets');
+  static const _channel = MethodChannel('com.keeploom.app/widgets');
   bool _initialised = false;
 
   Future<void> _init() async {
@@ -154,8 +154,7 @@ class HomeWidgetPlatform implements WidgetPlatform {
         // Keeploom widgets through home_widget's broadcast instead.
         await _init();
         await HomeWidget.updateWidget(
-          qualifiedAndroidName:
-              'com.closerapp.closer.widget.CloserWidgetProvider',
+          qualifiedAndroidName: 'com.keeploom.app.widget.CloserWidgetProvider',
         );
       }
     } else if (Platform.isIOS) {

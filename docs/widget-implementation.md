@@ -14,7 +14,7 @@ widget never changes another.
 ```
 Flutter (WidgetSync)  ──home_widget──▶  shared storage  ◀── native widget reads
    myGroupsProvider changes                 Android: SharedPreferences "HomeWidgetPreferences"
-   realtime / push / resume                 iOS:     App Group group.com.closerapp.closer
+   realtime / push / resume                 iOS:     App Group group.com.keeploom.app
 ```
 
 | Key | Value |
@@ -38,7 +38,7 @@ iOS App Group container `widgets/<id>.jpg`). They contain no captions.
 
 - `CloserWidgetProvider`, an `AppWidgetProvider`, has four states: signed out, not configured
   ("Tap to choose a group"), unavailable, and group. Bitmaps are downsampled before going into the
-  `RemoteViews`. Tapping a configured widget opens `com.closerapp.closer://group/<id>`.
+  `RemoteViews`. Tapping a configured widget opens `com.keeploom.app://group/<id>`.
 - `CloserWidgetConfigureActivity` is the group picker. The choice is saved per `appWidgetId` in
   the prefs file `closer_widget_config`. The widget is reconfigurable, and the configure activity
   also opens when the user taps an unconfigured widget (pinned widgets skip the configure step on
@@ -55,11 +55,11 @@ iOS App Group container `widgets/<id>.jpg`). They contain no captions.
 - `ios/CloserWidget/CloserWidget.swift`: an `AppIntentConfiguration` (iOS 17) whose
   `SelectGroupIntent` offers the groups from `closer.groups`. It provides a timeline, a snapshot
   and a placeholder, and reads snapshots and covers from the App Group.
-- `widgetURL` opens the same `com.closerapp.closer://group/<id>` link.
+- `widgetURL` opens the same `com.keeploom.app://group/<id>` link.
 - The app reloads timelines with `HomeWidget.updateWidget(iOSName: 'CloserWidget')`.
 - The extension target is added by `ios/scripts/add_widget_extension.rb` (xcodeproj gem,
   idempotent). CI runs it before `flutter build ios --debug --no-codesign`.
-- Signing needs the App Group `group.com.closerapp.closer` on both the app and extension identifiers
+- Signing needs the App Group `group.com.keeploom.app` on both the app and extension identifiers
   (ISSUES A13).
 
 ## Background refresh

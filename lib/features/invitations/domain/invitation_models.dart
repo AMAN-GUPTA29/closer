@@ -181,7 +181,7 @@ class RedeemResult {
 
 /// Invite code and link helpers (pure, unit tested).
 abstract final class InviteCodes {
-  static const scheme = 'com.closerapp.closer';
+  static const scheme = 'com.keeploom.app';
   static const host = 'invite';
   static const codeLength = 8;
 

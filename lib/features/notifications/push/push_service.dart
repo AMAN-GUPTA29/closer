@@ -14,7 +14,7 @@ abstract final class FirebaseConfig {
   static const senderId = String.fromEnvironment('FIREBASE_SENDER_ID');
   static const androidAppId = String.fromEnvironment('FIREBASE_ANDROID_APP_ID');
   static const iosAppId = String.fromEnvironment('FIREBASE_IOS_APP_ID');
-  static const iosBundleId = 'com.closerapp.closer';
+  static const iosBundleId = 'com.keeploom.app';
 
   static String get appId => Platform.isIOS ? iosAppId : androidAppId;
 

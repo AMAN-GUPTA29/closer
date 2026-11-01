@@ -45,7 +45,7 @@ All membership, role and invitation changes go through security-definer function
 - Failed lookups are rate limited (10 per 15 minutes per user) to make code guessing impractical.
 - Preview reveals only the group name, type, member count and couple start date: never photos,
   member names or the group id.
-- Links use the custom scheme `com.closerapp.closer://invite?t=...`. Any app could register the same
+- Links use the custom scheme `com.keeploom.app://invite?t=...`. Any app could register the same
   scheme, so a link is treated as a bearer secret with expiry and limits. Verified https App Links /
   Universal Links need a domain (Phase 6).
 
@@ -128,7 +128,7 @@ Accepted risks / follow-ups (also in ISSUES):
 - ~~Any signed-in user can trigger `dispatch-push`~~ Fixed 2026-10-15: `dispatch-push` only
   accepts the Vault cron secret. `cleanup-storage` accepts the cron secret or a signed-in user;
   it only drains the queue, and leasing makes repeat calls harmless.
-- Custom-scheme links (`com.closerapp.closer://`) could be registered by another app. Invite
+- Custom-scheme links (`com.keeploom.app://`) could be registered by another app. Invite
   tokens are single-use, limited and revocable. Verified https App Links / Universal Links need a
   domain (D4).
 - Supabase Auth settings (rate limits, leaked-password protection, email confirmation) are

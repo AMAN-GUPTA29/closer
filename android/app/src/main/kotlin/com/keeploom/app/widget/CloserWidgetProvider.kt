@@ -1,4 +1,4 @@
-package com.closerapp.closer.widget
+package com.keeploom.app.widget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -11,7 +11,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
-import com.closerapp.closer.R
+import com.keeploom.app.R
 import org.json.JSONObject
 import java.io.File
 
@@ -97,7 +97,7 @@ class CloserWidgetProvider : AppWidgetProvider() {
             )
             val open = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("com.closerapp.closer://group/${s.optString("id")}"),
+                Uri.parse("com.keeploom.app://group/${s.optString("id")}"),
             ).setPackage(context.packageName)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             views.setOnClickPendingIntent(
