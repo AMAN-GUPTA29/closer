@@ -25,8 +25,10 @@ Keeploom (formerly Closer) is a private photo-sharing and shared-journal app for
   Enforce with RLS + trusted server code (Postgres functions / Edge Functions).
 - **Design.** References: `docs/design/Keeploom Brand Identity Board.png` and
   `docs/design/Keeploom App Design Showcase.png` (light + dark). See `docs/design-system.md`.
-- **Identifiers.** The visible name is Keeploom; package/bundle id `com.closerapp.closer`, the URL
-  scheme, App Group and Dart package `closer` are unchanged on purpose (see docs/architecture.md).
+- **Identifiers.** The visible name is Keeploom; package/bundle id and URL scheme are
+  `com.keeploom.app`, App Group `group.com.keeploom.app` (changed 2026-11-01, before the first
+  store release). The Dart package and internal class names stay `closer` on purpose
+  (see docs/architecture.md).
   Use the tokens and components in `lib/core/theme` and `lib/core/widgets`; no default-looking screens.
 
 ## Commands

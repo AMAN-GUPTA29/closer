@@ -54,7 +54,7 @@ in the database / Edge Functions, never only in Flutter.
   `SignedOut`, `SignedIn(user)`, `PasswordRecovery(user)`, `PreviewSession` (debug-only, no backend).
 - `resolveRedirect(status, path)` is a pure function (unit tested) used by GoRouter's redirect;
   the router refreshes through a `ValueNotifier` fed by the controller.
-- PKCE auth flow. Callback deep link `com.closerapp.closer://auth-callback` registered in
+- PKCE auth flow. Callback deep link `com.keeploom.app://auth-callback` registered in
   `AndroidManifest.xml` and `Info.plist`.
 
 ## Routes
@@ -119,17 +119,17 @@ in the database / Edge Functions, never only in Flutter.
   push start/stop, Supabase Realtime (`RealtimeFeed`), refresh on resume, and widget sync when
   `myGroupsProvider` changes. On sign-out it clears the widgets.
 - `WidgetSync` → `WidgetPlatform` (`home_widget` plus the MethodChannel
-  `com.closerapp.closer/widgets` for refresh/pin). Native code is in
+  `com.keeploom.app/widgets` for refresh/pin). Native code is in
   `android/.../widget/` and `ios/CloserWidget/` (see widget-implementation.md).
 - `PushService` (`FirebasePushService` / `NoopPushService`) and `DeviceRegistry`. A tapped push or
-  widget link `com.closerapp.closer://group/<id>` opens the group through the router.
+  widget link `com.keeploom.app://group/<id>` opens the group through the router.
 - `PurchaseService`: `RevenueCatPurchaseService` (store gateway + server verifier) or
   `UnavailablePurchaseService` when keys or backend are missing.
 - Every external integration sits behind an interface with a fake in `test/helpers/fakes.dart`.
 
 ## Identifiers
 
-- Android `applicationId` / iOS bundle id: `com.closerapp.closer` (placeholder org; change before
+- Android `applicationId` / iOS bundle id: `com.keeploom.app` (placeholder org; change before
   store submission if you own a different domain — also update the deep-link scheme).
 
 ## Decisions log
@@ -155,6 +155,7 @@ in the database / Edge Functions, never only in Flutter.
 | 2026-10-14 | Purchases via RevenueCat; app-initiated server verification (REST API) plus webhook safety net; purchases without a known group stay "unassigned" for the user to apply. |
 | 2026-10-14 | Phase 6: signed Android builds only from a protected GitHub environment; iOS signing + TestFlight on Codemagic; release builds fall back to the debug key only locally. |
 | 2026-10-14 | Phase 6: Android app data excluded from backups/device transfer (session tokens stay on the device). |
-| 2026-10-18 | Rebrand to **Keeploom**: visible name, logo, icons, splash, native labels and copy only. Package/bundle id `com.closerapp.closer`, URL scheme, App Group, Firebase/Supabase config, store product id and the Dart package name stay unchanged, so installed builds, sign-in redirects, push and widgets keep working. |
+| 2026-10-18 | Rebrand to **Keeploom**: visible name, logo, icons, splash, native labels and copy only. Package/bundle id (then `com.closerapp.closer`), URL scheme, App Group, Firebase/Supabase config, store product id and the Dart package name stay unchanged, so installed builds, sign-in redirects, push and widgets keep working. |
+| 2026-11-01 | App id changed to **`com.keeploom.app`** before the first store release (owner decision): Android applicationId/namespace and Kotlin package, iOS bundle ids (`com.keeploom.app`, `.CloserWidget`, `.RunnerTests`), URL scheme `com.keeploom.app://` (auth callback, invites, widget/notification taps), App Group `group.com.keeploom.app`, widget method channel. Needs a new Firebase app registration and the new redirect URL in Supabase Auth. Dart package and class names stay `closer`. |
 | 2026-10-18 | Appearance: Light/Dark/System via Riverpod + shared_preferences, read before first frame. |
 | 2026-10-14 | Account deletion keeps photos/milestones a user shared with others (uploader becomes anonymous) rather than deleting other people's memories. |

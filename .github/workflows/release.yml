@@ -4,7 +4,7 @@
 # Secrets (repo Settings → Secrets → Actions; ideally in the "release" environment):
 #   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
 # Variables (client-safe): SUPABASE_URL, SUPABASE_ANON_KEY, FIREBASE_*, REVENUECAT_*,
-#   PRIVACY_POLICY_URL, TERMS_URL, SUPPORT_EMAIL
+#   SUPPORT_EMAIL, GOOGLE_AUTH_ENABLED
 # iOS release builds run on Codemagic (codemagic.yaml).
 name: Release
 
@@ -72,14 +72,13 @@ jobs:
           FIREBASE_SENDER_ID: ${{ vars.FIREBASE_SENDER_ID }}
           FIREBASE_ANDROID_APP_ID: ${{ vars.FIREBASE_ANDROID_APP_ID }}
           REVENUECAT_ANDROID_KEY: ${{ vars.REVENUECAT_ANDROID_KEY }}
-          PRIVACY_POLICY_URL: ${{ vars.PRIVACY_POLICY_URL }}
-          TERMS_URL: ${{ vars.TERMS_URL }}
           SUPPORT_EMAIL: ${{ vars.SUPPORT_EMAIL }}
+          GOOGLE_AUTH_ENABLED: ${{ vars.GOOGLE_AUTH_ENABLED }}
         run: |
           {
             for k in SUPABASE_URL SUPABASE_ANON_KEY FIREBASE_API_KEY FIREBASE_PROJECT_ID \
                      FIREBASE_SENDER_ID FIREBASE_ANDROID_APP_ID REVENUECAT_ANDROID_KEY \
-                     PRIVACY_POLICY_URL TERMS_URL SUPPORT_EMAIL; do
+                     SUPPORT_EMAIL GOOGLE_AUTH_ENABLED; do
               echo "$k=${!k}"
             done
           } > "$RUNNER_TEMP/release.env"

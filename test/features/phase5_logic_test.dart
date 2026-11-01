@@ -184,18 +184,15 @@ void main() {
   group('Links and pushes', () {
     test('group links from widgets and notifications', () {
       const id = '5f0c6d2e-1a2b-4c3d-8e9f-0a1b2c3d4e5f';
-      expect(groupIdFromUri(Uri.parse('com.closerapp.closer://group/$id')), id);
+      expect(groupIdFromUri(Uri.parse('com.keeploom.app://group/$id')), id);
       expect(
-        groupIdFromUri(Uri.parse('com.closerapp.closer://group/group-1')),
+        groupIdFromUri(Uri.parse('com.keeploom.app://group/group-1')),
         'group-1',
         reason: 'Preview ids',
       );
+      expect(groupIdFromUri(Uri.parse('com.keeploom.app://group/a/b')), isNull);
       expect(
-        groupIdFromUri(Uri.parse('com.closerapp.closer://group/a/b')),
-        isNull,
-      );
-      expect(
-        groupIdFromUri(Uri.parse('com.closerapp.closer://group/bad%20id')),
+        groupIdFromUri(Uri.parse('com.keeploom.app://group/bad%20id')),
         isNull,
       );
       expect(

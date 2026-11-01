@@ -123,14 +123,14 @@ void main() {
 
     test('links carry only the token', () {
       final link = InviteCodes.linkFor('tok-_123');
-      expect(link.toString(), 'com.closerapp.closer://invite?t=tok-_123');
+      expect(link.toString(), 'com.keeploom.app://invite?t=tok-_123');
       expect(inviteSecretFromUri(link), 'tok-_123');
     });
 
     test('extracts secrets from pasted messages', () {
       const message =
           'Join "Us" on Keeploom.\nInvite code: ABCD-EF23\n'
-          'Or open: com.closerapp.closer://invite?t=Zx9_-token';
+          'Or open: com.keeploom.app://invite?t=Zx9_-token';
       expect(InviteCodes.extractSecret(message), 'Zx9_-token');
       expect(InviteCodes.extractSecret('abcd-ef23'), 'ABCDEF23');
       expect(InviteCodes.extractSecret('hello world'), isNull);
@@ -140,7 +140,7 @@ void main() {
     test('other app links are ignored', () {
       expect(
         inviteSecretFromUri(
-          Uri.parse('com.closerapp.closer://auth-callback?code=x'),
+          Uri.parse('com.keeploom.app://auth-callback?code=x'),
         ),
         isNull,
       );
@@ -150,7 +150,7 @@ void main() {
       );
       expect(
         inviteSecretFromUri(
-          Uri.parse('com.closerapp.closer://invite?code=abcd-ef23'),
+          Uri.parse('com.keeploom.app://invite?code=abcd-ef23'),
         ),
         'ABCDEF23',
       );
@@ -164,7 +164,7 @@ void main() {
       );
       final text = InviteCodes.shareMessage(groupName: 'Us', invitation: inv);
       expect(text, contains('ABCD-EF23'));
-      expect(text, contains('com.closerapp.closer://invite?t=tok'));
+      expect(text, contains('com.keeploom.app://invite?t=tok'));
     });
   });
 

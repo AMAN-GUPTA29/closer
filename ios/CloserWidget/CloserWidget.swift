@@ -2,7 +2,7 @@
 //
 // Each widget instance is configured with one group through "Edit Widget";
 // instances are independent. Data is written by the Flutter app (home_widget)
-// into the shared App Group "group.com.closerapp.closer":
+// into the shared App Group "group.com.keeploom.app":
 //   closer.groups          JSON [{id, name, type}]            – group picker
 //   closer.signedIn        "true" | "false"
 //   closer.group.<id>      JSON {id, name, type, subtitle, updatedAt, imagePath}
@@ -12,7 +12,7 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
-private let appGroup = "group.com.closerapp.closer"
+private let appGroup = "group.com.keeploom.app"
 
 struct GroupIndexItem: Decodable {
     let id: String
@@ -157,7 +157,7 @@ struct CloserWidgetView: View {
                     sunset
                 }
             }
-            .widgetURL(URL(string: "com.closerapp.closer://group/\(snap.id)"))
+            .widgetURL(URL(string: "com.keeploom.app://group/\(snap.id)"))
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(snap.name), \(snap.subtitle)")
         }
