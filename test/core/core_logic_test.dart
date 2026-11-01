@@ -50,14 +50,10 @@ void main() {
         supabaseAnonKey: 'k',
         googleAuthEnabled: false,
         appleAuthEnabled: false,
-        privacyPolicyUrl: 'http://insecure.example.com',
-        termsUrl: 'https://closer.example.com/terms',
         supportEmail: '',
         authRedirectUrl: AppConfig.defaultAuthRedirectUrl,
       );
       expect(badUrl.isSupabaseConfigured, isFalse);
-      expect(badUrl.hasPrivacyPolicy, isFalse, reason: 'https only');
-      expect(badUrl.hasTerms, isTrue);
     });
 
     test('fromEnvironment defaults to unconfigured', () {

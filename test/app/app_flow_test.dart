@@ -196,14 +196,19 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('legal summary opens from the auth footer', (tester) async {
+  testWidgets('the privacy policy opens from the auth footer', (tester) async {
     await pumpCloserApp(tester, repository: repo, groups: memoryGroups());
     await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Privacy Policy'));
     await tester.tap(find.text('Privacy Policy'));
     await tester.pumpAndSettle();
+    expect(find.text('Privacy policy'), findsOneWidget);
     expect(find.text('In short'), findsOneWidget);
-    expect(find.textContaining('draft summary'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.textContaining('Contact details will be added'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
   });
 }

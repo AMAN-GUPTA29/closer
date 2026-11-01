@@ -84,6 +84,7 @@ flutter:
 
   assets:
     - assets/brand/
+    - assets/legal/
     - assets/onboarding/
 
   fonts:

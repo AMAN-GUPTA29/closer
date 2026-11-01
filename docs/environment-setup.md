@@ -20,7 +20,7 @@ See [`.env.example`](../.env.example).
 | `SUPABASE_URL` | for sign-in | `https://<ref>.supabase.co` |
 | `SUPABASE_ANON_KEY` | for sign-in | publishable/anon key (client-safe) |
 | `GOOGLE_AUTH_ENABLED` / `APPLE_AUTH_ENABLED` | no | `true` only after enabling the provider in Supabase |
-| `PRIVACY_POLICY_URL` / `TERMS_URL` | before release | https only; otherwise in-app draft summaries are shown |
+| `SUPPORT_EMAIL` | before release | Contact on the in-app Help, Privacy and Terms pages (the same text is on the website, see docs/website.md) |
 | `SUPPORT_EMAIL` | no | enables Profile → Help & support |
 | `AUTH_REDIRECT_URL` | no | default `com.keeploom.app://auth-callback` |
 | `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_SENDER_ID`, `FIREBASE_ANDROID_APP_ID`, `FIREBASE_IOS_APP_ID` | for push | Firebase client config; empty → push off (see notifications.md) |

@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/errors/app_failure.dart';
 import '../../../core/routing/routes.dart';
@@ -43,7 +42,6 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final status = ref.watch(authControllerProvider);
-    final config = ref.watch(appConfigProvider);
     final user = switch (status) {
       SignedIn(:final user) => user,
       PreviewSession() => PreviewSession.user,
@@ -53,7 +51,6 @@ class ProfileScreen extends ConsumerWidget {
     final profile = ref.watch(myProfileProvider).value;
     final displayName =
         profile?.displayName ?? user?.displayName ?? user?.friendlyName ?? '';
-    final support = config.supportEmail;
     final pushOn = ref.watch(notificationPreferencesProvider).value?.push;
     final premium = (ref.watch(myGroupsProvider).value ?? const [])
         .where((g) => g.isPremium)
@@ -156,10 +153,7 @@ class ProfileScreen extends ConsumerWidget {
               _Tile(
                 icon: CloserIcons.help,
                 label: 'Help & support',
-                trailing: support.isEmpty ? 'Not set up' : null,
-                onTap: support.isEmpty
-                    ? null
-                    : () => launchUrl(Uri(scheme: 'mailto', path: support)),
+                onTap: () => context.push('${Routes.legal}/support'),
               ),
               _Tile(
                 icon: CloserIcons.privacy,
@@ -242,7 +236,6 @@ class _Tile extends StatelessWidget {
     required this.label,
     this.onTap,
     this.color,
-    this.trailing,
     this.value,
   });
 
@@ -250,8 +243,6 @@ class _Tile extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
   final Color? color;
-
-  final String? trailing;
 
   /// Current setting shown on the right, e.g. "On".
   final String? value;
@@ -261,7 +252,6 @@ class _Tile extends StatelessWidget {
     final c = context.closerColors;
     final enabled = onTap != null;
     final fg = color ?? c.textPrimary;
-    final tag = trailing;
     return ListTile(
       enabled: enabled,
       onTap: enabled ? onTap : null,
@@ -274,21 +264,6 @@ class _Tile extends StatelessWidget {
       ),
       trailing: value != null
           ? Text(value!, style: context.text.bodyMedium)
-          : tag != null
-          ? Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: CloserSpacing.sm,
-                vertical: CloserSpacing.xxs,
-              ),
-              decoration: BoxDecoration(
-                color: c.accentSoft,
-                borderRadius: CloserRadii.pillAll,
-              ),
-              child: Text(
-                tag,
-                style: context.text.labelMedium?.copyWith(color: c.textPrimary),
-              ),
-            )
           : (enabled && color == null
                 ? Icon(
                     CloserIcons.chevronRight,

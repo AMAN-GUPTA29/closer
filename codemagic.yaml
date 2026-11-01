@@ -9,7 +9,7 @@
 #   3. Group "closer_client" (client-safe build config):
 #        SUPABASE_URL, SUPABASE_ANON_KEY, FIREBASE_API_KEY, FIREBASE_PROJECT_ID,
 #        FIREBASE_SENDER_ID, FIREBASE_IOS_APP_ID, REVENUECAT_IOS_KEY,
-#        PRIVACY_POLICY_URL, TERMS_URL, SUPPORT_EMAIL, APP_STORE_APPLE_ID
+#        SUPPORT_EMAIL, APP_STORE_APPLE_ID
 #   4. Apple identifiers com.keeploom.app and com.keeploom.app.CloserWidget with the
 #      App Group group.com.keeploom.app (+ Push Notifications on the app).
 workflows:
@@ -55,7 +55,7 @@ workflows:
         script: |
           for k in SUPABASE_URL SUPABASE_ANON_KEY FIREBASE_API_KEY FIREBASE_PROJECT_ID \
                    FIREBASE_SENDER_ID FIREBASE_IOS_APP_ID REVENUECAT_IOS_KEY \
-                   PRIVACY_POLICY_URL TERMS_URL SUPPORT_EMAIL; do
+                   SUPPORT_EMAIL; do
             echo "$k=${!k}"
           done > "$CM_BUILD_DIR/release.env"
           test -n "$SUPABASE_URL" || { echo "SUPABASE_URL is not set"; exit 1; }

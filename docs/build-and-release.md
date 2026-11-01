@@ -52,7 +52,7 @@ Add these secrets there:
 `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
 `ANDROID_KEY_PASSWORD`. The client config goes in repository **variables** (see
 `.env.example`): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `FIREBASE_*`, `REVENUECAT_ANDROID_KEY`,
-`PRIVACY_POLICY_URL`, `TERMS_URL`, `SUPPORT_EMAIL`.
+`SUPPORT_EMAIL`.
 
 **Build:** Actions → **Release** → *Run workflow*, or push a tag `v1.0.0`. The workflow:
 - fails early without the keystore or `SUPABASE_URL`;

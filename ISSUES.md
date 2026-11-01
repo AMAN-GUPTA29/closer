@@ -22,9 +22,11 @@ _Last updated: 2026-10-15 (backend live). Release order: docs/release-readiness.
 | A7 | Google / Apple sign-in credentials | Social sign-in buttons | Enable providers in Supabase Auth (Google OAuth client; Apple Services ID + key), then build with `GOOGLE_AUTH_ENABLED=true` / `APPLE_AUTH_ENABLED=true` | 🟡 |
 | A8 | Apple Developer + Google Play Console accounts | Store products, sandbox purchases, iOS builds, TestFlight | Owner signs up (paid accounts) | 🟡 (needed by Phase 5/6) |
 | A9 | RevenueCat project + store product **`keeploom_memories_year`** (Apple: *non-renewing subscription*; Google Play: one-time consumable product), $5 / year, ₹449 in India | Real purchases | Create the product in Play Console + App Store Connect and in RevenueCat. Public SDK keys → dart-defines `REVENUECAT_ANDROID_KEY` / `REVENUECAT_IOS_KEY`; server secrets `REVENUECAT_SECRET_KEY`, `REVENUECAT_WEBHOOK_AUTH` | 🔴 purchases (product changed 2026-10-20 from the old `closer_memories_group` consumable) |
-| A10 | Firebase project (FCM) | Push notifications | Add Android app `com.closerapp.closer` and iOS app. Client values → dart-defines `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_SENDER_ID`, `FIREBASE_ANDROID_APP_ID`, `FIREBASE_IOS_APP_ID` (repo variables; no config files are committed). A service-account JSON with the FCM role → Supabase secret `FCM_SERVICE_ACCOUNT` | ✅ 2026-10-17 (Firebase project `closer-b94f1`; client config in `.env` + GitHub variables; `FCM_SERVICE_ACCOUNT` set from a local git-ignored file) |
+| A10 | Firebase project (FCM) | Push notifications | Add Android app and iOS app. Client values → dart-defines `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_SENDER_ID`, `FIREBASE_ANDROID_APP_ID`, `FIREBASE_IOS_APP_ID` (repo variables; no config files are committed). A service-account JSON with the FCM role → Supabase secret `FCM_SERVICE_ACCOUNT` | ✅ 2026-10-17 (Firebase project `closer-b94f1`; client config in `.env` + GitHub variables; `FCM_SERVICE_ACCOUNT` set from a local git-ignored file) — re-register for the new app id, see A15 |
 | A13 | APNs auth key (.p8) uploaded to Firebase | Push on iPhone | Apple Developer → Keys → APNs; upload in Firebase → Cloud Messaging. Never commit the .p8 | 🔴 iOS push |
 | A14 | iOS identifiers with App Group + Push capability | iOS widget data sharing, push | Register `com.closerapp.closer` and `com.closerapp.closer.CloserWidget`, both with App Group `group.com.closerapp.closer`; Push Notifications on the app. Used by Codemagic signing (A11) | 🟡 (Phase 6) |
+| A15 | Firebase apps for the new id `com.keeploom.app` (2026-11-01) | Push notifications (FCM rejects tokens for an unregistered package) | Firebase console → project `closer-b94f1` → Add app: Android `com.keeploom.app` (add the debug and release SHA-1s), iOS `com.keeploom.app`. Put the new app ids in `FIREBASE_ANDROID_APP_ID` / `FIREBASE_IOS_APP_ID` (`.env`, GitHub variables, Codemagic). The old `com.closerapp.closer` apps can be removed afterwards. Server secret `FCM_SERVICE_ACCOUNT` stays the same | 🔴 push until done |
+| A16 | Vercel project for the public pages | Privacy / terms / support / account-deletion URLs for the stores | docs/website.md: import the repo in Vercel (free Hobby plan), set `SUPPORT_EMAIL`, deploy → `https://<name>.vercel.app/privacy` etc. | 🟡 👤 |
 | A11 | Codemagic account + App Store Connect API key | Signed iOS builds / TestFlight (`codemagic.yaml`) | Connect the repo in Codemagic; add the ASC key as integration **"Closer ASC"**; env groups `closer_signing` (`CERTIFICATE_PRIVATE_KEY`) and `closer_client` (client config + `APP_STORE_APPLE_ID`). Never in the repo | 🔴 iOS release |
 | A12 | Android release keystore | Signed AAB/APK (`release.yml`) | Generate with `keytool` on your computer (docs/build-and-release.md). Put `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` in the GitHub **`release` environment** secrets. Back the key up in a password manager; enable Play App Signing | 🔴 Android release |
 
@@ -39,6 +41,7 @@ _Last updated: 2026-10-15 (backend live). Release order: docs/release-readiness.
 | B6 | Enable Realtime for the app tables | The migration adds them to `supabase_realtime`; check Dashboard → Database → Publications after `db push` | ✅ 2026-10-15 (photos, milestones, notifications, group_members in `supabase_realtime`) |
 | B7 | Review Supabase Auth settings | Dashboard → Authentication: keep email confirmation on, enable leaked-password protection, check rate limits and the minimum password length (8), set the site URL | 🟡 |
 | B8 | Apply the yearly-pass migration and redeploy purchase functions | After merging `launch/yearly-memories`: `npx supabase@2.120.0 db push` (migration 8), then `functions deploy verify-purchase` and `functions deploy revenuecat-webhook --no-verify-jwt` (new default product id) | ✅ 2026-10-30 (migration 8 already live; `verify-purchase` and `revenuecat-webhook` redeployed from `main`; no `MEMORIES_PRODUCT_ID` override set, so `keeploom_memories_year` is used) |
+| B9 | Allow the new sign-in redirect | Supabase dashboard → Authentication → URL Configuration → Redirect URLs: add `com.keeploom.app://auth-callback` (keep the old one until no old builds are in use). Without it, email confirmation and password-reset links won't return to the app | 🟡 👤 |
 | B4 | Verify live flows once connected | Sign-up + email confirm, create/join group, upload photo, retention on the 11th photo, cleanup deletes files, milestones, notifications, avatar upload, account deletion | 🟡 🤝 |
 
 ## C. Unverified features (built and tested in code, not yet proven in the real world)
@@ -49,7 +52,7 @@ _Last updated: 2026-10-15 (backend live). Release order: docs/release-readiness.
 | C2 | Invite link `com.closerapp.closer://invite?t=…` opens the app on a phone | Physical device | 🟡 |
 | C3 | Camera/gallery + compression on a **physical** Android phone | Your phone (emulator already OK) | 🟡 |
 | C4 | Anything on iOS at runtime (camera permissions, links); the unsigned build compiles in CI since Phase 5 | Hosted macOS signing (Phase 6), A8 | 🟡 |
-| C5 | Backend tests on the laptop | Docker Desktop did not start; tests run in GitHub Actions only | 🟡 |
+| C5 | Backend tests on the laptop | Docker Desktop did not start; tests run in GitHub Actions only. Owner plans to use Docker locally (2026-11-01): once it runs, `npx supabase@2.120.0 start` + `db test` | 🟡 |
 | C6 | `@claude` GitHub workflow and phone cloud sessions end-to-end | A5, A6 | 🟡 |
 | C7 | Account deletion against a real Supabase Auth project (Edge Function + cascades) | A1–A3, B2 | 🟡 |
 | C8 | Avatar upload and signed URLs on a real project | A1–A3 | 🟡 |
@@ -69,13 +72,13 @@ _Last updated: 2026-10-15 (backend live). Release order: docs/release-readiness.
 | D1 | How to charge the $2 Basic price | Paid app vs one-time unlock | ✅ 2026-10-20: the app is free; Keeploom Memories is the only charge (owner) |
 | D2 | Final prices per region | Configure in the stores; app shows store prices | ✅ 2026-10-20: $5 / year per group, ₹449 / year in India (owner). Set these price points when creating the product (A9) |
 | D3 | Repository visibility | Repo is **public**; consider making it private | 🟡 |
-| D4 | Bundle id / domain | `com.closerapp.closer` is a placeholder; a real domain is also needed for https invite links (App Links / Universal Links) | 🟡 |
-| D5 | Legal documents | In-app privacy/terms are draft summaries; real policy + terms URLs needed before release (`PRIVACY_POLICY_URL`, `TERMS_URL`) | 🟡 |
-| D6 | Support email | `SUPPORT_EMAIL` for Help & support | 🟡 |
+| D4 | Bundle id / domain | Was the placeholder `com.closerapp.closer` | ✅ 2026-11-01: app id is now `com.keeploom.app` (owner). No domain for now (owner): invites keep the `com.keeploom.app://` link plus the invite code; https App Links / Universal Links wait until a domain is bought |
+| D5 | Legal documents | Full privacy policy, terms and help page now in the app (`assets/legal/`) and on the Vercel site (docs/website.md) | 🟡 2026-11-01: written in plain language from how the app actually works; owner to read them, and ideally have them checked by a lawyer, before release |
+| D6 | Support email | Shown on the in-app Help / Privacy / Terms pages and the website; both stores require a contact email. Any mailbox works (no domain needed) → `SUPPORT_EMAIL` in `.env`, GitHub variables, Codemagic and Vercel | 🟡 👤 |
 | D7 | Google/Apple button branding | Monochrome marks used; check provider brand rules before enabling | 🟡 |
 | D8 | Apple review risk: a consumable that unlocks a permanent per-group feature (guideline 3.1.1) | Explain in the App Review notes | ✅ 2026-10-20: now a one-year pass sold as an Apple non-renewing subscription (time-limited, repeatable) — mention it in the review notes |
 | D9 | Store listing content: screenshots, description, Data safety / privacy labels, content rating, demo account for review | Owner fills these in the consoles (checklist in release-readiness.md) | 🟡 |
-| D10 | Keeploom name check: trademark / app-store name availability, and whether to move to a `keeploom` bundle id + domain before the first store listing (changing it later is hard; see D4) | Owner decision 👤 | 🟡 |
+| D10 | Keeploom name check: trademark / app-store name availability | Owner decision 👤 | 🟡 bundle id part done 2026-11-01 (`com.keeploom.app`, see D4); name availability still to check |
 
 ## E. Technical follow-ups (🤖, scheduled)
 
