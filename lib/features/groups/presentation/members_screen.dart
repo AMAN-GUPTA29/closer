@@ -33,7 +33,8 @@ class MembersScreen extends ConsumerWidget {
           : 'Make ${member.displayName} the owner?',
       message: action == _MemberAction.remove
           ? '${member.displayName} will lose access to ${group.name} and its '
-                'photos right away.'
+                'photos right away. Invitations they created stop working, '
+                'and they can’t rejoin unless you invite them again.'
           : 'They will manage invitations and settings. You’ll stay in the '
                 'group as a member.',
       confirmLabel: action == _MemberAction.remove ? 'Remove' : 'Make owner',

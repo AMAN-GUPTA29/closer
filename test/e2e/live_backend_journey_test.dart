@@ -435,6 +435,11 @@ void main() {
       (await ben.groups.myGroups()).map((x) => x.id),
       isNot(contains(friends)),
     );
+    expect(
+      (await ben.groups.redeem(crewInvite.code)).status,
+      InviteStatus.removed,
+      reason: 'a removed member cannot rejoin with an old invitation',
+    );
 
     await cara.groups.deleteGroup(friends);
     expect(await cara.groups.myGroups(), isEmpty);

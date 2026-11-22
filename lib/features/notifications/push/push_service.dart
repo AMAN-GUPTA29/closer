@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 /// Firebase client options from --dart-define (client-safe identifiers, not
@@ -116,6 +117,10 @@ class FirebasePushService implements PushService {
   String? _token;
   bool _started = false;
 
+  /// Set once this phone has a push token, so sign-out deletes it even when
+  /// the app was restarted in between (the token outlives the session).
+  static const _tokenKey = 'keeploom.push.hasToken';
+
   static Future<void> ensureFirebase() async {
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(options: FirebaseConfig.options);
@@ -135,6 +140,7 @@ class FirebasePushService implements PushService {
       final platform = Platform.isIOS ? 'ios' : 'android';
       Future<void> register(String token) async {
         _token = token;
+        await (await SharedPreferences.getInstance()).setBool(_tokenKey, true);
         await _registry.register(token, platform, appVersion);
       }
 
@@ -169,12 +175,24 @@ class FirebasePushService implements PushService {
     _started = false;
     final token = _token;
     _token = null;
-    if (token == null) return;
+    if (token != null) {
+      try {
+        await _registry.unregister(token);
+      } catch (_) {
+        // Already signed out or offline: deleting the token below is enough.
+      }
+    }
+    // Deleting the token makes every push to it fail, and the server then
+    // retires it, so nothing reaches this phone even if unregistering failed.
     try {
-      await _registry.unregister(token);
-      await FirebaseMessaging.instance.deleteToken();
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_tokenKey) ?? false) {
+        await ensureFirebase();
+        await FirebaseMessaging.instance.deleteToken();
+        await prefs.remove(_tokenKey);
+      }
     } catch (_) {
-      // The server also retires tokens that stop working.
+      // Tried again at the next sign-out or signed-out start.
     }
   }
 

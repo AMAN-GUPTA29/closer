@@ -14,6 +14,10 @@ enum InviteStatus {
   exhausted,
   full,
   alreadyInCouple,
+
+  /// The owner removed this person; only a new invitation from the owner
+  /// lets them back.
+  removed,
   rateLimited;
 
   static InviteStatus parse(String? value) => switch (value) {
@@ -25,6 +29,7 @@ enum InviteStatus {
     'exhausted' => InviteStatus.exhausted,
     'full' => InviteStatus.full,
     'already_in_couple' => InviteStatus.alreadyInCouple,
+    'removed' => InviteStatus.removed,
     'rate_limited' => InviteStatus.rateLimited,
     _ => InviteStatus.invalid,
   };
@@ -42,6 +47,8 @@ enum InviteStatus {
       'This couple group already has two people, so it can’t take anyone else.',
     InviteStatus.alreadyInCouple =>
       'You’re already in a couple group. Leave it first to join this one.',
+    InviteStatus.removed =>
+      'You were removed from this group. Only its owner can invite you back.',
     InviteStatus.rateLimited =>
       'Too many attempts. Please wait 15 minutes and try again.',
     _ => null,

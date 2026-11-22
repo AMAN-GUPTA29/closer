@@ -121,6 +121,14 @@ Checked:
   - No cleartext traffic (the default on API 28+).
 - **iOS:** privacy manifests, background push mode for widget refresh only, App Group limited to
   Closer.
+- **Removed members (migration 12, ISSUES E26):** removing someone cancels the invitations they
+  created and records the removal in `group_removals` (no client access). `blocked_by_removal()`
+  makes preview and redeem return `removed` for any invitation made before the removal or made
+  by anyone but the owner; a new invitation from the owner lets them back and clears the bar.
+  Leaving on your own is not a removal.
+- **Push after sign-out (ISSUES E25):** sign-out first unregisters the device while the session is
+  still valid (`SignOutHooks`), then deletes the FCM token, even after a restart, so pushes to it
+  fail and the server retires it.
 - **Storage limits (migration 11, ISSUES E27):** 10 MB per photo file and 2 MB per thumbnail;
   10 unfinished uploads at once, expired after an hour; 300 uploads per account per day; 10
   groups created and 30 groups in total per account; 3 profile-photo files per account, unused ones deleted daily. The

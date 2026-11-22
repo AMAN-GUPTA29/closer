@@ -33,6 +33,9 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
   final _groups = <String, _GroupRow>{};
   final _members = <String, List<_MemberRow>>{};
   final _invites = <String, _InviteRow>{};
+
+  /// (group, user) → when the owner removed them (server: group_removals).
+  final _removals = <(String, String), DateTime>{};
   final _names = <String, String>{};
   final _photos = <String, _PhotoRow>{};
   final _objects = <String, Uint8List>{};
@@ -357,6 +360,11 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
     final before = list.length;
     list.removeWhere((m) => m.userId == userId);
     if (list.length == before) _fail('not_a_member');
+    final now = _clock().add(Duration(microseconds: ++_seq));
+    _removals[(groupId, userId)] = now;
+    for (final i in _invites.values) {
+      if (i.groupId == groupId && i.createdBy == userId) i.revokedAt ??= now;
+    }
     _afterRemoval(groupId);
   }
 
@@ -418,7 +426,7 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
       32,
       (_) => _alphabet[_random.nextInt(_alphabet.length)],
     ).join().toLowerCase();
-    final now = _clock();
+    final now = _clock().add(Duration(microseconds: ++_seq));
     final row = _InviteRow(
       id: _id('invite'),
       groupId: groupId,
@@ -458,6 +466,18 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
     return null;
   }
 
+  /// Server: blocked_by_removal.
+  bool _blockedByRemoval(_InviteRow i) {
+    final removedAt = _removals[(i.groupId, currentUserId)];
+    if (removedAt == null) return false;
+    final byOwner =
+        _members[i.groupId]?.any(
+          (m) => m.userId == i.createdBy && m.role == MemberRole.owner,
+        ) ??
+        false;
+    return !(i.createdAt.isAfter(removedAt) && byOwner);
+  }
+
   InviteStatus _status(_InviteRow i) {
     if (i.revokedAt != null) return InviteStatus.revoked;
     if (i.expiresAt != null && !i.expiresAt!.isAfter(_clock())) {
@@ -476,6 +496,9 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
     if (inv == null) return const InvitePreview(status: InviteStatus.invalid);
     var status = _status(inv);
     if (status != InviteStatus.valid) return InvitePreview(status: status);
+    if (_blockedByRemoval(inv)) {
+      return const InvitePreview(status: InviteStatus.removed);
+    }
     final g = _groups[inv.groupId]!;
     final members = _members[inv.groupId]!;
     final isMember = members.any((m) => m.userId == currentUserId);
@@ -512,6 +535,9 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
     }
     final status = _status(inv);
     if (status != InviteStatus.valid) return RedeemResult(status: status);
+    if (_blockedByRemoval(inv)) {
+      return const RedeemResult(status: InviteStatus.removed);
+    }
     final cap = _groups[inv.groupId]!.type.maxMembers;
     if (cap != null && members.length >= cap) {
       return const RedeemResult(status: InviteStatus.full);
@@ -522,6 +548,7 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
     }
     members.add(_MemberRow(currentUserId, MemberRole.member, _clock()));
     inv.redeemedBy.add(currentUserId);
+    _removals.remove((inv.groupId, currentUserId));
     _groups[inv.groupId]!.lastActivityAt = _clock();
     return RedeemResult(status: InviteStatus.joined, groupId: inv.groupId);
   }

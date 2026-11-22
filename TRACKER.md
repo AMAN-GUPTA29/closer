@@ -265,3 +265,4 @@ _Last updated: 2026-10-14_
 - 2026-11-23 — On `launch/invite-links-copy` ⚠️: privacy text on notifications corrected; the share warning states how many photos will be removed (and now also appears when a share crosses 10); https invite links with a landing page (E19), tap-to-app checked on an Android emulator. 216 Flutter tests pass. Links go live only after the website is deployed and `INVITE_LINK_BASE` is set.
 - 2026-11-23 — E27 storage limits on `launch/storage-limits` ⚠️ (migration 11, pgTAP 014). 217 Flutter tests pass; SQL runs in CI only; not live until merged.
 - 2026-11-23 — E27 storage and group limits (owner: create 10, be in 30) on `launch/storage-limits` ⚠️ (migration 11, pgTAP 014). 217 Flutter tests pass; SQL runs in CI only; not live until merged.
+- 2026-11-23 — E25 and E26 fixed on `launch/signout-rejoin` ⚠️ (migration 12, pgTAP 015, e2e and Flutter tests). 220 Flutter tests pass; SQL runs in CI; not live until merged.
