@@ -6,6 +6,7 @@ import 'package:closer/core/utils/validators.dart';
 import 'package:closer/core/widgets/invite_code_card.dart';
 import 'package:closer/core/widgets/member_avatar.dart';
 import 'package:closer/features/auth/domain/auth_models.dart';
+import 'package:closer/core/errors/backend_errors.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fakes.dart';
@@ -39,6 +40,22 @@ void main() {
       expect(Validators.displayName('x' * 41), isNotNull);
       expect(Validators.displayName('Alex'), isNull);
     });
+  });
+
+  test('storage limits have friendly messages', () {
+    for (final key in [
+      'upload_limit',
+      'too_many_uploads',
+      'upload_too_large',
+      'group_limit',
+      'membership_limit',
+    ]) {
+      expect(
+        backendMessage(key),
+        isNot(backendMessage('not_a_real_key')),
+        reason: key,
+      );
+    }
   });
 
   group('AppConfig', () {

@@ -121,6 +121,12 @@ Checked:
   - No cleartext traffic (the default on API 28+).
 - **iOS:** privacy manifests, background push mode for widget refresh only, App Group limited to
   Closer.
+- **Storage limits (migration 11, ISSUES E27):** 10 MB per photo file and 2 MB per thumbnail;
+  10 unfinished uploads at once, expired after an hour; 300 uploads per account per day; 10
+  groups created and 30 groups in total per account; 3 profile-photo files per account, unused ones deleted daily. The
+  limits are functions (`max_*`) so they change in one place. Daily `check_storage_usage()` logs
+  totals in `storage_usage_log` (`over_alert` above 800 MB); `storage_by_user()` shows who
+  stores the most. Both are service-only.
 - **CI:** SHA-pinned actions, `contents: read` by default. The `@claude` workflow only runs for the
   owner and collaborators (public repo). The release job uses a protected environment.
 - **Logging:** the app never prints user content. Edge Functions log counts, status codes and short
