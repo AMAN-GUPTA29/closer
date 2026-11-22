@@ -68,6 +68,9 @@ select set_config('t.bad_path', storage_path, true),
        set_config('t.bad_thumb', thumb_path, true)
 from public.photos where id = pg_temp.id('bad');
 
+select set_config('t.rahul_notes',
+  (select count(*) from public.notifications where user_id = pg_temp.id('rahul'))::text, true);
+
 -- ---------------------------------------------------------------- who may
 select pg_temp.claims('rahul');
 set local role authenticated;
@@ -129,8 +132,8 @@ select is((select latest_thumb_path from public.group_summaries where id = curre
   current_setting('t.bad_thumb'), 'the uploader still sees it as the cover');
 select ok(not public.has_reported(current_setting('t.bad')::uuid),
   'has_reported only answers for the caller');
-select is((select count(*)::int from public.notifications where actor_id = current_setting('t.riya')::uuid),
-  0, 'the uploader is not notified');
+select is((select count(*)::int from public.notifications where user_id = current_setting('t.rahul')::uuid),
+  current_setting('t.rahul_notes')::int, 'the uploader is not notified');
 select throws_ok($$select * from public.photo_reports$$, '42501', null,
   'members and group owners cannot read reports');
 select throws_ok($$select * from public.photo_report_queue()$$, '42501', null,
