@@ -106,6 +106,28 @@ void main() {
       isPremium: premium,
     );
 
+    test('a group whose pass ended never warns about automatic removal', () {
+      final ended = Group(
+        id: 'g',
+        name: 'Crew',
+        type: GroupType.friends,
+        createdAt: DateTime(2024),
+        lastActivityAt: DateTime(2024),
+        memberCount: 2,
+        myRole: MemberRole.owner,
+        photoCount: 500,
+        passEnded: true,
+      );
+      expect(ended.nextUploadRemovesOldest, isFalse);
+      expect(ended.photosAtRisk, 490);
+      expect(ended.canAdd(1), isFalse);
+      expect(ended.copyWith(photoCount: 10).canAdd(1), isFalse);
+      expect(ended.copyWith(photoCount: 8).canAdd(2), isTrue);
+      expect(ended.copyWith(photoCount: 8).canAdd(3), isFalse);
+      expect(ended.copyWith(name: 'New name').passEnded, isTrue);
+      expect(photoHistoryLabel(ended), 'Pass ended · 500 photos kept');
+    });
+
     test('warns only when a Basic group is full', () {
       expect(g(photos: 9).nextUploadRemovesOldest, isFalse);
       expect(g(photos: 10).nextUploadRemovesOldest, isTrue);

@@ -85,7 +85,8 @@ There is no seed data: users and groups are created through the app.
 
 Photo functions: `request_photo_upload`, `finalize_photo`, `delete_photo`, `set_photo_pinned`
 (signed-in members); `expire_stale_uploads`, `claim_cleanup_jobs`, `complete_cleanup_job`,
-`grant_group_entitlement`, `revoke_group_entitlement` (service role only). Behaviour and the
+`grant_group_entitlement`, `revoke_group_entitlement`, `photo_deletion_queue` (service role
+only); `assert_upload_allowed` (internal). Behaviour and the
 upload protocol are described in `docs/purchases-and-retention.md`.
 
 ## Schema (Phase 4)

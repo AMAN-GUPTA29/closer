@@ -143,6 +143,9 @@ Future<void> openPhotoViewer(
 /// "7 of 10 photos" / "Keeps every photo" line for a group.
 String photoHistoryLabel(Group group) => group.isPremium
     ? 'Keeploom Memories · keeps every photo'
+    : group.passEnded
+    ? 'Pass ended · ${group.photoCount} '
+          '${group.photoCount == 1 ? 'photo' : 'photos'} kept'
     : 'Basic · ${group.photoCount} of ${Group.basicPhotoLimit} photos kept';
 
 /// Small retention notice shown before sharing into a full Basic group.

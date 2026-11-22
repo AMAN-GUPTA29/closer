@@ -108,10 +108,10 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
             ? 'Keeploom Memories is active for everyone in this group, '
                   'including people who join later.'
             : 'Keeploom Memories is active for everyone in this group until '
-                  '${formatLongDate(until)}. We’ll remind you before it ends.',
+                  '${formatLongDate(until)}. The app will warn you before it ends.',
       );
     }
-    final renewing = group.isPremium;
+    final renewing = group.canRenew;
     final price = product.value?.priceLabel;
     final String title;
     final String lede;
@@ -120,12 +120,23 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
       lede =
           'Basic lets you share the moment. Keeploom Memories lets you keep '
           'the story.';
+    } else if (group.passEnded) {
+      title = until == null
+          ? 'Keeploom Memories has ended'
+          : 'Keeploom Memories ended on ${formatDayMonth(until)}';
+      lede = group.photosAtRisk > 0
+          ? 'Renew to protect all ${group.photoCount} photos in '
+                '${group.name}. Photos above ${Group.basicPhotoLimit} may be '
+                'removed, but only after the Keeploom team approves it.'
+          : 'Renew and ${group.name} can keep every photo again, with no '
+                'limit.';
     } else if (group.premiumLapsed) {
       title = 'Keeploom Memories ended on ${formatDayMonth(until!)}';
       lede =
           '${group.name} keeps every photo until '
-          '${formatLongDate(group.premiumGraceEnds!)}. Renew by then, or only '
-          'the latest ${Group.basicPhotoLimit} photos stay.';
+          '${formatLongDate(group.premiumGraceEnds!)}. After that, photos '
+          'above ${Group.basicPhotoLimit} may be removed, but only after the '
+          'Keeploom team approves it.';
     } else {
       title = 'Keeploom Memories ends on ${formatDayMonth(until!)}';
       lede =
@@ -191,9 +202,11 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
         const SizedBox(height: CloserSpacing.md),
         Text(
           'A pass lasts one year for this group and doesn’t renew on its '
-          'own — we remind you before it ends, and anyone in the group can '
-          'renew. If it ends, the group keeps every photo for '
-          '${Group.premiumGraceDays} more days. Other groups stay as they are.',
+          'own — the app warns you before it ends, and anyone in the group '
+          'can renew. If it ends, you have ${Group.premiumGraceDays} days to '
+          'renew. After that, uploads pause at ${Group.basicPhotoLimit} photos, '
+          'and photos above that are removed only if the Keeploom team '
+          'approves it. Other groups stay as they are.',
           style: context.text.bodySmall,
         ),
       ],

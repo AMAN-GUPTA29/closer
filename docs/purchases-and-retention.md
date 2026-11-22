@@ -32,7 +32,7 @@ Server rules (all tested in `supabase/tests/database/011_yearly_memories.test.sq
 - Each verified purchase adds **one year** to the group's pass (`group_entitlements.expires_at`,
   `premium_period()`). Buying again before it ends extends it from the current end date.
 - When the pass ends, the group stays Premium for **30 days** (`premium_grace_days()`) so anyone
-  in it can renew. Nothing is deleted. After that, Basic retention applies on the next upload.
+  in it can renew. After that, nothing is deleted automatically (see "After a pass ends").
 - A refund takes back the year that purchase added; if no paid time is left, the refund grace
   applies (see below).
 - Entitlements granted before the migration keep `expires_at = null` (permanent).
@@ -123,9 +123,22 @@ Apple developer forums on consumables (https://developer.apple.com/forums/thread
 `revoke_group_entitlement(store, transaction)` (service role, idempotent):
 1. Marks the purchase `refunded` and the entitlement `revoked` with `grace_until = now + 30 days`.
 2. **No photos are deleted at revocation.** During the 30 days the group behaves as Premium.
-3. After the grace period the group is Basic again: the next upload trims it to the newest 10
-   photos (oldest removed first, pinned photos last). Members are warned in the app before
-   sharing into a full Basic group.
+3. After the grace period the rules in "After a pass ends" apply.
+
+### After a pass ends (since 2026-11-23, migration `20261123000009_lapsed_pass_approval.sql`)
+
+Owner decision (ISSUES E15), for any group that has had a pass, refunded or not:
+- **Days 1-30:** still Premium. The journal, Details and upgrade screens warn the members.
+- **After day 30:** `group_summaries.pass_ended` is true. No photo is removed automatically.
+  Uploads work only while the group has fewer than 10 photos; otherwise the server raises
+  `closer:renewal_required` (checked at request and again at finalize, under the group lock).
+  Members can renew, or delete photos themselves.
+- **Waiting list:** groups with more than 10 photos, for the app owner only (service role, or
+  the SQL editor): `select * from public.photo_deletion_queue();`. It is derived, so a renewal
+  takes a group off it immediately.
+- **Deletion:** there is no function that deletes these photos yet. The approval interface
+  comes later. It must lock the group and check `photo_deletion_queue()` again before deleting,
+  and decide whether the group then returns to rolling Basic retention.
 
 ## Basic retention (server-side)
 
@@ -135,8 +148,8 @@ Implemented in `finalize_photo` → `apply_retention`:
    otherwise) — a failed or abandoned upload never removes anything (tested).
 2. The group row is locked (`for update`) so concurrent uploads are serialised (tested with
    3 parallel uploads into a full group: exactly 10 remain, the 3 oldest removed).
-3. The photo becomes `active`; then, if the group is not Premium, the oldest eligible active
-   photos above 10 are marked `removed` (`removed_reason = 'retention'`). Order: unpinned before
+3. The photo becomes `active`; then, if the group has never had a pass, the oldest eligible
+   active photos above 10 are marked `removed` (`removed_reason = 'retention'`). Order: unpinned before
    pinned, then oldest `uploaded_at`, then id.
 4. Their storage objects are queued in `storage_cleanup_jobs`; the response lists the removed
    ids so the app can report it ("The oldest photo was removed to keep 10").

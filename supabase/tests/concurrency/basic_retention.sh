@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Concurrent uploads to a full Basic group must never leave more than 10
 # active photos, and must remove exactly as many old photos as were added.
+# In a group whose pass ended they stop at 10 and remove nothing.
 #
 # Usage: DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres \
 #          bash supabase/tests/concurrency/basic_retention.sh
@@ -67,8 +68,45 @@ removed=$(psql_q -c "select count(*) from public.photos where group_id = '$group
 new_active=$(psql_q -c "select count(*) from public.photos where id in ('${ids[0]}','${ids[1]}','${ids[2]}') and status = 'active'")
 echo "active=$active removed_by_retention=$removed new_uploads_active=$new_active"
 
+# Same race in a group whose pass ended: 9 photos, room for exactly one.
+group_id=$(psql_q <<SQL
+set request.jwt.claims = '$(claims "$owner")';
+set role authenticated;
+select public.create_group('Lapsed $run_id', 'friends');
+SQL
+)
+for _ in $(seq 1 9); do
+  id=$(new_upload); store "$id"; finalize "$id" > /dev/null
+done
+ids2=()
+for _ in 1 2 3; do id=$(new_upload); store "$id"; ids2+=("$id"); done
+psql_q -c "insert into public.group_entitlements (group_id, expires_at)
+           values ('$group_id', now() - interval '31 days')"
+for i in 0 1 2; do
+  psql_q > "$tmp/lapsed$i.out" 2>&1 <<SQL &
+begin;
+set local request.jwt.claims = '$(claims "$owner")';
+set local role authenticated;
+select public.finalize_photo('${ids2[$i]}') ->> 'status';
+select pg_sleep(1);
+commit;
+SQL
+done
+wait
+lapsed_active=$(psql_q -c "select count(*) from public.photos where group_id = '$group_id' and status = 'active'")
+lapsed_removed=$(psql_q -c "select count(*) from public.photos where group_id = '$group_id' and status = 'removed'")
+lapsed_refused=$( (grep -l renewal_required "$tmp"/lapsed*.out || true) | wc -l | tr -d ' ')
+echo "lapsed_active=$lapsed_active lapsed_removed=$lapsed_removed lapsed_refused=$lapsed_refused"
+
 psql_q -c "delete from auth.users where email like '${run_id}%'"
 rm -rf "$tmp"
+
+if [[ "$lapsed_active" == "10" && "$lapsed_removed" == "0" && "$lapsed_refused" == "2" ]]; then
+  echo "ok - a lapsed group stopped at 10 and removed nothing"
+else
+  echo "not ok - expected lapsed_active=10 lapsed_removed=0 lapsed_refused=2"
+  exit 1
+fi
 
 if [[ "$active" == "10" && "$removed" == "3" && "$new_active" == "3" ]]; then
   echo "ok - concurrent uploads kept exactly 10 photos and removed the 3 oldest"

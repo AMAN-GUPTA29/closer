@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:closer/core/errors/app_failure.dart';
 import 'package:closer/core/models/group_type.dart';
 import 'package:closer/core/widgets/widgets.dart';
 import 'package:closer/features/groups/data/in_memory_groups_repository.dart';
@@ -233,6 +234,91 @@ void main() {
     await tapButton(tester, 'Renew Keeploom Memories');
     expect(find.textContaining('Keeploom Memories ended on'), findsOneWidget);
     expect(find.textContaining('keeps every photo until'), findsOneWidget);
+  });
+
+  DateTime daysAgo(int n) => DateTime.now().subtract(Duration(days: n));
+
+  testWidgets('during the 30 days the journal counts the photos at risk', (
+    tester,
+  ) async {
+    repo.grantPremium(groupId);
+    await seedPhotos(repo, groupId, 15);
+    repo.grantPremium(groupId, until: daysAgo(5));
+    await pump(tester);
+    await openGroup(tester);
+    expect(find.textContaining('Your pass ended on'), findsOneWidget);
+    expect(
+      find.textContaining('5 photos may be removed after'),
+      findsOneWidget,
+    );
+    expect(find.text('Renew pass'), findsOneWidget);
+  });
+
+  testWidgets('after 30 days sharing pauses and nothing is removed', (
+    tester,
+  ) async {
+    repo.grantPremium(groupId);
+    await seedPhotos(repo, groupId, 15);
+    repo.grantPremium(groupId, until: daysAgo(31));
+    await pump(tester);
+    await openGroup(tester);
+    expect(
+      find.text('Your pass ended. Renew to protect your photos.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byTooltip('Share a memory'));
+    await tester.pumpAndSettle();
+    await addPhoto(tester);
+    expect(find.text('Renew to share with Crew'), findsOneWidget);
+    expect(find.text('The oldest photo will be removed'), findsNothing);
+    final share = tester.widget<CloserButton>(
+      find.widgetWithText(CloserButton, 'Share'),
+    );
+    expect(share.onPressed, isNull);
+    expect((await repo.photos(groupId)).photos, hasLength(15));
+  });
+
+  testWidgets('after 30 days the group offers a renewal, not an upgrade', (
+    tester,
+  ) async {
+    repo.grantPremium(groupId, until: daysAgo(31));
+    await pump(tester);
+    await openGroup(tester);
+    await tester.tap(find.text('Details'));
+    await tester.pumpAndSettle();
+    expect(find.text('0 (pass ended)'), findsOneWidget);
+    await tapButton(tester, 'Renew Keeploom Memories');
+    expect(find.textContaining('Keeploom Memories ended on'), findsOneWidget);
+    expect(find.text('Basic, what you have'), findsNothing);
+  });
+
+  testWidgets('with fewer than 10 a group whose pass ended can still share', (
+    tester,
+  ) async {
+    await seedPhotos(repo, groupId, 9);
+    repo.grantPremium(groupId, until: daysAgo(31));
+    await pump(tester);
+    await openGroup(tester);
+    await tester.tap(find.byTooltip('Share a memory'));
+    await tester.pumpAndSettle();
+    await addPhoto(tester);
+    await tapButton(tester, 'Share');
+    expect(find.text('Shared with Crew'), findsOneWidget);
+    expect((await repo.photos(groupId)).photos, hasLength(10));
+  });
+
+  testWidgets('the server refusal at the limit deletes nothing', (
+    tester,
+  ) async {
+    await seedPhotos(repo, groupId, 10);
+    repo.grantPremium(groupId, until: daysAgo(31));
+    await expectLater(
+      repo.requestUpload(groupId, clientUploadId: 'late'),
+      throwsA(
+        isA<BackendFailure>().having((f) => f.key, 'key', 'renewal_required'),
+      ),
+    );
+    expect((await repo.photos(groupId)).photos, hasLength(10));
   });
 
   testWidgets('the + button shares into a chosen group', (tester) async {

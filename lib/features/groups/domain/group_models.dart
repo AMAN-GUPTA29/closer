@@ -30,6 +30,7 @@ class Group {
     this.latestThumbPath,
     this.coverPhotoId,
     this.premiumExpiresAt,
+    this.passEnded = false,
   });
 
   factory Group.fromJson(Map<String, dynamic> json) {
@@ -54,6 +55,7 @@ class Group {
       premiumExpiresAt: json['premium_expires_at'] == null
           ? null
           : DateTime.parse(json['premium_expires_at'] as String).toLocal(),
+      passEnded: json['pass_ended'] as bool? ?? false,
     );
   }
 
@@ -95,6 +97,25 @@ class Group {
   /// or a permanent one bought before passes existed).
   final DateTime? premiumExpiresAt;
 
+  /// The pass ended more than [premiumGraceDays] ago (or was refunded that
+  /// long ago). Nothing is deleted automatically; uploads pause at the limit.
+  final bool passEnded;
+
+  /// The group has, or had, a pass: offer "Renew" rather than "Upgrade".
+  bool get canRenew => isPremium || passEnded;
+
+  /// Photos above the limit that applies without a pass.
+  int get photosAtRisk =>
+      photoCount > basicPhotoLimit ? photoCount - basicPhotoLimit : 0;
+
+  /// Photos that can still be added without a pass.
+  int get roomWithoutPass =>
+      photoCount < basicPhotoLimit ? basicPhotoLimit - photoCount : 0;
+
+  /// Whether [count] more photos fit (the server has the final say).
+  bool canAdd(int count) =>
+      !passEnded || count == 0 || count <= roomWithoutPass;
+
   /// The pass has ended but the group is still inside the grace period.
   bool get premiumLapsed =>
       isPremium &&
@@ -113,7 +134,7 @@ class Group {
 
   /// True when the next upload will remove the oldest photo.
   bool get nextUploadRemovesOldest =>
-      !isPremium && photoCount >= basicPhotoLimit;
+      !isPremium && !passEnded && photoCount >= basicPhotoLimit;
 
   bool get isOwner => myRole == MemberRole.owner;
 
@@ -159,6 +180,7 @@ class Group {
       latestThumbPath: latestThumbPath,
       coverPhotoId: coverPhotoId,
       premiumExpiresAt: premiumExpiresAt,
+      passEnded: passEnded,
     );
   }
 }

@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 1 November 2026
+Last updated: 23 November 2026
 
 Keeploom is a private place to share photos and moments with the people closest to you: a partner, friends or family. This policy explains what we collect, why, and the choices you have. We wrote it in plain language. If anything is unclear, contact us (see the end of this page).
 
@@ -49,9 +49,9 @@ These providers may store data on servers outside your country. They are require
 
 ## How long we keep it
 
-- **Basic groups** keep the latest 10 photos. When a new photo is added to a full group, the oldest one is removed permanently, unless it's pinned in a group with Keeploom Memories.
+- **Basic groups** (groups that have never had a Keeploom Memories pass) keep the latest 10 photos. When a new photo is added to a full group, the oldest one is removed permanently.
 - **Photos you delete** are removed from storage shortly after.
-- **When a Keeploom Memories pass ends,** the group keeps every photo for 30 more days. After that, Basic rules apply again the next time a photo is added.
+- **When a Keeploom Memories pass ends or is refunded with no paid time left,** the group keeps every photo and has 30 days to renew. After that, new photos can be added only while the group has fewer than 10. Photos above 10 are not removed automatically: we keep them until the Keeploom team approves their removal, which is then permanent. To decide, the team needs only the group's name, dates, photo count and storage size, not the photos themselves.
 - **When you delete your account,** we delete your profile, sign-in details, memberships, notifications and settings. Photos and moments you shared with a group stay with that group for the other members, without your name. Groups where you were the only member are deleted.
 
 ## Your choices and rights
