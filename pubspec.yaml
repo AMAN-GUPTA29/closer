@@ -45,7 +45,7 @@ dependencies:
   home_widget: ^0.10.0
   image_picker: ^1.2.4
   intl: ^0.20.3
-  lucide_icons_flutter: ^3.1.25
+  lucide_icons_flutter: ^4.0.1
   path_provider: ^2.1.6
   path_provider_foundation: ^2.6.0
   purchases_flutter: ^10.15.2
