@@ -137,8 +137,12 @@ Owner decision (ISSUES E15), for any group that has had a pass, refunded or not:
   the SQL editor): `select * from public.photo_deletion_queue();`. It is derived, so a renewal
   takes a group off it immediately.
 - **Deletion:** there is no function that deletes these photos yet. The approval interface
-  comes later. It must lock the group and check `photo_deletion_queue()` again before deleting,
-  and decide whether the group then returns to rolling Basic retention.
+  comes later. In one transaction it must lock the group row, check `photo_deletion_queue()`
+  again, delete the group's `group_entitlements` row, then run `apply_retention` (keeps 10,
+  pinned photos first, then the newest).
+- **After approval (owner decision 2026-11-23):** the group is a normal unpaid group: rolling
+  latest-10 retention, uploads never paused, can buy a pass again. `purchase_records` keep the
+  payment history. The conversion is tested in pgTAP 012.
 
 ## Basic retention (server-side)
 

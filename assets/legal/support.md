@@ -10,7 +10,7 @@ Answers to common questions. If you can't find what you need, contact us at the 
 
 ## Photos
 
-- **Why did an old photo disappear?** A Basic group, one that has never had a pass, keeps its latest 10 photos. When a new one is added, the oldest is removed. Keeploom Memories keeps every photo.
+- **Why did an old photo disappear?** A Basic group keeps its latest 10 photos. When a new one is added, the oldest is removed. Keeploom Memories keeps every photo.
 - **A photo didn't upload.** Check your connection and tap Retry. Nothing is shared twice.
 - **Can I delete a photo?** Yes. Open it, tap the options button and choose Delete photo. You can delete photos you shared; group owners can delete any photo in their group.
 
@@ -18,7 +18,7 @@ Answers to common questions. If you can't find what you need, contact us at the 
 
 - **What is it?** A yearly pass for one group that keeps every photo for everyone in it.
 - **Does it renew automatically?** No. The app shows a warning before it ends, and anyone in the group can renew. A new year is added to the end of the current one.
-- **What if the pass ends or is refunded?** The group has 30 days to renew. After that, uploads pause at 10 photos. Photos above 10 stay until the Keeploom team approves removing them. Renew before then and you keep them all.
+- **What if the pass ends or is refunded?** The group has 30 days to renew. After that, uploads pause at 10 photos. Photos above 10 stay until the Keeploom team approves removing them. Renew before then and you keep them all. After a removal, the group becomes a normal Basic group and can upload again.
 - **Why can't I add a photo?** If the group's pass ended, renew it or delete photos until fewer than 10 remain.
 - **I bought it but the group didn't change.** Open the group's Keeploom Memories page and tap Restore purchases.
 - **Refunds** are handled by Apple or Google. Request one from the App Store or Google Play.

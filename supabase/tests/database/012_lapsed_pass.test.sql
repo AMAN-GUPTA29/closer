@@ -180,5 +180,24 @@ select lives_ok($$select pg_temp.upload()$$, 'with fewer than 10 an upload works
 select is(pg_temp.active(), 10, 'the group is back at the limit');
 select is(pg_temp.auto_removed(), 0, 'and still nothing was removed automatically');
 
+-- After the app owner approves, the group becomes a normal unpaid group
+-- (owner decision 2026-11-23). The approval does that by deleting this row.
+delete from public.group_entitlements where group_id = pg_temp.g();
+set local role authenticated;
+select is((select pass_ended or is_premium from public.group_summaries where id = pg_temp.g()),
+  false, 'a converted group is a normal unpaid group');
+select is((select premium_expires_at from public.group_summaries where id = pg_temp.g()),
+  null::timestamptz, 'a converted group shows no pass date');
+reset role;
+select is(pg_temp.waiting(), 0, 'a converted group is not on the waiting list');
+select lives_ok($$select pg_temp.upload()$$, 'a converted group can upload at the limit');
+select is(pg_temp.active(), 10, 'a converted group keeps its latest 10');
+select is(pg_temp.auto_removed(), 1, 'the oldest photo makes room, as in any unpaid group');
+select is(
+  public.grant_group_entitlement(pg_temp.g(), current_setting('t.alice')::uuid,
+    'test', 'keeploom_memories_year', 'lapse-c') ->> 'status',
+  'granted', 'a converted group can buy a pass again');
+select ok(public.is_group_premium(pg_temp.g()), 'and is Premium again');
+
 select * from finish();
 rollback;

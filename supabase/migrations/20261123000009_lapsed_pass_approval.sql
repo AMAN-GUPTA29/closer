@@ -12,7 +12,9 @@
 --
 -- Groups that never had a pass keep the Basic rule (the newest 10 stay).
 -- A group "had a pass" when it has a group_entitlements row: rows are written
--- only by verified purchases and are never deleted while the group exists.
+-- only by verified purchases. The one reason to delete a row is the app
+-- owner's approval (interface to be built): that turns the group into a
+-- normal unpaid group. purchase_records keep the history.
 
 -- Retention only ever trims groups that never had a pass.
 create or replace function public.apply_retention(p_group_id uuid)
