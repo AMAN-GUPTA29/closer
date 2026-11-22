@@ -62,7 +62,7 @@ class GroupPhotosTab extends ConsumerWidget {
                 ),
                 sliver: SliverToBoxAdapter(
                   child: Text(
-                    group.isPremium
+                    group.isPremium || group.passEnded
                         ? photoHistoryLabel(group)
                         : 'Basic keeps the latest ${Group.basicPhotoLimit} '
                               'photos. ${data.photos.length} kept.',
@@ -150,7 +150,7 @@ class GroupPhotosTab extends ConsumerWidget {
                   sliver: SliverToBoxAdapter(
                     child: Text(
                       '$free more ${free == 1 ? 'photo fits' : 'photos fit'} '
-                      'before the oldest is replaced.',
+                      '${group.passEnded ? 'without a pass.' : 'before the oldest is replaced.'}',
                       textAlign: TextAlign.center,
                       style: context.text.bodySmall,
                     ),

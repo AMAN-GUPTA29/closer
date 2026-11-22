@@ -26,6 +26,7 @@ String backendMessage(String key) => switch (key) {
   'upload_incomplete' => 'The photo didn’t finish uploading. Please try again.',
   'upload_expired' => 'This upload expired. Please share the photo again.',
   'photo_not_found' => 'That photo is no longer available.',
+  'renewal_required' => 'This group’s pass has ended. Renew it, or delete photos until fewer than 10 remain.',
   'premium_required' => 'Pinning photos is part of Keeploom Memories.',
   'taken_in_future' => 'The photo date can’t be in the future.',
   'invalid_cover_photo' => 'Choose a photo from this group.',

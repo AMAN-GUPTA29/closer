@@ -14,6 +14,7 @@ import '../application/group_providers.dart';
 import '../../journal/application/content_providers.dart';
 import '../domain/group_models.dart';
 import 'group_widgets.dart';
+import 'pass_notice.dart';
 
 class GroupHomeScreen extends ConsumerWidget {
   const GroupHomeScreen({super.key, required this.groupId});
@@ -129,7 +130,21 @@ class _GroupHome extends ConsumerWidget {
               children: [
                 JournalList(
                   groupId: group.id,
-                  header: (context) => pinnedSlivers(context, ref, group),
+                  header: (context) => [
+                    if (PassNotice.appliesTo(group))
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(
+                          CloserSpacing.gutter,
+                          CloserSpacing.md,
+                          CloserSpacing.gutter,
+                          0,
+                        ),
+                        sliver: SliverToBoxAdapter(
+                          child: PassNotice(group: group),
+                        ),
+                      ),
+                    ...pinnedSlivers(context, ref, group),
+                  ],
                   emptyState: EmptyState(
                     icon: CloserIcons.gallery,
                     title: 'No memories yet',
@@ -326,11 +341,15 @@ class _DetailsTab extends StatelessWidget {
         'Photos kept',
         group.isPremium
             ? 'Every photo'
+            : group.passEnded
+            ? '${group.photoCount} (pass ended)'
             : '${group.photoCount} of ${Group.basicPhotoLimit} (Basic)',
       ),
-      if (group.isPremium && group.premiumExpiresAt != null)
+      if (group.canRenew && group.premiumExpiresAt != null)
         (
-          group.premiumLapsed ? 'Memories ended' : 'Memories until',
+          group.passEnded || group.premiumLapsed
+              ? 'Memories ended'
+              : 'Memories until',
           formatMediumDate(group.premiumExpiresAt!),
         ),
     ];
@@ -406,7 +425,9 @@ class _DetailsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  group.premiumLapsed
+                  group.passEnded
+                      ? 'Your pass ended. Renew to protect your photos.'
+                      : group.premiumLapsed
                       ? 'Renew by ${formatDayMonth(group.premiumGraceEnds!)} '
                             'to keep every photo.'
                       : group.premiumEndsSoon
@@ -423,7 +444,7 @@ class _DetailsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: CloserSpacing.sm),
                 CloserButton(
-                  label: group.isPremium
+                  label: group.canRenew
                       ? 'Renew Keeploom Memories'
                       : 'See Keeploom Memories',
                   onPressed: () => context.push(Routes.upgrade(group.id)),

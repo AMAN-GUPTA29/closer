@@ -51,7 +51,10 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
   }
 
   Future<void> _apply(UnassignedPurchase p, List<Group> groups) async {
-    final candidates = groups.where((g) => !g.isPremium).toList();
+    // A pass that is ending or ended can take the purchase as its renewal.
+    final candidates = groups
+        .where((g) => !g.isPremium || g.premiumEndsSoon)
+        .toList();
     if (candidates.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -131,7 +134,7 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
         value: groups,
         onRetry: () => ref.invalidate(myGroupsProvider),
         builder: (all) {
-          final premium = all.where((g) => g.isPremium).toList();
+          final premium = all.where((g) => g.canRenew).toList();
           return ListView(
             padding: const EdgeInsets.all(CloserSpacing.gutter),
             children: [
@@ -175,10 +178,10 @@ class _PurchasedGroupsScreenState extends ConsumerState<PurchasedGroupsScreen> {
                       name: g.name,
                       type: g.type,
                       memberCount: g.memberCount,
-                      isPremium: true,
+                      isPremium: g.isPremium,
                       activity: g.premiumExpiresAt == null
                           ? '${g.photoCount} photos kept'
-                          : g.premiumLapsed
+                          : g.passEnded || g.premiumLapsed
                           ? 'Ended ${formatMediumDate(g.premiumExpiresAt!)} · renew'
                           : 'Until ${formatMediumDate(g.premiumExpiresAt!)}',
                       coverWidget: GroupCover(group: g),

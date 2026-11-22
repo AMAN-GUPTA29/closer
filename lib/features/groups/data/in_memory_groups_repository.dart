@@ -52,6 +52,26 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
 
   final _premiumUntil = <String, DateTime>{};
 
+  /// Pass running or inside the grace period (server: is_group_premium).
+  bool _isPremium(String groupId) {
+    final until = _premiumUntil[groupId];
+    return until != null &&
+        until
+            .add(const Duration(days: Group.premiumGraceDays))
+            .isAfter(DateTime.now());
+  }
+
+  bool _passEnded(String groupId) =>
+      _premium.contains(groupId) && !_isPremium(groupId);
+
+  /// Server: assert_upload_allowed.
+  void _requireRoom(String groupId) {
+    if (_passEnded(groupId) &&
+        _active(groupId).length >= Group.basicPhotoLimit) {
+      _fail('renewal_required');
+    }
+  }
+
   /// Object paths currently stored (for tests).
   Set<String> get storedObjects => _objects.keys.toSet();
 
@@ -146,8 +166,9 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
       memberCount: members.length,
       myRole: me?.role ?? MemberRole.member,
       photoCount: _active(id).length,
-      isPremium: _premium.contains(id),
+      isPremium: _isPremium(id),
       premiumExpiresAt: _premiumUntil[id],
+      passEnded: _passEnded(id),
       latestThumbPath:
           (g.coverPhotoId != null && _photos[g.coverPhotoId]?.status == 'active'
               ? _photos[g.coverPhotoId]!.thumbPath
@@ -560,6 +581,7 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
               p.clientUploadId == clientUploadId,
         )
         .firstOrNull;
+    if (existing == null) _requireRoom(groupId);
     final row =
         existing ??
         _PhotoRow(
@@ -612,10 +634,12 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
         !_objects.containsKey(p.thumbPath)) {
       _fail('upload_incomplete');
     }
+    _requireRoom(p.groupId);
     p
       ..status = 'active'
       ..uploadedAt = _clock().add(Duration(microseconds: ++_seq));
     var removed = 0;
+    // Retention only trims groups that never had a pass.
     if (!_premium.contains(p.groupId)) {
       final active = _active(p.groupId)
         ..sort((a, b) {
@@ -664,7 +688,7 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
     await _wait();
     final p = _photos[photoId];
     if (p == null || p.status != 'active') _fail('photo_not_found');
-    if (pinned && !_premium.contains(p.groupId)) _fail('premium_required');
+    if (pinned && !_isPremium(p.groupId)) _fail('premium_required');
     p.isPinned = pinned;
   }
 

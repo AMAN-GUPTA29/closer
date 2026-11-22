@@ -14,6 +14,7 @@ import '../../../core/widgets/widgets.dart';
 import '../../auth/presentation/auth_widgets.dart' show FormErrorText;
 import '../../groups/application/group_providers.dart';
 import '../../groups/domain/group_models.dart';
+import '../../groups/presentation/pass_notice.dart';
 import '../application/photo_providers.dart';
 import '../domain/photo_models.dart';
 import 'photo_widgets.dart';
@@ -292,6 +293,15 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
     final anyPremium = selected.any((g) => g.isPremium);
     final usable = _usable;
     final total = usable.length * (selected.isEmpty ? 1 : selected.length);
+    // Before any pick, check room for one photo; on a retry, only what is left.
+    int toAdd(Group g) => usable.isEmpty
+        ? 1
+        : usable.where((p) => !p.shared.containsKey(g.id)).length;
+    final paused = [
+      if (!_sharing)
+        for (final g in selected)
+          if (!g.canAdd(toAdd(g))) g,
+    ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         CloserSpacing.gutter,
@@ -387,6 +397,10 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
             const SizedBox(height: CloserSpacing.sm),
             RetentionNotice(group: g),
           ],
+        for (final g in paused) ...[
+          const SizedBox(height: CloserSpacing.sm),
+          UploadPausedNotice(group: g),
+        ],
         const SizedBox(height: CloserSpacing.sm),
         SectionCard(
           dividerIndent: CloserSpacing.md,
@@ -464,7 +478,7 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
                     '${selected.length} '
                     '${selected.length == 1 ? 'group' : 'groups'}',
           isLoading: _sharing || _preparing,
-          onPressed: usable.isEmpty || selected.isEmpty
+          onPressed: usable.isEmpty || selected.isEmpty || paused.isNotEmpty
               ? null
               : () => _share(selected),
         ),

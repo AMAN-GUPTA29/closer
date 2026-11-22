@@ -17,7 +17,9 @@ Answers to common questions. If you can't find what you need, contact us at the 
 ## Keeploom Memories
 
 - **What is it?** A yearly pass for one group that keeps every photo for everyone in it.
-- **Does it renew automatically?** No. We remind you before it ends, and anyone in the group can renew. A new year is added to the end of the current one.
+- **Does it renew automatically?** No. The app shows a warning before it ends, and anyone in the group can renew. A new year is added to the end of the current one.
+- **What if the pass ends or is refunded?** The group has 30 days to renew. After that, uploads pause at 10 photos. Photos above 10 stay until the Keeploom team approves removing them. Renew before then and you keep them all. After a removal, the group becomes a normal Basic group and can upload again.
+- **Why can't I add a photo?** If the group's pass ended, renew it or delete photos until fewer than 10 remain.
 - **I bought it but the group didn't change.** Open the group's Keeploom Memories page and tap Restore purchases.
 - **Refunds** are handled by Apple or Google. Request one from the App Store or Google Play.
 

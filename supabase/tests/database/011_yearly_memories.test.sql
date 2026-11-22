@@ -63,7 +63,7 @@ select is((select status::text from public.group_entitlements
            where group_id = current_setting('t.g')::uuid), 'active',
   'paid time remains, so the pass stays active');
 
--- The pass ends: 30 days of grace, then Basic.
+-- The pass ends: 30 days of grace, then no longer Premium (012 covers what follows).
 update public.group_entitlements set expires_at = now() - interval '10 days'
   where group_id = current_setting('t.g')::uuid;
 select ok(public.is_group_premium(current_setting('t.g')::uuid),
@@ -71,7 +71,7 @@ select ok(public.is_group_premium(current_setting('t.g')::uuid),
 update public.group_entitlements set expires_at = now() - interval '31 days'
   where group_id = current_setting('t.g')::uuid;
 select ok(not public.is_group_premium(current_setting('t.g')::uuid),
-  'after the grace period the group is Basic');
+  'after the grace period the group is no longer Premium');
 
 -- Renewing after it lapsed starts a fresh year from now.
 select is(pg_temp.grant('tx-c') ->> 'status', 'granted', 'renewing after a lapse works');

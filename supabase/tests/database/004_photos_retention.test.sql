@@ -291,9 +291,11 @@ select is(pg_temp.active('premium'), 13, 'during the grace period the group is s
 
 update public.group_entitlements set grace_until = now() - interval '1 second'
   where group_id = current_setting('t.premium')::uuid;
-do $$ begin perform pg_temp.upload('alice', 'premium'); end $$;
+select throws_ok(
+  $$select pg_temp.upload('alice', 'premium')$$,
+  'P0001', 'closer:renewal_required', 'after the grace period uploads pause at the limit');
 reset role;
-select is(pg_temp.active('premium'), 10, 'after the grace period Basic retention applies on the next upload');
+select is(pg_temp.active('premium'), 13, 'after the grace period nothing is deleted automatically');
 
 -- --------------------------------------------------------- delete & groups
 select pg_temp.claims('bob');
@@ -323,7 +325,7 @@ set local role authenticated;
 select lives_ok(format('select public.delete_group(%L)', current_setting('t.premium')), 'owner deletes a group');
 reset role;
 select ok(
-  (select count(*) >= 28 from public.storage_cleanup_jobs
+  (select count(*) >= 26 from public.storage_cleanup_jobs
    where group_id = current_setting('t.premium')::uuid),
   'a deleted group''s objects are queued for cleanup');
 

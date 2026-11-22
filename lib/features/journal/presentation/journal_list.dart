@@ -140,7 +140,7 @@ class JournalList extends ConsumerWidget {
                       child: Text(
                         groupId != null &&
                                 groups[groupId] != null &&
-                                !groups[groupId]!.isPremium
+                                !groups[groupId]!.canRenew
                             ? 'That’s everything this Basic group keeps.'
                             : 'That’s the beginning of your story.',
                         textAlign: TextAlign.center,
