@@ -45,6 +45,8 @@ All membership, role and invitation changes go through security-definer function
 - Failed lookups are rate limited (10 per 15 minutes per user) to make code guessing impractical.
 - Preview reveals only the group name, type, member count and couple start date: never photos,
   member names or the group id.
+- Shared links are `https://<site>/invite#t=...` once `INVITE_LINK_BASE` is set (the token stays in
+  the fragment, so the web host never receives it). That page opens the custom scheme.
 - Links use the custom scheme `com.keeploom.app://invite?t=...`. Any app could register the same
   scheme, so a link is treated as a bearer secret with expiry and limits. Verified https App Links /
   Universal Links need a domain (Phase 6).
@@ -68,7 +70,7 @@ All membership, role and invitation changes go through security-definer function
 - Milestones: members create as themselves (`created_by` cannot be forged — tested); only the
   creator or owner edits/deletes; covers validated against the group.
 - Notifications: created only by trusted triggers; clients can read their own and mark them read
-  (`mark_notifications_read`), nothing else; payloads contain ids/names, never captions or photos.
+  (`mark_notifications_read`), nothing else; payloads contain ids/names and, for reminders, the moment title; never captions or photos.
 - Avatars: private bucket; users write only into their own folder with random names; strangers
   cannot read avatars (tested). `avatar_path` is not directly client-writable.
 - Account deletion runs server-side with the service role, only for the caller's own account,

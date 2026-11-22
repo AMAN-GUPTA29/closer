@@ -10,6 +10,7 @@ class AppConfig {
     required this.appleAuthEnabled,
     required this.supportEmail,
     required this.authRedirectUrl,
+    this.inviteLinkBase = '',
   });
 
   factory AppConfig.fromEnvironment() {
@@ -23,6 +24,7 @@ class AppConfig {
         'AUTH_REDIRECT_URL',
         defaultValue: defaultAuthRedirectUrl,
       ),
+      inviteLinkBase: String.fromEnvironment('INVITE_LINK_BASE'),
     );
   }
 
@@ -35,6 +37,18 @@ class AppConfig {
   final bool appleAuthEnabled;
   final String supportEmail;
   final String authRedirectUrl;
+
+  /// Address of the public website (site/), e.g. https://keeploom.pages.dev.
+  final String inviteLinkBase;
+
+  /// Where invite links point, so chat apps make them tappable. Null until
+  /// the website is configured; invites then use the custom scheme.
+  Uri? get inviteWebBase {
+    final uri = Uri.tryParse(inviteLinkBase.trim());
+    return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty
+        ? uri
+        : null;
+  }
 
   /// True when both client values are present and the URL is well formed.
   bool get isSupabaseConfigured {

@@ -8,7 +8,7 @@ Keeploom is a private place to share photos and moments with the people closest 
 
 - Your groups are private. Only the members of a group can see its photos, captions, journal and milestones. The one exception is a photo a member reports: the Keeploom team can review that photo.
 - We don't sell your data, show ads, or use your photos to train anything.
-- Notifications never include your photos or private captions.
+- Push notifications never include photos or captions. They do show the group's name, the name of the person who shared or joined and, for a reminder, the moment's title. These can appear on your lock screen.
 - You can delete your account at any time from Profile → Settings.
 
 ## What we collect
@@ -51,7 +51,7 @@ These providers may store data on servers outside your country. They are require
 
 ## How long we keep it
 
-- **Basic groups** (groups without a pass that have never had one, or were returned to Basic) keep the latest 10 photos. When a new photo is added to a full group, the oldest one is removed permanently.
+- **Basic groups** (groups without a pass that have never had one, or were returned to Basic) keep the latest 10 photos. When new photos would take a group over 10, the same number of its oldest photos are removed permanently.
 - **Photos you delete** are removed from storage shortly after, unless they are under review after a report.
 - **Reported photos** are kept until the review is finished, or for as long as the law or the police require, even if the photo, group or account is deleted meanwhile. We then keep a record of the report and its outcome, without the caption.
 - **When a Keeploom Memories pass ends or is refunded with no paid time left,** the group keeps every photo and has 30 days to renew. After that, new photos can be added only while the group has fewer than 10. Photos above 10 are not removed automatically: we keep them until the Keeploom team approves their removal, which is then permanent. The group then becomes a normal Basic group, and the Basic rule above applies again. To decide, the team needs only the group's name, dates, photo count and storage size, not the photos themselves.

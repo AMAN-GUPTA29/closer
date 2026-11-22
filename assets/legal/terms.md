@@ -20,10 +20,10 @@ These terms apply when you use Keeploom. By creating an account you agree to the
 
 ## Basic and Keeploom Memories
 
-- Keeploom is free. A Basic group (one that has never had a pass, or was returned to Basic after its pass ended) keeps its latest 10 photos. When a new photo is added to a full group, the oldest one is removed permanently.
+- Keeploom is free. A Basic group (one that has never had a pass, or was returned to Basic after its pass ended) keeps its latest 10 photos. When new photos would take a group over 10, the same number of its oldest photos are removed permanently.
 - **Keeploom Memories** is a yearly pass for one group. It keeps every photo for everyone in that group, for one year from the purchase.
 - The pass does **not** renew by itself. Anyone in the group can buy another year at any time; it's added to the end of the current one.
-- When a pass ends, the group keeps every photo and has 30 days to renew. After that, new photos can be added only while it has fewer than 10. Photos above 10 are never removed automatically, but the Keeploom team may approve removing them permanently at any time after the 30 days, unless the group has renewed by then. After a removal the group is a normal Basic group again: it keeps its latest 10 photos, and the oldest is removed when a new one is added.
+- When a pass ends, the group keeps every photo and has 30 days to renew. After that, new photos can be added only while it has fewer than 10. Photos above 10 are never removed automatically, but the Keeploom team may approve removing them permanently at any time after the 30 days, unless the group has renewed by then. After a removal the group is a normal Basic group again: it keeps its latest 10 photos, and the oldest are removed when new ones are added.
 - Prices are shown in the app before you buy. Payments, refunds and cancellations are handled by Apple or Google under their rules. If a purchase is refunded, the year it added is removed. If no paid time is left, the same 30 days and rules apply.
 
 ## Our service

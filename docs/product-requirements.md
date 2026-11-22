@@ -17,7 +17,7 @@ Closer is a private photo-sharing and shared-journal app for couples, friends an
 | Basic retention | A Basic group keeps at most **10 active photos**; the 11th upload removes the oldest eligible photo, server-side and concurrency-safe. |
 | Closer Memories | One-time purchase per group (pricing hypothesis: Basic $2, Memories +$10; configurable). Unlocks full history for every member of that group, including future members. |
 | Widgets | Native Android (Kotlin) and iOS (WidgetKit) widgets; each instance configured independently to one group. |
-| Notifications | Server-dispatched push for new photos, new members, milestones; never includes photos or private captions. |
+| Notifications | Server-dispatched push for new photos, new members, milestones; never includes photos or captions (shows group name, member name and, for reminders, the moment title). |
 
 ## Screens
 

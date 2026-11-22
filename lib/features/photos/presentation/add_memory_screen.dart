@@ -222,7 +222,7 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
           content: Text(
             removed > 0
                 ? '$what with $names. To keep ${Group.basicPhotoLimit}, the '
-                      'oldest ${removed == 1 ? 'photo was' : 'photos were'} '
+                      '${removed == 1 ? 'oldest photo was' : '$removed oldest photos were'} '
                       'removed from Basic groups.'
                 : '$what with $names',
           ),
@@ -392,11 +392,12 @@ class _AddMemoryScreenState extends ConsumerState<AddMemoryScreen> {
                 ),
             ],
           ),
-        for (final g in selected)
-          if (g.nextUploadRemovesOldest) ...[
-            const SizedBox(height: CloserSpacing.sm),
-            RetentionNotice(group: g),
-          ],
+        if (!_sharing)
+          for (final g in selected)
+            if (g.removedBySharing(toAdd(g)) case final n when n > 0) ...[
+              const SizedBox(height: CloserSpacing.sm),
+              RetentionNotice(group: g, adding: toAdd(g), removing: n),
+            ],
         for (final g in paused) ...[
           const SizedBox(height: CloserSpacing.sm),
           UploadPausedNotice(group: g),

@@ -74,8 +74,8 @@ environment. No open high-severity findings.
    - schedule cleanup, push and reminders (B3, B5);
    - set the Auth redirect URL (A4) and review the Auth settings (B7).
 2. **Legal + support:** publish a privacy policy and terms (D5) and choose a support email (D6),
-   then set `SUPPORT_EMAIL` (app build and Vercel). The privacy policy, terms, support and
-   account-deletion pages live in the app and on the Vercel site (docs/website.md); use those
+   then set `SUPPORT_EMAIL` (app build and website host). The privacy policy, terms, support and
+   account-deletion pages live in the app and on the website (docs/website.md); use those
    URLs in Play Console and App Store Connect.
 3. **Identity:** decide the final bundle id / domain (D4) **before** creating store listings.
    It can't be changed afterwards.
