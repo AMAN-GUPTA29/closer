@@ -8,6 +8,7 @@ import '../../groups/domain/group_models.dart';
 import '../../groups/presentation/group_widgets.dart';
 import '../application/photo_providers.dart';
 import '../domain/photo_models.dart';
+import 'report_photo_sheet.dart';
 
 /// Shows a private photo: resolves its image lazily, with the painted
 /// placeholder while loading and a calm fallback on errors.
@@ -67,8 +68,8 @@ class GroupCover extends ConsumerWidget {
   }
 }
 
-/// Opens the full-screen viewer for [photos] at [index], with delete and
-/// pin actions where the user is allowed to use them.
+/// Opens the full-screen viewer for [photos] at [index], with report, delete
+/// and pin actions where the user is allowed to use them.
 Future<void> openPhotoViewer(
   BuildContext context,
   WidgetRef ref, {
@@ -106,6 +107,33 @@ Future<void> openPhotoViewer(
               try {
                 await ref.read(photoActionsProvider).setPinned(p, !p.isPinned);
                 if (ctx.mounted) Navigator.of(ctx).pop();
+              } catch (e) {
+                if (ctx.mounted) showFailure(ctx, e);
+              }
+            },
+          ),
+        if (currentUserId != null && p.uploaderId != currentUserId)
+          PhotoViewerAction(
+            label: 'Report photo',
+            icon: CloserIcons.report,
+            onSelected: (ctx) async {
+              final actions = ref.read(photoActionsProvider);
+              final messenger = ScaffoldMessenger.of(ctx);
+              final reason = await showReportPhotoSheet(
+                ctx,
+                uploaderName: p.uploaderName,
+              );
+              if (reason == null || !ctx.mounted) return;
+              try {
+                await actions.report(p, reason);
+                if (ctx.mounted) Navigator.of(ctx).pop();
+                messenger
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    const SnackBar(
+                      content: Text('Reported. It’s now hidden for you.'),
+                    ),
+                  );
               } catch (e) {
                 if (ctx.mounted) showFailure(ctx, e);
               }

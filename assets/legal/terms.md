@@ -16,6 +16,7 @@ These terms apply when you use Keeploom. By creating an account you agree to the
 - Only share photos you have the right to share, and think about the people in them.
 - Don't use Keeploom to harass anyone, or to share illegal, violent or sexual content involving minors, or content that breaks someone else's rights.
 - Anyone in a group can see what's shared there. Group owners can remove members.
+- You can report a photo someone else shared. We review reports, and we may remove the photo, suspend the account that shared it, or tell the police. We aim to respond within 24 hours. Don't send false reports on purpose.
 
 ## Basic and Keeploom Memories
 

@@ -23,4 +23,5 @@ If you can't open the app, email us from the address you signed up with and ask 
 ## What is kept
 
 - Photos and moments you shared with a group stay with that group for the other members, without your name. Ask the group's owner to delete them first if you want them gone.
+- Photos under review after a report, until the review is finished or for as long as the law requires, and the record of that report.
 - Purchase records that we must keep for accounting and tax, for as long as the law requires.

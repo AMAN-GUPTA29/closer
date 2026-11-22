@@ -39,9 +39,11 @@ class GroupPhotosTab extends ConsumerWidget {
             ),
           );
         }
+        // The group's count, not this list: a photo this member reported is
+        // hidden here but still takes a place.
         final free = group.isPremium
             ? 0
-            : Group.basicPhotoLimit - data.photos.length;
+            : Group.basicPhotoLimit - group.photoCount;
         final slots = data.photos.length + (free > 0 ? free : 0);
         return NotificationListener<ScrollNotification>(
           onNotification: (n) {
@@ -65,7 +67,7 @@ class GroupPhotosTab extends ConsumerWidget {
                     group.isPremium || group.passEnded
                         ? photoHistoryLabel(group)
                         : 'Basic keeps the latest ${Group.basicPhotoLimit} '
-                              'photos. ${data.photos.length} kept.',
+                              'photos. ${group.photoCount} kept.',
                     style: context.text.bodySmall,
                   ),
                 ),
