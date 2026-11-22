@@ -7,7 +7,8 @@
 --   * at most 10 unfinished uploads at once, and they expire after one
 --     hour instead of a day (their files are then deleted);
 --   * at most 300 photo uploads per account per 24 hours;
---   * at most 50 groups created per account;
+--   * at most 10 groups created per account, and at most 30 groups in total
+--     (owner decision 2026-11-23), counting the ones it created;
 --   * at most 3 profile-photo files per account; files no profile points to
 --     are deleted after an hour;
 --   * a daily storage check the app owner can read (storage_usage_log,
@@ -28,7 +29,10 @@ create function public.max_uploads_per_day() returns integer
 language sql immutable set search_path = '' as $$ select 300 $$;
 
 create function public.max_groups_per_user() returns integer
-language sql immutable set search_path = '' as $$ select 50 $$;
+language sql immutable set search_path = '' as $$ select 10 $$;
+
+create function public.max_memberships_per_user() returns integer
+language sql immutable set search_path = '' as $$ select 30 $$;
 
 create function public.max_avatar_files() returns integer
 language sql immutable set search_path = '' as $$ select 3 $$;
@@ -78,6 +82,29 @@ begin
   return v_id;
 end;
 $$;
+
+-- Every way into a group (creating, joining) inserts here, so the total is
+-- enforced in one place.
+create function public.enforce_membership_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  -- Serialise concurrent joins/creates by the same person.
+  perform 1 from public.profiles p where p.id = new.user_id for update;
+  if (select count(*) from public.group_members m where m.user_id = new.user_id)
+     >= public.max_memberships_per_user() then
+    raise exception 'closer:membership_limit' using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger group_members_limit
+  before insert on public.group_members
+  for each row execute function public.enforce_membership_limit();
 
 -- ---------------------------------------------------------------------------
 -- Photos
@@ -365,6 +392,7 @@ $$;
 revoke all on function
   public.max_upload_bytes(), public.max_thumbnail_bytes(), public.max_pending_uploads(),
   public.max_uploads_per_day(), public.max_groups_per_user(), public.max_avatar_files(),
+  public.max_memberships_per_user(), public.enforce_membership_limit(),
   public.storage_alert_bytes(), public.expire_stale_uploads(interval),
   public.queue_orphan_avatars(), public.check_storage_usage(), public.storage_by_user(integer)
 from public, anon, authenticated;

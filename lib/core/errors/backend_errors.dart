@@ -32,7 +32,9 @@ String backendMessage(String key) => switch (key) {
   'too_many_uploads' =>
     'Too many photos are still uploading. Wait a moment and try again.',
   'upload_too_large' => 'This photo is too large to upload.',
-  'group_limit' => 'You’ve created the maximum of 50 groups.',
+  'group_limit' => 'You can create up to 10 groups.',
+  'membership_limit' =>
+    'You can be in up to 30 groups. Leave one to join or create another.',
   'premium_required' => 'Pinning photos is part of Keeploom Memories.',
   'taken_in_future' => 'The photo date can’t be in the future.',
   'report_own_photo' =>

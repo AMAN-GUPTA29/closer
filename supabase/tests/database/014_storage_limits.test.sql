@@ -52,11 +52,35 @@ select is((select file_size_limit from storage.buckets where id = 'photos'),
 
 -- ------------------------------------------------------------------ groups
 insert into public.groups (name, type, created_by)
-select 'Filler ' || i, 'friends', pg_temp.id('alice') from generate_series(1, 49) i;
+select 'Filler ' || i, 'friends', pg_temp.id('alice') from generate_series(1, 9) i;
 set local role authenticated;
 select throws_ok($$select public.create_group('One too many', 'friends')$$,
-  'P0001', 'closer:group_limit', 'an account can create at most 50 groups');
+  'P0001', 'closer:group_limit', 'an account can create at most 10 groups');
 reset role;
+
+-- At most 30 groups in total, joined or created.
+select pg_temp.mk_user('carol');
+insert into public.groups (name, type, created_by)
+select 'Carol ' || i, 'friends', pg_temp.id('carol') from generate_series(1, 31) i;
+-- Bob already owns one group; fill up to 30.
+insert into public.group_members (group_id, user_id)
+select g.id, pg_temp.id('bob') from public.groups g
+where g.created_by = pg_temp.id('carol') and g.name <> 'Carol 31'
+order by g.name
+limit 30 - (select count(*) from public.group_members where user_id = pg_temp.id('bob'));
+select is((select count(*)::int from public.group_members where user_id = pg_temp.id('bob')),
+  30, 'a member of 30 groups');
+select throws_ok(
+  $$insert into public.group_members (group_id, user_id)
+    select id, current_setting('t.bob')::uuid from public.groups where name = 'Carol 31'$$,
+  'P0001', 'closer:membership_limit', 'cannot join a 31st group');
+select pg_temp.claims('bob');
+set local role authenticated;
+select throws_ok($$select public.create_group('Mine', 'friends')$$,
+  'P0001', 'closer:membership_limit', 'nor create one, which is also a membership');
+reset role;
+delete from public.group_members where user_id = pg_temp.id('bob')
+  and group_id = (select id from public.groups where name = 'Carol 1');
 select pg_temp.claims('bob');
 set local role authenticated;
 select lives_ok($$select public.create_group('Bob''s', 'friends')$$,

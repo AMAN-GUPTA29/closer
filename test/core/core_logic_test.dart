@@ -48,6 +48,7 @@ void main() {
       'too_many_uploads',
       'upload_too_large',
       'group_limit',
+      'membership_limit',
     ]) {
       expect(
         backendMessage(key),
