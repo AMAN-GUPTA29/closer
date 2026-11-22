@@ -14,7 +14,7 @@ final incomingLinksProvider = Provider<Stream<Uri>>(
   (ref) => AppLinks().uriLinkStream,
 );
 
-/// Extracts the invitation token from `com.closerapp.closer://invite?t=…`.
+/// Extracts the invitation token from `com.keeploom.app://invite?t=…`.
 /// Other links (e.g. Supabase auth callbacks) return null and are left to
 /// their own handlers.
 String? inviteSecretFromUri(Uri uri) {
@@ -30,7 +30,7 @@ String? inviteSecretFromUri(Uri uri) {
   return null;
 }
 
-/// Group id from a widget/notification link `com.closerapp.closer://group/<id>`.
+/// Group id from a widget/notification link `com.keeploom.app://group/<id>`.
 String? groupIdFromUri(Uri uri) {
   if (uri.scheme != InviteCodes.scheme || uri.host != 'group') return null;
   final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();

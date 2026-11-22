@@ -27,8 +27,6 @@ const testConfig = AppConfig(
   supabaseAnonKey: 'test-anon-key',
   googleAuthEnabled: false,
   appleAuthEnabled: false,
-  privacyPolicyUrl: '',
-  termsUrl: '',
   supportEmail: '',
   authRedirectUrl: AppConfig.defaultAuthRedirectUrl,
 );
@@ -38,8 +36,6 @@ const unconfiguredConfig = AppConfig(
   supabaseAnonKey: '',
   googleAuthEnabled: false,
   appleAuthEnabled: false,
-  privacyPolicyUrl: '',
-  termsUrl: '',
   supportEmail: '',
   authRedirectUrl: AppConfig.defaultAuthRedirectUrl,
 );

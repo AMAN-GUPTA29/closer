@@ -88,8 +88,6 @@ const _config = AppConfig(
   supabaseAnonKey: '',
   googleAuthEnabled: false,
   appleAuthEnabled: false,
-  privacyPolicyUrl: '',
-  termsUrl: '',
   supportEmail: '',
   authRedirectUrl: AppConfig.defaultAuthRedirectUrl,
 );

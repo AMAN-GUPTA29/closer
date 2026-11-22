@@ -6,53 +6,34 @@ import '../../core/theme/closer_icons.dart';
 import '../../core/theme/closer_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../auth/application/auth_providers.dart';
+import 'legal_content.dart';
 
 enum LegalDoc {
-  privacy('Privacy policy'),
-  terms('Terms of use');
+  privacy('Privacy policy', 'assets/legal/privacy.md'),
+  terms('Terms of use', 'assets/legal/terms.md'),
+  support('Help & support', 'assets/legal/support.md');
 
-  const LegalDoc(this.title);
+  const LegalDoc(this.title, this.asset);
   final String title;
+  final String asset;
 
-  static LegalDoc parse(String? value) =>
-      value == 'terms' ? LegalDoc.terms : LegalDoc.privacy;
+  static LegalDoc parse(String? value) => switch (value) {
+    'terms' => LegalDoc.terms,
+    'support' => LegalDoc.support,
+    _ => LegalDoc.privacy,
+  };
 }
 
-/// Shows a plain-language summary and links to the published document when
-/// its URL is configured. The summary is a draft until legal review.
+/// Shows a document from `assets/legal/` (the same text is published on the
+/// web for the store listings, see `site/`).
 class LegalScreen extends ConsumerWidget {
   const LegalScreen({super.key, required this.doc});
 
   final LegalDoc doc;
 
-  static const _privacy = [
-    'Your groups are private. Only members can see a group\'s photos, '
-        'journal and milestones.',
-    'Photos are stored in private cloud storage and are delivered through '
-        'short-lived, authenticated links.',
-    'We do not sell your data or show ads. We do not log your captions or '
-        'photos in diagnostics.',
-    'Notifications never include your photos or private captions.',
-    'You can delete your account at any time from Profile.',
-  ];
-
-  static const _terms = [
-    'Only share photos you have the right to share.',
-    'Basic groups keep the latest 10 photos. Older photos are removed '
-        'permanently when new ones are added.',
-    'Keeploom Memories is a one-time upgrade for a single group that keeps '
-        'every photo for all of its members.',
-    'Do not use Keeploom to harass others or share illegal content.',
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final config = ref.watch(appConfigProvider);
-    final url = doc == LegalDoc.privacy
-        ? (config.hasPrivacyPolicy ? config.privacyPolicyUrl : null)
-        : (config.hasTerms ? config.termsUrl : null);
-    final points = doc == LegalDoc.privacy ? _privacy : _terms;
-
+    final support = ref.watch(appConfigProvider).supportEmail;
     return Scaffold(
       appBar: AppBar(
         title: Text(doc.title),
@@ -64,33 +45,81 @@ class LegalScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         top: false,
-        child: ListView(
-          padding: const EdgeInsets.all(CloserSpacing.gutter),
-          children: [
-            Semantics(
-              header: true,
-              child: Text('In short', style: context.text.headlineMedium),
-            ),
-            const SizedBox(height: CloserSpacing.sm),
-            for (final p in points) DotPoint(p),
-            const SizedBox(height: CloserSpacing.md),
-            if (url != null)
-              CloserButton.secondary(
-                label: 'Read the full ${doc.title.toLowerCase()}',
-                onPressed: () => launchUrl(
-                  Uri.parse(url),
-                  mode: LaunchMode.externalApplication,
-                ),
-              )
-            else
-              const NoticeCard(
-                message:
-                    'This is a draft summary. The full document will be '
-                    'published before Keeploom is released.',
-              ),
-          ],
+        child: FutureBuilder<String>(
+          future: DefaultAssetBundle.of(context).loadString(doc.asset),
+          builder: (context, snapshot) {
+            final source = snapshot.data;
+            if (source == null) {
+              return snapshot.hasError
+                  ? const EmptyState(
+                      icon: CloserIcons.document,
+                      title: 'This page couldn’t be opened',
+                      message: 'Please try again later.',
+                    )
+                  : const Center(child: CircularProgressIndicator());
+            }
+            final blocks = parseLegalMarkdown(
+              source,
+              contact: legalContactText(support),
+            );
+            return ListView(
+              padding: const EdgeInsets.all(CloserSpacing.gutter),
+              children: [
+                for (final b in blocks) _Block(b),
+                if (doc == LegalDoc.support && support.isNotEmpty) ...[
+                  const SizedBox(height: CloserSpacing.sm),
+                  CloserButton.secondary(
+                    label: 'Email us',
+                    onPressed: () =>
+                        launchUrl(Uri(scheme: 'mailto', path: support)),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
       ),
     );
+  }
+}
+
+class _Block extends StatelessWidget {
+  const _Block(this.block);
+
+  final LegalBlock block;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.closerColors;
+    final body = context.text.bodyMedium?.copyWith(color: c.textPrimary);
+    TextSpan rich(TextStyle? style) => TextSpan(
+      children: [
+        for (final (text, bold) in legalInlineRuns(block.text))
+          TextSpan(
+            text: text,
+            style: bold ? const TextStyle(fontWeight: FontWeight.w600) : null,
+          ),
+      ],
+      style: style,
+    );
+    return switch (block.kind) {
+      // The app bar already shows the document title.
+      LegalBlockKind.title => const SizedBox.shrink(),
+      LegalBlockKind.heading => Padding(
+        padding: const EdgeInsets.only(
+          top: CloserSpacing.md,
+          bottom: CloserSpacing.xs,
+        ),
+        child: Semantics(
+          header: true,
+          child: Text(block.text, style: context.text.titleMedium),
+        ),
+      ),
+      LegalBlockKind.paragraph => Padding(
+        padding: const EdgeInsets.only(bottom: CloserSpacing.sm),
+        child: Text.rich(rich(body)),
+      ),
+      LegalBlockKind.bullet => DotPoint.rich(rich(null)),
+    };
   }
 }

@@ -8,8 +8,6 @@ class AppConfig {
     required this.supabaseAnonKey,
     required this.googleAuthEnabled,
     required this.appleAuthEnabled,
-    required this.privacyPolicyUrl,
-    required this.termsUrl,
     required this.supportEmail,
     required this.authRedirectUrl,
   });
@@ -20,8 +18,6 @@ class AppConfig {
       supabaseAnonKey: String.fromEnvironment('SUPABASE_ANON_KEY'),
       googleAuthEnabled: bool.fromEnvironment('GOOGLE_AUTH_ENABLED'),
       appleAuthEnabled: bool.fromEnvironment('APPLE_AUTH_ENABLED'),
-      privacyPolicyUrl: String.fromEnvironment('PRIVACY_POLICY_URL'),
-      termsUrl: String.fromEnvironment('TERMS_URL'),
       supportEmail: String.fromEnvironment('SUPPORT_EMAIL'),
       authRedirectUrl: String.fromEnvironment(
         'AUTH_REDIRECT_URL',
@@ -31,14 +27,12 @@ class AppConfig {
   }
 
   /// Custom-scheme callback registered in AndroidManifest.xml and Info.plist.
-  static const defaultAuthRedirectUrl = 'com.closerapp.closer://auth-callback';
+  static const defaultAuthRedirectUrl = 'com.keeploom.app://auth-callback';
 
   final String supabaseUrl;
   final String supabaseAnonKey;
   final bool googleAuthEnabled;
   final bool appleAuthEnabled;
-  final String privacyPolicyUrl;
-  final String termsUrl;
   final String supportEmail;
   final String authRedirectUrl;
 
@@ -49,13 +43,5 @@ class AppConfig {
     return uri != null &&
         (uri.scheme == 'https' || uri.scheme == 'http') &&
         uri.host.isNotEmpty;
-  }
-
-  bool get hasPrivacyPolicy => _isHttpUrl(privacyPolicyUrl);
-  bool get hasTerms => _isHttpUrl(termsUrl);
-
-  static bool _isHttpUrl(String value) {
-    final uri = Uri.tryParse(value);
-    return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
   }
 }

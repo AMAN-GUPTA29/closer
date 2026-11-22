@@ -84,8 +84,9 @@ What WhatsApp groups and Google Photos shared albums can't truthfully claim:
   - `docs/design-system.md`
 - The redesign UI was approved and **locked by the owner on 2026-10-20**. The reference set is
   `docs/screenshots/keeploom-all-screens/`. Visual changes need the owner's approval.
-- Internal identifiers stay `closer` on purpose: package/bundle ID `com.closerapp.closer`, the URL
-  scheme, the App Group and the Dart package.
+- App identifiers are `com.keeploom.app` (package/bundle ID and URL scheme) and
+  `group.com.keeploom.app` (App Group) since 2026-11-01. The Dart package and internal class
+  names stay `closer`.
 
 ## Evidence on Hand
 

@@ -1,4 +1,4 @@
-package com.closerapp.closer
+package com.keeploom.app
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -6,7 +6,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.os.Build
 import android.os.Bundle
-import com.closerapp.closer.widget.CloserWidgetProvider
+import com.keeploom.app.widget.CloserWidgetProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -20,7 +20,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.closerapp.closer/widgets")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.keeploom.app/widgets")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     // Redraws only widgets showing this group (or all when null).

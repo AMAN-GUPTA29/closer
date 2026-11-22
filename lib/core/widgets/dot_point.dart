@@ -4,9 +4,14 @@ import '../theme/closer_theme.dart';
 
 /// One bullet point: a small coral dot and a line of body text.
 class DotPoint extends StatelessWidget {
-  const DotPoint(this.text, {super.key, this.style});
+  const DotPoint(this.text, {super.key, this.style}) : rich = null;
+
+  /// A point with inline formatting (e.g. bold lead-in).
+  const DotPoint.rich(InlineSpan this.rich, {super.key, this.style})
+    : text = '';
 
   final String text;
+  final InlineSpan? rich;
 
   /// Overrides the body style (e.g. a smaller size inside a panel).
   final TextStyle? style;
@@ -39,7 +44,11 @@ class DotPoint extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(child: Text(text, style: textStyle)),
+          Expanded(
+            child: rich == null
+                ? Text(text, style: textStyle)
+                : Text.rich(rich!, style: textStyle),
+          ),
         ],
       ),
     );

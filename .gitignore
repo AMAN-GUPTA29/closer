@@ -51,3 +51,4 @@ android/.kotlin/
 # Local secrets (service account keys etc.) — never commit
 secrets/
 *service-account*.json
+site/dist/

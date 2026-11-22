@@ -52,7 +52,7 @@ it); Help & support until `SUPPORT_EMAIL` is set.
 - No Supabase project is configured yet → real sign-up, email confirmation and password reset
   have **not** been exercised against a live backend; they are covered by tests with a fake backend only.
 - Google/Apple sign-in are wired to Supabase OAuth but disabled; untested.
-- Auth deep link (`com.closerapp.closer://auth-callback`) is registered but not verified on a device.
+- Auth deep link (`com.keeploom.app://auth-callback`) is registered but not verified on a device.
 - The debug APK builds locally; it has not been installed on a physical phone by Claude.
 - iOS is built in CI only (unsigned, macOS runner); never run on a device or simulator by Claude.
 - Legal pages are draft summaries, not reviewed legal documents.

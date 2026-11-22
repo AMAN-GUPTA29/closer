@@ -1,4 +1,4 @@
-package com.closerapp.closer.widget
+package com.keeploom.app.widget
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager
@@ -11,7 +11,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.TextView
-import com.closerapp.closer.R
+import com.keeploom.app.R
 import org.json.JSONArray
 
 /**

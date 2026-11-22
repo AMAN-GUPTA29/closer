@@ -33,21 +33,21 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.closerapp.closer" android:host="auth-callback" />
+                <data android:scheme="com.keeploom.app" android:host="auth-callback" />
             </intent-filter>
-            <!-- Group invitation links: com.closerapp.closer://invite?t=TOKEN -->
+            <!-- Group invitation links: com.keeploom.app://invite?t=TOKEN -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.closerapp.closer" android:host="invite" />
+                <data android:scheme="com.keeploom.app" android:host="invite" />
             </intent-filter>
-            <!-- Widget and notification taps: com.closerapp.closer://group/<id> -->
+            <!-- Widget and notification taps: com.keeploom.app://group/<id> -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.closerapp.closer" android:host="group" />
+                <data android:scheme="com.keeploom.app" android:host="group" />
             </intent-filter>
             <!-- Links are handled by app_links (invites) and supabase_flutter
                  (auth), not by Flutter's router. -->

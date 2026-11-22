@@ -14,10 +14,10 @@
 				<key>CFBundleTypeRole</key>
 				<string>Editor</string>
 				<key>CFBundleURLName</key>
-				<string>com.closerapp.closer.auth</string>
+				<string>com.keeploom.app.auth</string>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>com.closerapp.closer</string>
+					<string>com.keeploom.app</string>
 				</array>
 			</dict>
 		</array>

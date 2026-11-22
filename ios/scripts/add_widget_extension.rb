@@ -9,7 +9,7 @@ require 'xcodeproj'
 
 PROJECT = File.expand_path('../Runner.xcodeproj', __dir__)
 WIDGET_DIR = File.expand_path('../CloserWidget', __dir__)
-BUNDLE_ID = 'com.closerapp.closer'
+BUNDLE_ID = 'com.keeploom.app'
 TEAM_ID = ENV['APPLE_TEAM_ID'] # optional; Codemagic signing can also set it
 
 project = Xcodeproj::Project.open(PROJECT)
