@@ -14,6 +14,11 @@ Answers to common questions. If you can't find what you need, contact us at the 
 - **A photo didn't upload.** Check your connection and tap Retry. Nothing is shared twice.
 - **Can I delete a photo?** Yes. Open it, tap the options button and choose Delete photo. You can delete photos you shared; group owners can delete any photo in their group.
 
+## Safety
+
+- **How do I report a photo?** Open it, tap the options button and choose Report photo, then pick a reason. It's hidden for you straight away and sent to the Keeploom team, who aim to review it within 24 hours. The person who shared it isn't told who reported it.
+- **Is someone in danger?** Contact your local police or emergency number first. In India, call 112.
+
 ## Keeploom Memories
 
 - **What is it?** A yearly pass for one group that keeps every photo for everyone in it.

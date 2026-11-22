@@ -154,3 +154,14 @@ class UploadSlot {
   final String thumbPath;
   final bool alreadyActive;
 }
+
+/// Why a photo is reported (mirrors the check on `photo_reports.reason`).
+enum ReportReason {
+  harassment('Harassment or bullying'),
+  sexual('Sexual content'),
+  child('Involves a child'),
+  other('Something else');
+
+  const ReportReason(this.label);
+  final String label;
+}

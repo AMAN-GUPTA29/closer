@@ -90,6 +90,7 @@ _Last updated: 2026-10-15 (backend live). Release order: docs/release-readiness.
 | E13 | Push reminder before a yearly pass ends (e.g. 14 days and 1 day before) and when the grace period is about to end | Before launch, after A9 | 🟡 |
 | E12 | Android emulator `Pixel_8_API_34` is almost full (~0.9 GB free); full debug APK no longer installs, so use `--split-per-abi` | Any time | 🟡 |
 | E15 | A pass that ended led to automatic deletion of every photo above 10 on the next upload. **Owner decision 2026-11-23:** 30 days with in-app warnings, then nothing is deleted automatically; uploads pause at 10; refunded passes follow the same rule; deletion only after the app owner (not the group owner) approves it; after approval the group becomes a normal unpaid group | Implemented on `launch/lapsed-pass-approval` (migration 9, warnings, legal copy). Still to build: the approval interface; until then nothing is deleted | 🟡 ⚠️ implemented; not live until merged, and not tested on a device |
+| E16 | Safety tools for user content (Apple 1.2, Google Play UGC) | **Report photo built** on `launch/report-photo` (migration 10, docs/moderation.md). Still open: blocking a person and reporting a person (both stores expect them; owner to decide), email alert to the owner (needs Brevo) | 🟡 ⚠️ report implemented; not live until merged, not tested on a device |
 
 ## Resolved
 

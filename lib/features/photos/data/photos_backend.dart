@@ -34,6 +34,9 @@ abstract interface class PhotosBackend {
   Future<List<Photo>> pinnedPhotos(String groupId);
 
   Future<void> deletePhoto(String photoId);
+
+  /// Hides the photo for the caller and sends it for review.
+  Future<void> reportPhoto(String photoId, ReportReason reason);
   Future<void> updateCaption(String photoId, String? caption);
   Future<void> setPinned(String photoId, bool pinned);
 
@@ -80,6 +83,9 @@ class UnconfiguredPhotosBackend implements PhotosBackend {
   Future<List<Photo>> pinnedPhotos(String groupId) => Future.error(_failure);
   @override
   Future<void> deletePhoto(String photoId) => Future.error(_failure);
+  @override
+  Future<void> reportPhoto(String photoId, ReportReason reason) =>
+      Future.error(_failure);
   @override
   Future<void> updateCaption(String photoId, String? caption) =>
       Future.error(_failure);
@@ -224,6 +230,17 @@ class SupabasePhotosBackend implements PhotosBackend {
   Future<void> deletePhoto(String photoId) => guardBackend(
     () => _db.rpc<void>('delete_photo', params: {'p_photo_id': photoId}),
   );
+
+  @override
+  Future<void> reportPhoto(String photoId, ReportReason reason) =>
+      guardBackend(() async {
+        await _db.rpc<void>(
+          'report_photo',
+          params: {'p_photo_id': photoId, 'p_reason': reason.name},
+        );
+        // Drop links signed before the report.
+        _signed.removeWhere((path, _) => path.contains('/$photoId/'));
+      });
 
   @override
   Future<void> updateCaption(String photoId, String? caption) =>

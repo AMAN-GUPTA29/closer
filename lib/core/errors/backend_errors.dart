@@ -29,6 +29,11 @@ String backendMessage(String key) => switch (key) {
   'renewal_required' => 'This group’s pass has ended. Renew it, or delete photos until fewer than 10 remain.',
   'premium_required' => 'Pinning photos is part of Keeploom Memories.',
   'taken_in_future' => 'The photo date can’t be in the future.',
+  'report_own_photo' =>
+    'You can’t report your own photo. You can delete it instead.',
+  'report_limit' =>
+    'You’ve sent a lot of reports today. Please try again tomorrow.',
+  'invalid_report' => 'Choose a reason for the report.',
   'invalid_cover_photo' => 'Choose a photo from this group.',
   'invalid_milestone' => 'This moment can’t be moved to another group.',
   'invalid_avatar' => 'That profile photo couldn’t be saved. Please try again.',

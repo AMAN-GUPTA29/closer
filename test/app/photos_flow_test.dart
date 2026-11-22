@@ -6,6 +6,7 @@ import 'package:closer/core/widgets/widgets.dart';
 import 'package:closer/features/groups/data/in_memory_groups_repository.dart';
 import 'package:closer/features/groups/presentation/group_home_screen.dart';
 import 'package:closer/features/photos/application/photo_providers.dart';
+import 'package:closer/features/photos/domain/photo_models.dart';
 import 'package:closer/features/photos/presentation/add_memory_screen.dart';
 import 'package:closer/features/purchases/upgrade_screen.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +64,16 @@ void main() {
     await tester.tap(find.text('Crew'));
     await tester.pumpAndSettle();
     expect(find.byType(GroupHomeScreen), findsOneWidget);
+  }
+
+  Future<void> openGroupWithHiddenPhotos(WidgetTester tester) async {
+    await tester.tap(find.text('Crew'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Photos you reported are hidden for you.'),
+      findsOneWidget,
+    );
+    expect(find.text('No memories yet'), findsNothing);
   }
 
   testWidgets('share a photo with a caption; it appears in the journal', (
@@ -167,6 +178,71 @@ void main() {
     expect(find.byType(PhotoViewer), findsNothing);
     final left = (await repo.photos(groupId)).photos;
     expect(left.single.caption, 'Beach 1');
+  });
+
+  testWidgets('report a photo: a reason is needed, then it is hidden', (
+    tester,
+  ) async {
+    repo
+      ..addMember(groupId, 'rahul', 'Rahul')
+      ..currentUserId = 'rahul';
+    final ids = await seedPhotos(repo, groupId, 2, caption: 'Party');
+    repo.currentUserId = testUser.id;
+    await pump(tester);
+    await openGroup(tester);
+
+    await tester.ensureVisible(find.text('Party 2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Party 2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Photo options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Report photo'));
+    await tester.pumpAndSettle();
+
+    final send = find.widgetWithText(CloserButton, 'Send report');
+    expect(tester.widget<CloserButton>(send).onPressed, isNull);
+    await tester.tap(find.text('Harassment or bullying'));
+    await tester.pumpAndSettle();
+    await tapButton(tester, 'Send report');
+
+    expect(find.byType(PhotoViewer), findsNothing);
+    expect(find.text('Reported. It’s now hidden for you.'), findsOneWidget);
+    expect(find.text('Party 2'), findsNothing);
+    expect(repo.reportBy(testUser.id, ids.last), ReportReason.harassment);
+    expect((await repo.photos(groupId)).photos, hasLength(1));
+    expect((await repo.group(groupId)).photoCount, 2);
+
+    repo.currentUserId = 'rahul';
+    expect((await repo.photos(groupId)).photos, hasLength(2));
+  });
+
+  testWidgets('your own photo has no report option', (tester) async {
+    await seedPhotos(repo, groupId, 1, caption: 'Mine');
+    await pump(tester);
+    await openGroup(tester);
+    await tester.ensureVisible(find.text('Mine 1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mine 1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Photo options'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete photo'), findsOneWidget);
+    expect(find.text('Report photo'), findsNothing);
+  });
+
+  testWidgets('a reported photo stops being the cover', (tester) async {
+    repo
+      ..addMember(groupId, 'rahul', 'Rahul')
+      ..currentUserId = 'rahul';
+    final ids = await seedPhotos(repo, groupId, 1);
+    repo.currentUserId = testUser.id;
+    expect((await repo.group(groupId)).latestThumbPath, isNotNull);
+    await repo.reportPhoto(ids.single, ReportReason.other);
+    expect((await repo.group(groupId)).latestThumbPath, isNull);
+    expect(await repo.pinnedPhotos(groupId), isEmpty);
+    await pump(tester);
+    await openGroupWithHiddenPhotos(tester);
   });
 
   testWidgets('upgrade screen never fakes a purchase', (tester) async {

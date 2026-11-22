@@ -51,6 +51,18 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
   }
 
   final _premiumUntil = <String, DateTime>{};
+  final _reports = <(String, String), ReportReason>{};
+
+  /// Reason [userId] gave for reporting a photo (for tests).
+  ReportReason? reportBy(String userId, String photoId) =>
+      _reports[(userId, photoId)];
+
+  bool _hidden(String photoId) =>
+      _reports.containsKey((currentUserId, photoId));
+
+  /// Active photos the current user may see (RLS hides reported ones).
+  List<_PhotoRow> _visible(String groupId) =>
+      _active(groupId).where((p) => !_hidden(p.id)).toList();
 
   /// Pass running or inside the grace period (server: is_group_premium).
   bool _isPremium(String groupId) {
@@ -104,7 +116,7 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
       .map((e) => e.key)
       .toList();
   List<Photo> activePhotosOf(String groupId) =>
-      _active(groupId).map(_toPhoto).toList();
+      _visible(groupId).map(_toPhoto).toList();
   bool isActivePhotoIn(String photoId, String groupId) {
     final p = _photos[photoId];
     return p != null && p.status == 'active' && p.groupId == groupId;
@@ -170,10 +182,12 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
       premiumExpiresAt: _premiumUntil[id],
       passEnded: _passEnded(id),
       latestThumbPath:
-          (g.coverPhotoId != null && _photos[g.coverPhotoId]?.status == 'active'
+          (g.coverPhotoId != null &&
+                  _photos[g.coverPhotoId]?.status == 'active' &&
+                  !_hidden(g.coverPhotoId!)
               ? _photos[g.coverPhotoId]!.thumbPath
               : null) ??
-          _active(id).firstOrNull?.thumbPath,
+          _visible(id).firstOrNull?.thumbPath,
       coverPhotoId: g.coverPhotoId,
     );
   }
@@ -548,7 +562,7 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
   }) async {
     await _wait();
     _requireMember(groupId);
-    var list = _active(groupId);
+    var list = _visible(groupId);
     if (before != null) {
       list = list.where((p) {
         final c = p.uploadedAt!.compareTo(before.uploadedAt);
@@ -659,7 +673,19 @@ class InMemoryGroupsRepository implements GroupsBackend, PhotosBackend {
   @override
   Future<List<Photo>> pinnedPhotos(String groupId) async {
     _requireMember(groupId);
-    return _active(groupId).where((p) => p.isPinned).map(_toPhoto).toList();
+    return _visible(groupId).where((p) => p.isPinned).map(_toPhoto).toList();
+  }
+
+  @override
+  Future<void> reportPhoto(String photoId, ReportReason reason) async {
+    await _wait();
+    if (_hidden(photoId)) return;
+    final p = _photos[photoId];
+    if (p == null || p.status != 'active' || !isMemberOf(p.groupId)) {
+      _fail('photo_not_found');
+    }
+    if (p.uploaderId == currentUserId) _fail('report_own_photo');
+    _reports[(currentUserId, photoId)] = reason;
   }
 
   @override

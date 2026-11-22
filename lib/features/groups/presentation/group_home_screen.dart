@@ -147,8 +147,14 @@ class _GroupHome extends ConsumerWidget {
                   ],
                   emptyState: EmptyState(
                     icon: CloserIcons.gallery,
-                    title: 'No memories yet',
-                    message: 'Share the first photo with ${group.name}.',
+                    // An empty journal with photos: this member reported
+                    // them all, so they are hidden.
+                    title: group.photoCount > 0
+                        ? 'Nothing to show'
+                        : 'No memories yet',
+                    message: group.photoCount > 0
+                        ? 'Photos you reported are hidden for you.'
+                        : 'Share the first photo with ${group.name}.',
                     action: CloserButton(
                       label: 'Share a photo',
                       icon: const Icon(CloserIcons.plus),

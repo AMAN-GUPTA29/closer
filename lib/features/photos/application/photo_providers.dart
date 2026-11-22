@@ -52,6 +52,11 @@ final photoImageProvider = FutureProvider.autoDispose
       (ref, key) => ref.watch(photosBackendProvider).image(key.$1, key.$2),
     );
 
+final pinnedPhotosProvider = FutureProvider.autoDispose
+    .family<List<Photo>, String>(
+      (ref, groupId) => ref.watch(photosBackendProvider).pinnedPhotos(groupId),
+    );
+
 /// A group's journal photos, newest first, loaded page by page.
 class PhotoFeed {
   const PhotoFeed({
@@ -127,6 +132,7 @@ class PhotoActions {
   void _refresh(String groupId) {
     _ref
       ..invalidate(groupPhotosProvider(groupId))
+      ..invalidate(pinnedPhotosProvider(groupId))
       ..invalidate(groupProvider(groupId))
       ..invalidate(myGroupsProvider)
       ..invalidate(journalProvider(groupId))
@@ -157,6 +163,12 @@ class PhotoActions {
   Future<void> delete(Photo photo) async {
     await _backend.deletePhoto(photo.id);
     _refresh(photo.groupId);
+  }
+
+  Future<void> report(Photo photo, ReportReason reason) async {
+    await _backend.reportPhoto(photo.id, reason);
+    _refresh(photo.groupId);
+    _ref.invalidate(notificationsProvider);
   }
 
   Future<void> setPinned(Photo photo, bool pinned) =>

@@ -42,10 +42,12 @@ abstract final class CloserIcons {
   static const IconData pin = LucideIcons.pin;
   static const IconData pinFilled = Icons.push_pin_rounded;
   static const IconData clock = LucideIcons.clock;
+  static const IconData report = LucideIcons.flag;
 
   // Form
   static const IconData email = LucideIcons.mail;
   static const IconData lock = LucideIcons.lock;
+  static const IconData unselected = LucideIcons.circle;
   static const IconData user = LucideIcons.user;
   static const IconData atSign = LucideIcons.atSign;
   static const IconData eye = LucideIcons.eye;

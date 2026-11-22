@@ -6,7 +6,7 @@ Keeploom is a private place to share photos and moments with the people closest 
 
 ## In short
 
-- Your groups are private. Only the members of a group can see its photos, captions, journal and milestones.
+- Your groups are private. Only the members of a group can see its photos, captions, journal and milestones. The one exception is a photo a member reports: the Keeploom team can review that photo.
 - We don't sell your data, show ads, or use your photos to train anything.
 - Notifications never include your photos or private captions.
 - You can delete your account at any time from Profile → Settings.
@@ -15,6 +15,7 @@ Keeploom is a private place to share photos and moments with the people closest 
 
 - **Account details:** your email address, a password (stored only as a secure hash), your display name, and optionally a username and a profile photo.
 - **What you share:** photos, captions, the date a photo was taken, journal entries, milestones and special moments, and the groups you create or join.
+- **Reports:** if you report a photo, we record who reported it, the reason, and the photo and caption that were reported.
 - **Purchases:** which group a Keeploom Memories pass applies to, when it was bought and when it ends. Payments are handled by Apple or Google; we never see your card details.
 - **Device details for notifications:** a push token for your phone, so we can tell you when something new is shared. You can turn notifications off in Profile.
 - **Basic technical data:** our hosting providers keep standard server logs (such as IP address and request times) for security and to keep the service running.
@@ -35,6 +36,7 @@ We don't use your data for advertising and we don't sell it.
 
 - **Members of a group** can see everything shared in that group, and the display name, username and profile photo of the other members.
 - **Invitations:** anyone you send an invite link or code to can use it to join that group until it expires or is used.
+- **The Keeploom team, for reports only:** when a member reports a photo, the team can see that photo, its caption, who shared it and who reported it, to decide what to do. We don't tell the person who shared it, or other members, who reported it. If something may be illegal, we may pass it to the police.
 - **Nobody else.** Photos are kept in private storage and shown only through short-lived links to signed-in members.
 
 ## Services we use
@@ -50,7 +52,8 @@ These providers may store data on servers outside your country. They are require
 ## How long we keep it
 
 - **Basic groups** (groups without a pass that have never had one, or were returned to Basic) keep the latest 10 photos. When a new photo is added to a full group, the oldest one is removed permanently.
-- **Photos you delete** are removed from storage shortly after.
+- **Photos you delete** are removed from storage shortly after, unless they are under review after a report.
+- **Reported photos** are kept until the review is finished, or for as long as the law or the police require, even if the photo, group or account is deleted meanwhile. We then keep a record of the report and its outcome, without the caption.
 - **When a Keeploom Memories pass ends or is refunded with no paid time left,** the group keeps every photo and has 30 days to renew. After that, new photos can be added only while the group has fewer than 10. Photos above 10 are not removed automatically: we keep them until the Keeploom team approves their removal, which is then permanent. The group then becomes a normal Basic group, and the Basic rule above applies again. To decide, the team needs only the group's name, dates, photo count and storage size, not the photos themselves.
 - **When you delete your account,** we delete your profile, sign-in details, memberships, notifications and settings. Photos and moments you shared with a group stay with that group for the other members, without your name. Groups where you were the only member are deleted.
 

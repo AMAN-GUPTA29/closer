@@ -298,8 +298,3 @@ List<Widget> pinnedSlivers(BuildContext context, WidgetRef ref, Group group) {
       ),
   ];
 }
-
-final pinnedPhotosProvider = FutureProvider.autoDispose
-    .family<List<Photo>, String>(
-      (ref, groupId) => ref.watch(photosBackendProvider).pinnedPhotos(groupId),
-    );
