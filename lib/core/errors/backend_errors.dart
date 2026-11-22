@@ -27,6 +27,12 @@ String backendMessage(String key) => switch (key) {
   'upload_expired' => 'This upload expired. Please share the photo again.',
   'photo_not_found' => 'That photo is no longer available.',
   'renewal_required' => 'This group’s pass has ended. Renew it, or delete photos until fewer than 10 remain.',
+  'upload_limit' =>
+    'You’ve shared a lot of photos today. Please try again tomorrow.',
+  'too_many_uploads' =>
+    'Too many photos are still uploading. Wait a moment and try again.',
+  'upload_too_large' => 'This photo is too large to upload.',
+  'group_limit' => 'You’ve created the maximum of 50 groups.',
   'premium_required' => 'Pinning photos is part of Keeploom Memories.',
   'taken_in_future' => 'The photo date can’t be in the future.',
   'report_own_photo' =>

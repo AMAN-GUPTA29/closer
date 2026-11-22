@@ -81,6 +81,11 @@ There is no seed data: users and groups are created through the app.
 | `storage_cleanup_jobs` | `object_path`, `group_id`, `photo_id`, `reason`, `status`, `attempts`, `next_attempt_at`, `lease_until`, `last_error` | Durable deletion queue; no client access |
 | storage bucket `photos` | private, 15 MB, `image/jpeg` only | Paths: `<group_id>/<photo_id>/original.jpg` and `thumb.jpg` |
 
+Storage limits and the daily storage watch (migration 11) are described in
+[security.md](security.md). The owner checks them in the SQL editor:
+`select * from public.storage_usage_log order by day desc;` and
+`select * from public.storage_by_user();`.
+
 `photo_reports` (migration 10, no client access) holds photo reports. A reported photo is hidden
 from its reporter by the photos RLS policy and `can_read_photo_object`, and
 `claim_cleanup_jobs` keeps its files while a report is open or held. See

@@ -29,7 +29,9 @@ select is(
      and p.proname in ('claim_cleanup_jobs', 'complete_cleanup_job', 'expire_stale_uploads',
                        'grant_group_entitlement', 'revoke_group_entitlement',
                        'record_store_purchase', 'prepare_account_deletion',
-                       'claim_push_batch', 'complete_push', 'enqueue_milestone_reminders')
+                       'claim_push_batch', 'complete_push', 'enqueue_milestone_reminders',
+                       'queue_orphan_avatars', 'check_storage_usage', 'storage_by_user',
+                       'photo_deletion_queue', 'photo_report_queue', 'resolve_photo_report')
      and has_function_privilege('authenticated', p.oid, 'execute')),
   0, 'server-only functions are not callable by signed-in users');
 
