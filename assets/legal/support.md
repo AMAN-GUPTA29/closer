@@ -10,7 +10,7 @@ Answers to common questions. If you can't find what you need, contact us at the 
 
 ## Photos
 
-- **Why did an old photo disappear?** A Basic group keeps its latest 10 photos. When a new one is added, the oldest is removed. Keeploom Memories keeps every photo.
+- **Why did an old photo disappear?** A Basic group keeps its latest 10 photos. When new ones take it over 10, the same number of the oldest are removed. Keeploom Memories keeps every photo.
 - **A photo didn't upload.** Check your connection and tap Retry. Nothing is shared twice.
 - **Can I delete a photo?** Yes. Open it, tap the options button and choose Delete photo. You can delete photos you shared; group owners can delete any photo in their group.
 

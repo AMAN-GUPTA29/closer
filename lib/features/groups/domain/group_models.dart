@@ -132,9 +132,13 @@ class Group {
   DateTime? get premiumGraceEnds =>
       premiumExpiresAt?.add(const Duration(days: premiumGraceDays));
 
-  /// True when the next upload will remove the oldest photo.
-  bool get nextUploadRemovesOldest =>
-      !isPremium && !passEnded && photoCount >= basicPhotoLimit;
+  /// How many of the oldest photos sharing [count] more will remove (the
+  /// server has the final say).
+  int removedBySharing(int count) {
+    if (isPremium || passEnded || count == 0) return 0;
+    final over = photoCount + count - basicPhotoLimit;
+    return over > 0 ? over : 0;
+  }
 
   bool get isOwner => myRole == MemberRole.owner;
 

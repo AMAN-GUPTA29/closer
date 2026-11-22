@@ -137,6 +137,32 @@ void main() {
       expect(InviteCodes.extractSecret(''), isNull);
     });
 
+    test('web links are tappable and keep the token after #', () {
+      final base = Uri.parse('https://keeploom.example/');
+      final link = InviteCodes.linkFor('Zx9_-token', webBase: base);
+      expect(link.toString(), 'https://keeploom.example/invite#t=Zx9_-token');
+      expect(link.query, isEmpty, reason: 'the host must not get the token');
+
+      const inv = CreatedInvitation(
+        invitationId: 'i',
+        code: 'ABCDEF23',
+        token: 'Zx9_-token',
+      );
+      final text = InviteCodes.shareMessage(
+        groupName: 'Us',
+        invitation: inv,
+        webBase: base,
+      );
+      expect(text, contains(link.toString()));
+      expect(text, isNot(contains('com.keeploom.app:')));
+      expect(InviteCodes.extractSecret(text), 'Zx9_-token');
+      expect(InviteCodes.extractSecret('$link'), 'Zx9_-token');
+      expect(
+        InviteCodes.extractSecret('https://keeploom.example/privacy'),
+        isNull,
+      );
+    });
+
     test('other app links are ignored', () {
       expect(
         inviteSecretFromUri(

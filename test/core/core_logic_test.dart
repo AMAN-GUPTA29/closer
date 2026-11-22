@@ -56,6 +56,22 @@ void main() {
       expect(badUrl.isSupabaseConfigured, isFalse);
     });
 
+    test('invite links only use an https website', () {
+      Uri? base(String value) => AppConfig(
+        supabaseUrl: '',
+        supabaseAnonKey: '',
+        googleAuthEnabled: false,
+        appleAuthEnabled: false,
+        supportEmail: '',
+        authRedirectUrl: AppConfig.defaultAuthRedirectUrl,
+        inviteLinkBase: value,
+      ).inviteWebBase;
+      expect(base(''), isNull);
+      expect(base('http://keeploom.example'), isNull);
+      expect(base('keeploom.example'), isNull);
+      expect(base('https://keeploom.example')?.host, 'keeploom.example');
+    });
+
     test('fromEnvironment defaults to unconfigured', () {
       final config = AppConfig.fromEnvironment();
       expect(config.isSupabaseConfigured, isFalse);

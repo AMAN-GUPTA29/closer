@@ -118,7 +118,7 @@ void main() {
         photoCount: 500,
         passEnded: true,
       );
-      expect(ended.nextUploadRemovesOldest, isFalse);
+      expect(ended.removedBySharing(3), 0);
       expect(ended.photosAtRisk, 490);
       expect(ended.canAdd(1), isFalse);
       expect(ended.copyWith(photoCount: 10).canAdd(1), isFalse);
@@ -129,9 +129,12 @@ void main() {
     });
 
     test('warns only when a Basic group is full', () {
-      expect(g(photos: 9).nextUploadRemovesOldest, isFalse);
-      expect(g(photos: 10).nextUploadRemovesOldest, isTrue);
-      expect(g(photos: 40, premium: true).nextUploadRemovesOldest, isFalse);
+      expect(g(photos: 9).removedBySharing(1), 0);
+      expect(g(photos: 9).removedBySharing(3), 2);
+      expect(g(photos: 10).removedBySharing(1), 1);
+      expect(g(photos: 10).removedBySharing(10), 10);
+      expect(g(photos: 10).removedBySharing(0), 0);
+      expect(g(photos: 40, premium: true).removedBySharing(3), 0);
       expect(photoHistoryLabel(g(photos: 7)), 'Basic · 7 of 10 photos kept');
       expect(
         photoHistoryLabel(g(premium: true)),

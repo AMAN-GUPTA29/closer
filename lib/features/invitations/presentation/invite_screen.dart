@@ -10,6 +10,7 @@ import '../../../core/theme/closer_icons.dart';
 import '../../../core/theme/closer_theme.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../auth/application/auth_providers.dart';
 import '../../groups/application/group_providers.dart';
 import '../../groups/domain/group_models.dart';
 import '../../groups/presentation/group_widgets.dart';
@@ -82,14 +83,19 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
   Future<void> _share(Group group, CreatedInvitation inv) async {
     await SharePlus.instance.share(
       ShareParams(
-        text: InviteCodes.shareMessage(groupName: group.name, invitation: inv),
+        text: InviteCodes.shareMessage(
+          groupName: group.name,
+          invitation: inv,
+          webBase: ref.read(appConfigProvider).inviteWebBase,
+        ),
         subject: 'Join ${group.name} on Keeploom',
       ),
     );
   }
 
   Future<void> _copyLink(CreatedInvitation inv) async {
-    await Clipboard.setData(ClipboardData(text: inv.link.toString()));
+    final link = inv.link(webBase: ref.read(appConfigProvider).inviteWebBase);
+    await Clipboard.setData(ClipboardData(text: link.toString()));
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()

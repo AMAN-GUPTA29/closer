@@ -206,6 +206,7 @@ void main() {
               'text': InviteCodes.shareMessage(
                 groupName: 'Our Family',
                 invitation: inv,
+                webBase: Uri.parse('https://keeploom.example'),
               ),
             }
           : null,
@@ -240,7 +241,7 @@ void main() {
     );
     expect(find.byType(OnboardingScreen), findsOneWidget);
 
-    links.add(inv.link);
+    links.add(inv.link());
     await tester.pumpAndSettle();
     // Not signed in yet: stays on Welcome, the invite is kept.
     expect(find.byType(OnboardingScreen), findsOneWidget);

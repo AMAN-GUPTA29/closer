@@ -122,7 +122,7 @@ class CreatedInvitation {
   final DateTime? expiresAt;
 
   String get displayCode => InviteCodes.format(code);
-  Uri get link => InviteCodes.linkFor(token);
+  Uri link({Uri? webBase}) => InviteCodes.linkFor(token, webBase: webBase);
 }
 
 @immutable
@@ -199,8 +199,19 @@ abstract final class InviteCodes {
   static bool looksLikeCode(String input) =>
       normalize(input).length == codeLength;
 
-  static Uri linkFor(String token) =>
-      Uri(scheme: scheme, host: host, queryParameters: {'t': token});
+  /// With a [webBase]: `https://<site>/invite#t=…`, which chat apps make
+  /// tappable. The token is after `#`, so it never reaches the web host.
+  static Uri linkFor(String token, {Uri? webBase}) => webBase == null
+      ? Uri(scheme: scheme, host: host, queryParameters: {'t': token})
+      : Uri(
+          scheme: webBase.scheme,
+          host: webBase.host,
+          port: webBase.hasPort ? webBase.port : null,
+          path: '/$host',
+          fragment: 't=$token',
+        );
+
+  static final _webLink = RegExp('https://[^\\s#]+/$host#t=([A-Za-z0-9_-]+)');
 
   /// Pulls an invitation secret out of a pasted link or code. Returns null
   /// when nothing usable is found.
@@ -213,6 +224,10 @@ abstract final class InviteCodes {
       final token = uri?.queryParameters['t'];
       if (token != null && token.isNotEmpty) return token;
     }
+    // Pasted by the user, and only ever sent to our own server, so any
+    // site address is accepted.
+    final web = _webLink.firstMatch(text);
+    if (web != null) return web.group(1);
     if (looksLikeCode(text)) return normalize(text);
     return null;
   }
@@ -221,9 +236,10 @@ abstract final class InviteCodes {
   static String shareMessage({
     required String groupName,
     required CreatedInvitation invitation,
+    Uri? webBase,
   }) {
     return 'Join "$groupName" on Keeploom.\n'
         'Invite code: ${invitation.displayCode}\n'
-        'Or open: ${invitation.link}';
+        'Or open: ${invitation.link(webBase: webBase)}';
   }
 }

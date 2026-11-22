@@ -1,13 +1,15 @@
 // Builds the public Keeploom web pages (privacy, terms, support, account
-// deletion) into site/dist for Vercel. The text comes from the same Markdown
+// deletion, invite) into site/dist for any static host. The text comes from the same Markdown
 // files the app shows (assets/legal), so the store links and the app always
 // match. No dependencies: only the small Markdown subset those files use.
 //
-//   node site/build.mjs            (SUPPORT_EMAIL=... to fill in the contact)
+//   node site/build.mjs            (SUPPORT_EMAIL=... to fill in the contact;
+//                                   PLAY_STORE_URL / APP_STORE_URL for /invite)
 
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { invitePage } from "./invite.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
@@ -133,4 +135,12 @@ writeFileSync(
 <ul>${pages.map((p) => `<li><a href="/${p.slug}">${render(readFileSync(p.file, "utf8")).title}</a></li>`).join("")}</ul>`,
   ),
 );
-console.log(`Built ${pages.length + 1} pages into site/dist${email ? "" : " (no SUPPORT_EMAIL set)"}`);
+writeFileSync(
+  join(out, "invite.html"),
+  invitePage({
+    css,
+    playUrl: process.env.PLAY_STORE_URL,
+    appStoreUrl: process.env.APP_STORE_URL,
+  }),
+);
+console.log(`Built ${pages.length + 2} pages into site/dist${email ? "" : " (no SUPPORT_EMAIL set)"}`);

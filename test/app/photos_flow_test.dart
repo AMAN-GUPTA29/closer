@@ -118,6 +118,37 @@ void main() {
     expect(photos.map((p) => p.id), isNot(contains(ids.first)));
   });
 
+  testWidgets('several photos warn with the number that will be removed', (
+    tester,
+  ) async {
+    await seedPhotos(repo, groupId, 9);
+    await pump(tester);
+    await openGroup(tester);
+    await tester.tap(find.byTooltip('Share a memory'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('will be removed'), findsNothing);
+
+    await addPhoto(tester);
+    expect(find.textContaining('will be removed'), findsNothing);
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.text('Add more'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Choose from gallery'));
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('The 2 oldest photos will be removed'), findsOneWidget);
+    expect(find.textContaining('Sharing these 3 photos'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.widgetWithText(InkWell, 'Share 3 photos with 1 group'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tapButton(tester, 'Share 3 photos with 1 group');
+    expect(find.textContaining('2 oldest photos were removed'), findsOneWidget);
+    expect((await repo.photos(groupId)).photos, hasLength(10));
+  });
+
   testWidgets('a failed upload shows Retry and does not duplicate', (
     tester,
   ) async {

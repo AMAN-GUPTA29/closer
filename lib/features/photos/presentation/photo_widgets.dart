@@ -176,20 +176,36 @@ String photoHistoryLabel(Group group) => group.isPremium
           '${group.photoCount == 1 ? 'photo' : 'photos'} kept'
     : 'Basic · ${group.photoCount} of ${Group.basicPhotoLimit} photos kept';
 
-/// Small retention notice shown before sharing into a full Basic group.
+/// Retention notice shown before a share that takes a Basic group over its
+/// limit.
 class RetentionNotice extends StatelessWidget {
-  const RetentionNotice({super.key, required this.group});
+  const RetentionNotice({
+    super.key,
+    required this.group,
+    required this.adding,
+    required this.removing,
+  });
 
   final Group group;
 
+  /// Photos about to be shared into [group].
+  final int adding;
+
+  /// Old photos that share will remove.
+  final int removing;
+
   @override
   Widget build(BuildContext context) {
+    final oldest = removing == 1
+        ? 'the oldest photo'
+        : 'the $removing oldest photos';
+    final sharing = adding == 1 ? 'this one' : 'these $adding photos';
     return NoticeCard(
       icon: CloserIcons.clock,
-      title: 'The oldest photo will be removed',
+      title: 'T${oldest.substring(1)} will be removed',
       message:
           '${group.name} keeps its latest ${Group.basicPhotoLimit} photos. '
-          'Sharing this one permanently deletes the oldest photo for '
+          'Sharing $sharing permanently deletes $oldest for '
           'everyone. Upgrade to Keeploom Memories to keep them all.',
     );
   }
