@@ -24,6 +24,28 @@ final previewModeAvailableProvider = Provider<bool>(
   (ref) => kDebugMode && !ref.watch(authRepositoryProvider).isConfigured,
 );
 
+/// Work that must finish while the user is still signed in, such as
+/// unregistering this phone from push. Registered by AppSync.
+class SignOutHooks {
+  final _hooks = <Future<void> Function()>{};
+
+  void add(Future<void> Function() hook) => _hooks.add(hook);
+  void remove(Future<void> Function() hook) => _hooks.remove(hook);
+
+  /// Runs every hook; a slow or failing one never blocks signing out.
+  Future<void> run() async {
+    for (final hook in _hooks.toList()) {
+      try {
+        await hook().timeout(const Duration(seconds: 5));
+      } catch (_) {
+        // Signing out must always succeed.
+      }
+    }
+  }
+}
+
+final signOutHooksProvider = Provider<SignOutHooks>((ref) => SignOutHooks());
+
 final authControllerProvider = NotifierProvider<AuthController, AuthStatus>(
   AuthController.new,
 );
@@ -70,6 +92,9 @@ class AuthController extends Notifier<AuthStatus> {
   }
 
   Future<void> signOut() async {
+    // Before the session ends: afterwards the server can't tell whose
+    // phone this is, and its notifications would keep arriving.
+    await ref.read(signOutHooksProvider).run();
     if (state is! PreviewSession) {
       await ref.read(authRepositoryProvider).signOut();
     }

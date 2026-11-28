@@ -61,9 +61,14 @@ class _AppSyncState extends ConsumerState<AppSync> with WidgetsBindingObserver {
   BannerContent? _banner;
   Timer? _bannerTimer;
 
+  late final SignOutHooks _signOutHooks;
+
+  Future<void> _stopPush() => ref.read(pushServiceProvider).stop();
+
   @override
   void initState() {
     super.initState();
+    _signOutHooks = ref.read(signOutHooksProvider)..add(_stopPush);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _onAuth(ref.read(authControllerProvider));
@@ -72,6 +77,7 @@ class _AppSyncState extends ConsumerState<AppSync> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _signOutHooks.remove(_stopPush);
     WidgetsBinding.instance.removeObserver(this);
     _bannerTimer?.cancel();
     _stopStreams();

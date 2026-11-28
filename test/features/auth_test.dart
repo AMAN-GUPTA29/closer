@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:closer/core/errors/app_failure.dart';
 import 'package:closer/features/auth/application/auth_providers.dart';
 import 'package:closer/features/auth/data/auth_repository.dart';
@@ -8,6 +10,31 @@ import 'package:flutter_test/flutter_test.dart';
 import '../helpers/fakes.dart';
 
 void main() {
+  test('push is turned off before the session ends', () async {
+    final auth = FakeAuthRepository(initialUser: testUser);
+    addTearDown(auth.dispose);
+    final c = ProviderContainer(
+      overrides: [
+        appConfigProvider.overrideWithValue(testConfig),
+        authRepositoryProvider.overrideWithValue(auth),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.read(authControllerProvider);
+    final order = <String>[];
+    c.read(signOutHooksProvider)
+      ..add(
+        () async =>
+            order.add('push off, signed in: ${auth.currentUser != null}'),
+      )
+      ..add(() => Future<void>.error(StateError('offline')))
+      ..add(() => Completer<void>().future);
+    await c.read(authControllerProvider.notifier).signOut();
+    expect(order, ['push off, signed in: true']);
+    expect(auth.calls, contains('signOut'));
+    expect(c.read(authControllerProvider), isA<SignedOut>());
+  }, timeout: const Timeout(Duration(seconds: 30)));
+
   group('authFailureFromCode', () {
     test('maps known codes to friendly messages', () {
       expect(

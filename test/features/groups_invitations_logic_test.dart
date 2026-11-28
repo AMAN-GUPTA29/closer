@@ -194,10 +194,58 @@ void main() {
     });
   });
 
+  group('Removed members', () {
+    test('cannot rejoin until the owner invites them again', () async {
+      final repo = InMemoryGroupsRepository(currentUserId: 'owner');
+      final g = await repo.createGroup(name: 'Crew', type: GroupType.friends);
+      final old = await repo.create(g);
+      repo.currentUserId = 'ex';
+      expect((await repo.redeem(old.code)).status, InviteStatus.joined);
+      final theirs = await repo.create(g);
+      repo.currentUserId = 'friend';
+      expect((await repo.redeem(old.code)).status, InviteStatus.joined);
+
+      repo.currentUserId = 'owner';
+      await repo.removeMember(g, 'ex');
+      repo.currentUserId = 'outsider';
+      expect(
+        (await repo.preview(theirs.code)).status,
+        InviteStatus.revoked,
+        reason: 'invitations the removed person made are cancelled',
+      );
+
+      repo.currentUserId = 'ex';
+      expect((await repo.preview(old.code)).status, InviteStatus.removed);
+      expect((await repo.redeem(old.code)).status, InviteStatus.removed);
+      expect(InviteStatus.removed.problem, contains('owner'));
+
+      repo.currentUserId = 'friend';
+      final fromFriend = await repo.create(g);
+      repo.currentUserId = 'ex';
+      expect((await repo.redeem(fromFriend.code)).status, InviteStatus.removed);
+
+      repo.currentUserId = 'owner';
+      final fresh = await repo.create(g);
+      repo.currentUserId = 'ex';
+      expect((await repo.redeem(fresh.code)).status, InviteStatus.joined);
+    });
+
+    test('someone who left can come back', () async {
+      final repo = InMemoryGroupsRepository(currentUserId: 'owner');
+      final g = await repo.createGroup(name: 'Crew', type: GroupType.friends);
+      final inv = await repo.create(g);
+      repo.currentUserId = 'pal';
+      await repo.redeem(inv.code);
+      await repo.leaveGroup(g);
+      expect((await repo.redeem(inv.code)).status, InviteStatus.joined);
+    });
+  });
+
   group('Invitation statuses', () {
     test('parse server statuses', () {
       expect(InviteStatus.parse('already_member'), InviteStatus.alreadyMember);
       expect(InviteStatus.parse('rate_limited'), InviteStatus.rateLimited);
+      expect(InviteStatus.parse('removed'), InviteStatus.removed);
       expect(InviteStatus.parse('???'), InviteStatus.invalid);
       for (final s in [
         InviteStatus.invalid,
