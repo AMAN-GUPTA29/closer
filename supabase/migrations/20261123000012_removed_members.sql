@@ -6,7 +6,8 @@
 --     one made afterwards by anyone other than the owner;
 --   * an invitation the owner creates after the removal lets them back in,
 --     which also clears the bar.
--- People who leave on their own are not barred.
+-- People who leave on their own are not barred, and can rejoin with the same
+-- invitation (which used to fail on a duplicate redemption row).
 
 create table public.group_removals (
   group_id uuid not null references public.groups (id) on delete cascade,
@@ -177,8 +178,11 @@ begin
     raise;
   end;
 
+  -- Someone who left and comes back with the same invitation is recorded once
+  -- (this failed before migration 12).
   insert into public.invitation_redemptions (invitation_id, group_id, user_id)
-  values (v_inv.id, v_inv.group_id, v_uid);
+  values (v_inv.id, v_inv.group_id, v_uid)
+  on conflict (invitation_id, user_id) do update set redeemed_at = now();
 
   -- Let back in by the owner: the bar is lifted.
   delete from public.group_removals r
